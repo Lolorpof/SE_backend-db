@@ -1,0 +1,19 @@
+name: t10_skillbridge
+services:
+  database:
+    image: postgres:17.2-alpine
+    container_name: t10-database
+    environment:
+      - POSTGRES_USER=${POSTGRES_SUPERUSER}
+      - POSTGRES_PASSWORD=${POSTGRES_SUPERPASSWORD}
+      - POSTGRES_DB=${POSTGRES_DB}
+    ports:
+      - ${POSTGRES_PORT}:5432
+    volumes:
+      - database_data:/var/lib/postgresql/data
+    networks:
+      - t10-network
+networks:
+  t10-network:
+volumes:
+  database_data:
