@@ -46,3 +46,16 @@ git push origin develop
 # ลบ feature branch (optional)
 git branch -d feature/new-feature
 ```
+
+# pgAdmin
+
+- run `docker compose up -d`
+- go to `http://localhost:5050/`
+- login with `PGADMIN_DEFAULT_EMAIL` and `PGADMIN_DEFAULT_PASSWORD`
+- add server
+  - name: anything you want
+  - host: `database`
+  - port: `5432`
+  - Maintenance database: =${POSTGRES_DB}
+  - Username: ${POSTGRES_SUPERUSER}
+  - Password: ${POSTGRES_SUPERPASSWORD}
