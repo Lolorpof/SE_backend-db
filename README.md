@@ -56,6 +56,6 @@ git branch -d feature/new-feature
   - name: anything you want
   - host: `database`
   - port: `5432`
-  - Maintenance database: =${POSTGRES_DB}
-  - Username: ${POSTGRES_SUPERUSER}
-  - Password: ${POSTGRES_SUPERPASSWORD}
+  - Maintenance database: `POSTGRES_DB`
+  - Username: `POSTGRES_SUPERUSER`
+  - Password: `POSTGRES_SUPERPASSWORD`
