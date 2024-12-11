@@ -29,6 +29,8 @@ GRANT ALL ON ALL TABLES IN SCHEMA public TO appuser;
 - `feature/` is the feature branch
 - `hotfix/` is the hotfix branch
 
+- First time branch push `git push -u origin develop`
+
 ```
 # สร้าง feature branch
 git checkout develop
