@@ -21,3 +21,28 @@ GRANT ALL ON SCHEMA public TO appuser;
 GRANT ALL ON SCHEMA drizzle TO appuser;
 GRANT ALL ON ALL TABLES IN SCHEMA public TO appuser;
 ```
+
+# GitFlow
+
+- `main` is the production branch
+- `develop` is the development branch
+- `feature/` is the feature branch
+- `hotfix/` is the hotfix branch
+
+```
+# สร้าง feature branch
+git checkout develop
+git checkout -b feature/new-feature
+
+# ทำการพัฒนาและ commit
+git add .
+git commit -m "Implement new feature"
+
+# เมื่อพัฒนาเสร็จ merge กลับเข้า develop
+git checkout develop
+git merge feature/new-feature
+git push origin develop
+
+# ลบ feature branch (optional)
+git branch -d feature/new-feature
+```
