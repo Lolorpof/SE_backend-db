@@ -198,3 +198,44 @@ export const userVulnerabilityTable = pgTable(
 );
 
 // Relations
+
+export const userRelations = relations(userTable, ({ one, many }) => ({
+  userProfile: one(userProfileTable),
+  vulnerabilities: many(userVulnerabilityTable),
+  jobSearchingPosts: many(jobSearchingTable),
+}));
+
+export const oauthUserRelations = relations(
+  oauthUserTable,
+  ({ one, many }) => ({
+    userProfile: one(userProfileTable),
+    vulnerabilities: many(userVulnerabilityTable),
+    jobSearchingPosts: many(jobSearchingTable),
+  })
+);
+
+export const userProfileRelations = relations(userProfileTable, ({ one }) => ({
+  belongsToUser: one(userTable, {
+    fields: [userProfileTable.userId],
+    references: [userTable.id],
+  }),
+  belongsToOauthUser: one(oauthUserTable, {
+    fields: [userProfileTable.oauthUserId],
+    references: [oauthUserTable.id],
+  }),
+}));
+
+export const companyRelations = relations(companyTable, ({ one, many }) => ({
+  companyProfile: one(companyProfileTable),
+  jobHiringPosts: many(jobHiringTable),
+}));
+
+export const companyProfileRelations = relations(
+  companyProfileTable,
+  ({ one }) => ({
+    belongsToCompany: one(companyTable, {
+      fields: [companyProfileTable.companyId],
+      references: [companyTable.id],
+    }),
+  })
+);
