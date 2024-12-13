@@ -239,3 +239,62 @@ export const companyProfileRelations = relations(
     }),
   })
 );
+
+export const jobCategoryRelations = relations(jobCategoryTable, ({ many }) => ({
+  inSearchCategories: many(jobSearchCategoryTable),
+  inHireCategories: many(jobHireCategoryTable),
+}));
+
+export const jobSearchingRelations = relations(
+  jobSearchingTable,
+  ({ one, many }) => ({
+    belongsToUser: one(userTable, {
+      fields: [jobSearchingTable.userId],
+      references: [userTable.id],
+    }),
+    belongsToOauth: one(oauthUserTable, {
+      fields: [jobSearchingTable.oauthUserId],
+      references: [oauthUserTable.id],
+    }),
+    inSearchCategories: many(jobSearchCategoryTable),
+  })
+);
+
+export const jobHiringRelations = relations(
+  jobHiringTable,
+  ({ one, many }) => ({
+    belongsToCompany: one(companyTable, {
+      fields: [jobHiringTable.companyId],
+      references: [companyTable.id],
+    }),
+    inHireCategories: many(jobHireCategoryTable),
+  })
+);
+
+export const jobSearchCategoryRelations = relations(
+  jobSearchCategoryTable,
+  ({ one }) => ({
+    fromSearching: one(jobSearchingTable, {
+      fields: [jobSearchCategoryTable.jobSearchingId],
+      references: [jobSearchingTable.id],
+    }),
+    fromCategory: one(jobCategoryTable, {
+      fields: [jobSearchCategoryTable.jobCategoryId],
+      references: [jobCategoryTable.id],
+    }),
+  })
+);
+
+export const jobHireCategoryRelations = relations(
+  jobHireCategoryTable,
+  ({ one }) => ({
+    fromHiring: one(jobHiringTable, {
+      fields: [jobHireCategoryTable.jobHiringId],
+      references: [jobHiringTable.id],
+    }),
+    fromCategory: one(jobCategoryTable, {
+      fields: [jobHireCategoryTable.jobCategoryId],
+      references: [jobCategoryTable.id],
+    }),
+  })
+);
