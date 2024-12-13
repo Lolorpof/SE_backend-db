@@ -201,7 +201,7 @@ export const userVulnerabilityTable = pgTable(
 
 export const userRelations = relations(userTable, ({ one, many }) => ({
   userProfile: one(userProfileTable),
-  vulnerabilities: many(userVulnerabilityTable),
+  inUserVulnerabilities: many(userVulnerabilityTable),
   jobSearchingPosts: many(jobSearchingTable),
 }));
 
@@ -209,7 +209,7 @@ export const oauthUserRelations = relations(
   oauthUserTable,
   ({ one, many }) => ({
     userProfile: one(userProfileTable),
-    vulnerabilities: many(userVulnerabilityTable),
+    inOauthUserVulnerabilities: many(userVulnerabilityTable),
     jobSearchingPosts: many(jobSearchingTable),
   })
 );
@@ -295,6 +295,42 @@ export const jobHireCategoryRelations = relations(
     fromCategory: one(jobCategoryTable, {
       fields: [jobHireCategoryTable.jobCategoryId],
       references: [jobCategoryTable.id],
+    }),
+  })
+);
+
+export const vulnerabilityTypeRelations = relations(
+  vulnerabilityTypeTable,
+  ({ many }) => ({
+    inUserVulnerabilities: many(userVulnerabilityTable),
+    inOauthUserVulnerabilities: many(oauthUserVulnerabilityTable),
+  })
+);
+
+export const userVulnerabilityRelations = relations(
+  userVulnerabilityTable,
+  ({ one }) => ({
+    fromUser: one(userTable, {
+      fields: [userVulnerabilityTable.userId],
+      references: [userTable.id],
+    }),
+    fromVulnerabilityType: one(vulnerabilityTypeTable, {
+      fields: [userVulnerabilityTable.vulnerabilityTypeId],
+      references: [vulnerabilityTypeTable.id],
+    }),
+  })
+);
+
+export const oauthUserVulnerabilityRelations = relations(
+  oauthUserVulnerabilityTable,
+  ({ one }) => ({
+    fromOauthUser: one(oauthUserTable, {
+      fields: [oauthUserVulnerabilityTable.oauthUserId],
+      references: [oauthUserTable.id],
+    }),
+    fromVulnerabilityType: one(vulnerabilityTypeTable, {
+      fields: [oauthUserVulnerabilityTable.vulnerabilityTypeId],
+      references: [vulnerabilityTypeTable.id],
     }),
   })
 );
