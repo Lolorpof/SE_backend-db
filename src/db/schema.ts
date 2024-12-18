@@ -53,11 +53,11 @@ export const userProfileTable = pgTable("user_profile", {
   contact: varchar("contact", { length: 255 }).notNull().unique(),
   userId: uuid("user_id")
     .notNull()
-    .default("UNDEFINED")
+    .defaultRandom()
     .references(() => userTable.id),
   oauthUserId: uuid("oauth_user_id")
     .notNull()
-    .default("UNDEFINED")
+    .defaultRandom()
     .references(() => oauthUserTable.id),
 });
 
@@ -86,11 +86,11 @@ export const jobSearchingTable = pgTable("job_searching", {
   description: varchar("description", { length: 540 }),
   userId: uuid("user_id")
     .notNull()
-    .default("UNDEFINED")
+    .defaultRandom()
     .references(() => userTable.id),
   oauthUserId: uuid("oauth_user_id")
     .notNull()
-    .default("UNDEFINED")
+    .defaultRandom()
     .references(() => oauthUserTable.id),
 });
 
@@ -100,7 +100,7 @@ export const jobHiringTable = pgTable("job_hiring", {
   description: varchar("description", { length: 540 }),
   companyId: uuid("company_id")
     .notNull()
-    .default("UNDEFINED")
+    .defaultRandom()
     .references(() => companyTable.id),
 });
 
