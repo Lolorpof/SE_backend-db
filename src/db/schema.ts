@@ -6,102 +6,311 @@ import {
   pgEnum,
   unique,
   primaryKey,
+  timestamp,
 } from "drizzle-orm/pg-core";
 
 const undef = "UNDEFINED";
 
 // Enum
-export const userRoleEnum = pgEnum("userRole", ["MEMBER", "ADMIN"]);
+export const userTypeEnum = pgEnum("userType", [
+  "JOBSEEKER",
+  "OAUTH_JOBSEEKER",
+  "EMPLOYER",
+  "OAUTH_EMPLOYER",
+  "COMPANY",
+  "OAUTH_COMPANY",
+  "ADMIN",
+  "OAUTH_ADMIN",
+]);
 
 export const severityLvlEnum = pgEnum("severityLvl", ["LOW", "MEDIUM", "HIGH"]);
 
 export const publicStatusEnum = pgEnum("publicStatus", ["SHOWN", "HIDDEN"]);
 
+export const oauthTypeEnum = pgEnum("oauthType", ["GOOGLE", "LINE"]);
+
+export const postStatusEnum = pgEnum("postStatus", ["MATCHED", "UNMATCHED"]);
+
+export const jobSeekerTypeEnum = pgEnum("jobSeekerType", ["AUTHEN", "OAUTH"]);
+
+export const jobHirerTypeEnum = pgEnum("jobHirerType", [
+  "AUTHENEMPLOYER",
+  "OAUTHEMPLOYER",
+  "AUTHENCOMPANY",
+  "OAUTHCOMPANY",
+]);
+
 // Tables
 
-export const userTable = pgTable(
-  "user",
+export const generalAddressTable = pgTable(
+  "general_address",
   {
-    id: uuid("id").primaryKey().defaultRandom(),
-    username: varchar("username", { length: 255 }).notNull(),
-    password: varchar("password", { length: 255 }).notNull(),
-    email: varchar("email", { length: 255 }).notNull().unique(),
-    role: userRoleEnum("role").notNull().default("MEMBER"),
+    id: uuid("id").primaryKey(),
+    province: varchar("province").notNull(),
+    district: varchar("district").notNull(),
+    subdistrict: varchar("sub_district").notNull(),
+    createdAt: timestamp("created_at").notNull().defaultNow(),
+    updatedAt: timestamp("updated_at")
+      .notNull()
+      .defaultNow()
+      .$onUpdate(() => new Date()),
   },
   (t) => [
     {
-      userPassUnique: unique("user_pass").on(t.username, t.password),
+      uniqueAddr: unique().on(t.province, t.district, t.subdistrict),
     },
   ]
 );
 
-export const oauthUserTable = pgTable("oauth_user", {
-  id: uuid("id").primaryKey(),
-  username: varchar("username", { length: 255 }).notNull(),
-  email: varchar("email", { length: 255 }).notNull().unique().default(undef),
-  role: userRoleEnum("role").notNull().default("MEMBER"),
-});
+//{Users Type}
+export const jobSeekerTable = pgTable(
+  "job_seeker",
+  {
+    id: uuid("id").primaryKey(),
+    username: varchar("username", { length: 255 }).notNull(),
+    password: varchar("password", { length: 255 }).notNull(),
+    firstName: varchar("first_name", { length: 255 }).notNull(),
+    lastName: varchar("last_name", { length: 255 }).notNull(),
+    email: varchar("email", { length: 255 }).notNull().unique(),
+    profilePicture: varchar("profile_picture", { length: 255 })
+      .notNull()
+      .default(undef),
+    aboutMe: varchar("about_me", { length: 2050 }),
+    contact: varchar("contact", { length: 255 }),
+    resume: varchar("resume", { length: 255 }).notNull().default(undef),
+    address: varchar("address", { length: 255 }),
+    generalAddrId: uuid("general_addr_id").references(
+      () => generalAddressTable.id
+    ),
+    createdAt: timestamp("created_at").notNull().defaultNow(),
+    updatedAt: timestamp("updated_at")
+      .notNull()
+      .defaultNow()
+      .$onUpdate(() => new Date()),
+  },
+  (t) => [
+    {
+      uniqueName: unique().on(t.firstName, t.lastName),
+      uniqueAccount: unique().on(t.username, t.password),
+    },
+  ]
+);
 
-export const userProfileTable = pgTable("user_profile", {
-  id: uuid("id").primaryKey(),
-  firstName: varchar("first_name", { length: 255 }).notNull().unique(),
-  lastName: varchar("last_name", { length: 255 }).notNull().unique(),
-  about: varchar("about", { length: 2048 }),
-  profilePicture: varchar("profile_picture", { length: 255 })
-    .notNull()
-    .unique(),
-  contact: varchar("contact", { length: 255 }).notNull().unique(),
-  userId: uuid("user_id")
-    .notNull()
-    .defaultRandom()
-    .references(() => userTable.id),
-  oauthUserId: uuid("oauth_user_id")
-    .notNull()
-    .defaultRandom()
-    .references(() => oauthUserTable.id),
-});
+export const oauthJobSeekerTable = pgTable(
+  "oauth_job_seeker",
+  {
+    id: uuid("id").primaryKey(),
+    username: varchar("username", { length: 255 }).notNull(),
+    firstName: varchar("first_name", { length: 255 }).notNull(),
+    lastName: varchar("last_name", { length: 255 }).notNull(),
+    email: varchar("email", { length: 255 }).notNull().unique(),
+    profilePicture: varchar("profile_picture", { length: 255 })
+      .notNull()
+      .default(undef),
+    aboutMe: varchar("about_me", { length: 2050 }),
+    contact: varchar("contact", { length: 255 }),
+    resume: varchar("resume", { length: 255 }).notNull().default(undef),
+    oauthType: oauthTypeEnum("oauth_type").notNull(),
+    address: varchar("address", { length: 255 }),
+    generalAddrId: uuid("general_addr_id").references(
+      () => generalAddressTable.id
+    ),
+    createdAt: timestamp("created_at").notNull().defaultNow(),
+    updatedAt: timestamp("updated_at")
+      .notNull()
+      .defaultNow()
+      .$onUpdate(() => new Date()),
+  },
+  (t) => [
+    {
+      uniqueName: unique().on(t.firstName, t.lastName),
+    },
+  ]
+);
+
+export const employerTable = pgTable(
+  "employer",
+  {
+    id: uuid("id").primaryKey(),
+    username: varchar("username", { length: 255 }).notNull(),
+    password: varchar("password", { length: 255 }).notNull(),
+    firstName: varchar("first_name", { length: 255 }).notNull(),
+    lastName: varchar("last_name", { length: 255 }).notNull(),
+    email: varchar("email", { length: 255 }).notNull().unique(),
+    profilePicture: varchar("profile_picture", { length: 255 })
+      .notNull()
+      .default(undef),
+    aboutMe: varchar("about_me", { length: 2050 }),
+    contact: varchar("contact", { length: 255 }),
+    address: varchar("address", { length: 255 }),
+    generalAddrId: uuid("general_addr_id").references(
+      () => generalAddressTable.id
+    ),
+    createdAt: timestamp("created_at").notNull().defaultNow(),
+    updatedAt: timestamp("updated_at")
+      .notNull()
+      .defaultNow()
+      .$onUpdate(() => new Date()),
+  },
+  (t) => [
+    {
+      uniqueName: unique().on(t.firstName, t.lastName),
+      uniqueAccount: unique().on(t.username, t.password),
+    },
+  ]
+);
+
+export const oauthEmployerTable = pgTable(
+  "oauth_employer",
+  {
+    id: uuid("id").primaryKey(),
+    username: varchar("username", { length: 255 }).notNull(),
+    firstName: varchar("first_name", { length: 255 }).notNull(),
+    lastName: varchar("last_name", { length: 255 }).notNull(),
+    email: varchar("email", { length: 255 }).notNull().unique(),
+    profilePicture: varchar("profile_picture", { length: 255 })
+      .notNull()
+      .default(undef),
+    aboutMe: varchar("about_me", { length: 2050 }),
+    contact: varchar("contact", { length: 255 }),
+    oauthType: oauthTypeEnum("oauth_type").notNull(),
+    address: varchar("address", { length: 255 }),
+    generalAddrId: uuid("general_addr_id").references(
+      () => generalAddressTable.id
+    ),
+    createdAt: timestamp("created_at").notNull().defaultNow(),
+    updatedAt: timestamp("updated_at")
+      .notNull()
+      .defaultNow()
+      .$onUpdate(() => new Date()),
+  },
+  (t) => [
+    {
+      uniqueName: unique().on(t.firstName, t.lastName),
+    },
+  ]
+);
 
 export const companyTable = pgTable("company", {
   id: uuid("id").primaryKey(),
-  companyName: varchar("company_name", { length: 255 }).notNull().unique(),
+  officialName: varchar("official_name", { length: 255 }).notNull().unique(),
   password: varchar("password", { length: 255 }).notNull(),
   email: varchar("email", { length: 255 }).notNull().unique(),
-});
-
-export const companyProfileTable = pgTable("company_profile", {
-  id: uuid("id").primaryKey(),
-  about: varchar("about", { length: 2048 }),
-  profilePicture: varchar("profile_picture", { length: 255 }),
+  profile_picture: varchar("profile_picture", { length: 255 })
+    .notNull()
+    .default(undef),
+  aboutUs: varchar("about_us", { length: 2050 }),
   contact: varchar("contact", { length: 255 }),
-  location: varchar("location", { length: 255 }),
-  companyId: uuid("company_id")
+  address: varchar("address", { length: 255 }),
+  generalAddrId: uuid("general_addr_id").references(
+    () => generalAddressTable.id
+  ),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at")
     .notNull()
-    .unique()
-    .references(() => companyTable.id),
+    .defaultNow()
+    .$onUpdate(() => new Date()),
 });
 
-export const jobSearchingTable = pgTable("job_searching", {
+export const oauthCompanyTable = pgTable("oauth_company", {
+  id: uuid("id").primaryKey(),
+  officialName: varchar("official_name", { length: 255 }).notNull().unique(),
+  email: varchar("email", { length: 255 }).notNull().unique(),
+  profile_picture: varchar("profile_picture", { length: 255 })
+    .notNull()
+    .default(undef),
+  aboutUs: varchar("about_us", { length: 2050 }),
+  contact: varchar("contact", { length: 255 }),
+  oauthType: oauthTypeEnum("oauth_type").notNull(),
+  address: varchar("address", { length: 255 }),
+  generalAddrId: uuid("general_addr_id").references(
+    () => generalAddressTable.id
+  ),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at")
+    .notNull()
+    .defaultNow()
+    .$onUpdate(() => new Date()),
+});
+
+export const adminTable = pgTable(
+  "admin",
+  {
+    id: uuid("id").primaryKey(),
+    username: varchar("username", { length: 255 }).notNull(),
+    password: varchar("varchar", { length: 255 }).notNull(),
+    email: varchar("email", { length: 255 }).notNull().unique(),
+    profilePicture: varchar("profile_picture", { length: 255 })
+      .notNull()
+      .default(undef),
+    contact: varchar("varchar", { length: 255 }),
+    createdAt: timestamp("created_at").notNull().defaultNow(),
+    updatedAt: timestamp("updated_at")
+      .notNull()
+      .defaultNow()
+      .$onUpdate(() => new Date()),
+  },
+  (t) => [
+    {
+      uniqueAccount: unique().on(t.username, t.password),
+    },
+  ]
+);
+
+export const oauthAdminTable = pgTable("oauth_admin", {
+  id: uuid("id").primaryKey(),
+  username: varchar("username", { length: 255 }).notNull(),
+  email: varchar("email", { length: 255 }).notNull().unique(),
+  profilePicture: varchar("profile_picture", { length: 255 })
+    .notNull()
+    .default(undef),
+  contact: varchar("varchar", { length: 255 }),
+  oauthType: oauthTypeEnum("oauth_type").notNull(),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at")
+    .notNull()
+    .defaultNow()
+    .$onUpdate(() => new Date()),
+});
+
+// {Jobs}
+
+export const jobFindingPostTable = pgTable("job_finding_post", {
   id: uuid("id").primaryKey(),
   title: varchar("title", { length: 255 }).notNull(),
   description: varchar("description", { length: 540 }),
-  userId: uuid("user_id")
+  status: postStatusEnum("status").notNull().default("UNMATCHED"),
+  userType: jobSeekerTypeEnum("user_type").notNull(),
+  jobSeekerId: uuid("job_seeker_id").references(() => jobSeekerTable.id),
+  oauthJobSeekerId: uuid("oauth_job_seeker_id").references(
+    () => oauthJobSeekerTable.id
+  ),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at")
     .notNull()
-    .defaultRandom()
-    .references(() => userTable.id),
-  oauthUserId: uuid("oauth_user_id")
-    .notNull()
-    .defaultRandom()
-    .references(() => oauthUserTable.id),
+    .defaultNow()
+    .$onUpdate(() => new Date()),
 });
 
-export const jobHiringTable = pgTable("job_hiring", {
+export const jobHiringPostTable = pgTable("job_hiring_post", {
   id: uuid("id").primaryKey(),
   title: varchar("title", { length: 255 }).notNull(),
   description: varchar("description", { length: 540 }),
-  companyId: uuid("company_id")
+  status: postStatusEnum("status").notNull().default("UNMATCHED"),
+  userType: jobHirerTypeEnum("job_hirer_type").notNull(),
+  employerId: uuid("employer_id").references(() => employerTable.id),
+  oauthEmployerId: uuid("oauth_employer_id").references(
+    () => oauthEmployerTable.id
+  ),
+  companyId: uuid("company_id").references(() => companyTable.id),
+  oauthCompanyId: uuid("oauth_company_id").references(
+    () => oauthCompanyTable.id
+  ),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at")
     .notNull()
-    .defaultRandom()
-    .references(() => companyTable.id),
+    .defaultNow()
+    .$onUpdate(() => new Date()),
 });
 
 export const jobCategoryTable = pgTable("job_category", {
@@ -110,12 +319,12 @@ export const jobCategoryTable = pgTable("job_category", {
   description: varchar("description", { length: 540 }),
 });
 
-export const jobSearchCategoryTable = pgTable(
-  "job_search_category",
+export const jobFindCategoryTable = pgTable(
+  "job_find_category",
   {
-    jobSearchingId: uuid("job_searching_id")
+    jobFindingPostId: uuid("job_finding_post_id")
       .notNull()
-      .references(() => jobSearchingTable.id),
+      .references(() => jobFindingPostTable.id),
     jobCategoryId: uuid("job_category_id")
       .notNull()
       .references(() => jobCategoryTable.id),
@@ -123,7 +332,7 @@ export const jobSearchCategoryTable = pgTable(
   (t) => [
     {
       searchCategoryPK: primaryKey({
-        columns: [t.jobSearchingId, t.jobCategoryId],
+        columns: [t.jobFindingPostId, t.jobCategoryId],
       }),
     },
   ]
@@ -132,9 +341,9 @@ export const jobSearchCategoryTable = pgTable(
 export const jobHireCategoryTable = pgTable(
   "job_hire_category",
   {
-    jobHiringId: uuid("job_hiring_id")
+    jobHiringPostId: uuid("job_hiring_id")
       .notNull()
-      .references(() => jobHiringTable.id),
+      .references(() => jobHiringPostTable.id),
     jobCategoryId: uuid("job_category_id")
       .notNull()
       .references(() => jobCategoryTable.id),
@@ -142,7 +351,7 @@ export const jobHireCategoryTable = pgTable(
   (t) => [
     {
       hireCategoryPK: primaryKey({
-        columns: [t.jobHiringId, t.jobCategoryId],
+        columns: [t.jobHiringPostId, t.jobCategoryId],
       }),
     },
   ]
@@ -154,35 +363,35 @@ export const vulnerabilityTypeTable = pgTable("vulnerability_type", {
   description: varchar("description", { length: 2048 }),
 });
 
-export const oauthUserVulnerabilityTable = pgTable(
-  "oauth_user_vulnerability",
+export const oauthJobSeekerVulnerabilityTable = pgTable(
+  "oauth_job_seeker_vulnerability",
   {
     id: uuid("id").primaryKey(),
     severity: severityLvlEnum("severity").notNull().default("LOW"),
     publicStatus: publicStatusEnum("public_status").notNull().default("SHOWN"),
-    oauthUserId: uuid("oauth_user_id")
+    oauthJobSeekerId: uuid("oauth_job_seeker_id")
       .notNull()
-      .references(() => oauthUserTable.id),
+      .references(() => oauthJobSeekerTable.id),
     vulnerabilityTypeId: uuid("vulnerability_type_id")
       .notNull()
       .references(() => vulnerabilityTypeTable.id),
   },
   (t) => [
     {
-      userVulUnique: unique().on(t.oauthUserId, t.vulnerabilityTypeId),
+      userVulUnique: unique().on(t.oauthJobSeekerId, t.vulnerabilityTypeId),
     },
   ]
 );
 
-export const userVulnerabilityTable = pgTable(
-  "user_vulnerability",
+export const jobSeekerVulnerabilityTable = pgTable(
+  "job_seeker_vulnerability",
   {
     id: uuid("id").primaryKey(),
     severity: severityLvlEnum("severity").notNull().default("LOW"),
     publicStatus: publicStatusEnum("public_status").notNull().default("SHOWN"),
-    userId: uuid("user_id")
+    jobSeekerId: uuid("job_seeker_id")
       .notNull()
-      .references(() => userTable.id),
+      .references(() => jobSeekerTable.id),
     vulnerabilityTypeId: uuid("vulnerability_type_id")
       .notNull()
       .references(() => vulnerabilityTypeTable.id),
@@ -190,7 +399,7 @@ export const userVulnerabilityTable = pgTable(
   (t) => [
     {
       userVulUnique: unique("user_vul_unique").on(
-        t.userId,
+        t.jobSeekerId,
         t.vulnerabilityTypeId
       ),
     },
@@ -198,139 +407,3 @@ export const userVulnerabilityTable = pgTable(
 );
 
 // Relations
-
-export const userRelations = relations(userTable, ({ one, many }) => ({
-  userProfile: one(userProfileTable),
-  inUserVulnerabilities: many(userVulnerabilityTable),
-  jobSearchingPosts: many(jobSearchingTable),
-}));
-
-export const oauthUserRelations = relations(
-  oauthUserTable,
-  ({ one, many }) => ({
-    userProfile: one(userProfileTable),
-    inOauthUserVulnerabilities: many(userVulnerabilityTable),
-    jobSearchingPosts: many(jobSearchingTable),
-  })
-);
-
-export const userProfileRelations = relations(userProfileTable, ({ one }) => ({
-  belongsToUser: one(userTable, {
-    fields: [userProfileTable.userId],
-    references: [userTable.id],
-  }),
-  belongsToOauthUser: one(oauthUserTable, {
-    fields: [userProfileTable.oauthUserId],
-    references: [oauthUserTable.id],
-  }),
-}));
-
-export const companyRelations = relations(companyTable, ({ one, many }) => ({
-  companyProfile: one(companyProfileTable),
-  jobHiringPosts: many(jobHiringTable),
-}));
-
-export const companyProfileRelations = relations(
-  companyProfileTable,
-  ({ one }) => ({
-    belongsToCompany: one(companyTable, {
-      fields: [companyProfileTable.companyId],
-      references: [companyTable.id],
-    }),
-  })
-);
-
-export const jobCategoryRelations = relations(jobCategoryTable, ({ many }) => ({
-  inSearchCategories: many(jobSearchCategoryTable),
-  inHireCategories: many(jobHireCategoryTable),
-}));
-
-export const jobSearchingRelations = relations(
-  jobSearchingTable,
-  ({ one, many }) => ({
-    belongsToUser: one(userTable, {
-      fields: [jobSearchingTable.userId],
-      references: [userTable.id],
-    }),
-    belongsToOauth: one(oauthUserTable, {
-      fields: [jobSearchingTable.oauthUserId],
-      references: [oauthUserTable.id],
-    }),
-    inSearchCategories: many(jobSearchCategoryTable),
-  })
-);
-
-export const jobHiringRelations = relations(
-  jobHiringTable,
-  ({ one, many }) => ({
-    belongsToCompany: one(companyTable, {
-      fields: [jobHiringTable.companyId],
-      references: [companyTable.id],
-    }),
-    inHireCategories: many(jobHireCategoryTable),
-  })
-);
-
-export const jobSearchCategoryRelations = relations(
-  jobSearchCategoryTable,
-  ({ one }) => ({
-    fromSearching: one(jobSearchingTable, {
-      fields: [jobSearchCategoryTable.jobSearchingId],
-      references: [jobSearchingTable.id],
-    }),
-    fromCategory: one(jobCategoryTable, {
-      fields: [jobSearchCategoryTable.jobCategoryId],
-      references: [jobCategoryTable.id],
-    }),
-  })
-);
-
-export const jobHireCategoryRelations = relations(
-  jobHireCategoryTable,
-  ({ one }) => ({
-    fromHiring: one(jobHiringTable, {
-      fields: [jobHireCategoryTable.jobHiringId],
-      references: [jobHiringTable.id],
-    }),
-    fromCategory: one(jobCategoryTable, {
-      fields: [jobHireCategoryTable.jobCategoryId],
-      references: [jobCategoryTable.id],
-    }),
-  })
-);
-
-export const vulnerabilityTypeRelations = relations(
-  vulnerabilityTypeTable,
-  ({ many }) => ({
-    inUserVulnerabilities: many(userVulnerabilityTable),
-    inOauthUserVulnerabilities: many(oauthUserVulnerabilityTable),
-  })
-);
-
-export const userVulnerabilityRelations = relations(
-  userVulnerabilityTable,
-  ({ one }) => ({
-    fromUser: one(userTable, {
-      fields: [userVulnerabilityTable.userId],
-      references: [userTable.id],
-    }),
-    fromVulnerabilityType: one(vulnerabilityTypeTable, {
-      fields: [userVulnerabilityTable.vulnerabilityTypeId],
-      references: [vulnerabilityTypeTable.id],
-    }),
-  })
-);
-
-export const oauthUserVulnerabilityRelations = relations(
-  oauthUserVulnerabilityTable,
-  ({ one }) => ({
-    fromOauthUser: one(oauthUserTable, {
-      fields: [oauthUserVulnerabilityTable.oauthUserId],
-      references: [oauthUserTable.id],
-    }),
-    fromVulnerabilityType: one(vulnerabilityTypeTable, {
-      fields: [oauthUserVulnerabilityTable.vulnerabilityTypeId],
-      references: [vulnerabilityTypeTable.id],
-    }),
-  })
-);
