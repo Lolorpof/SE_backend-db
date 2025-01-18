@@ -5,29 +5,8 @@
     {
       "idx": 0,
       "version": "7",
-      "when": 1732972391452,
-      "tag": "0000_sparkling_bedlam",
-      "breakpoints": true
-    },
-    {
-      "idx": 1,
-      "version": "7",
-      "when": 1732973999036,
-      "tag": "0001_slim_the_enforcers",
-      "breakpoints": true
-    },
-    {
-      "idx": 2,
-      "version": "7",
-      "when": 1732974025113,
-      "tag": "0002_loose_doorman",
-      "breakpoints": true
-    },
-    {
-      "idx": 3,
-      "version": "7",
-      "when": 1734504708154,
-      "tag": "0003_ancient_joseph",
+      "when": 1737219542935,
+      "tag": "0000_conscious_shaman",
       "breakpoints": true
     }
   ]
