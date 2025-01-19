@@ -611,3 +611,28 @@ export const notificationTable = pgTable("notification", {
 });
 
 // Relations
+
+export const jobSeekerRelation = relations(jobSeekerTable, ({ many }) => {
+  return {
+    vulnerabilities: many(jobSeekerVulnerabilityTable),
+    skills: many(jobSeekerSkillTable),
+    registrationApproval: many(registrationApprovalTable),
+    jobFindingPosted: many(jobFindingPostTable),
+    matchedJobHiringPost: many(jobHiringPostMatchedSeekersTable),
+    notify: many(notificationTable),
+  };
+});
+
+export const oauthJobSeekerRelation = relations(
+  oauthJobSeekerTable,
+  ({ many }) => {
+    return {
+      vulnerabilities: many(oauthJobSeekerVulnerabilityTable),
+      skills: many(oauthJobSeekerSkillTable),
+      registrationApproval: many(registrationApprovalTable),
+      jobFindingPosted: many(jobFindingPostTable),
+      matchedJobHiringPost: many(jobHiringPostMatchedSeekersTable),
+      notify: many(notificationTable),
+    };
+  }
+);
