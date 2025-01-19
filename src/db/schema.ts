@@ -81,27 +81,6 @@ export const oauthTypeEnum = pgEnum("oauthType", ["GOOGLE", "LINE"]);
 
 // Tables
 
-export const registrationApprovalTable = pgTable("registration_approval", {
-  id: uuid("id").primaryKey(),
-  status: approvalStatusEnum("status").notNull().default("UNAPPROVED"),
-  userType: normalUserTypeEnum("user_type").notNull(), // user's approved
-  jobSeekerId: uuid("job_seeker_id").references(() => jobSeekerTable.id),
-  oauthJobSeekerId: uuid("oauth_job_seeker_id").references(
-    () => oauthJobSeekerTable.id
-  ),
-  employerId: uuid("employer_id").references(() => employerTable.id),
-  oauthEmployerId: uuid("oauth_employer_id").references(
-    () => oauthEmployerTable.id
-  ),
-  companyId: uuid("company_id").references(() => companyTable.id),
-  oauthCompanyId: uuid("oauth_company_id").references(
-    () => oauthCompanyTable.id
-  ),
-  adminType: adminTypeEnum("admin_type").notNull(), // approved by
-  adminId: uuid("admin_id").references(() => adminTable.id),
-  oauthAdminId: uuid("oauth_admin_id").references(() => oauthAdminTable.id),
-});
-
 //{Users Type}
 export const jobSeekerTable = pgTable(
   "job_seeker",
@@ -585,6 +564,33 @@ export const jobSeekerSkillTable = pgTable(
 
 // {Others}
 
+export const registrationApprovalTable = pgTable("registration_approval", {
+  id: uuid("id").primaryKey(),
+  status: approvalStatusEnum("status").notNull().default("UNAPPROVED"),
+  userType: normalUserTypeEnum("user_type").notNull(), // user's approved
+  jobSeekerId: uuid("job_seeker_id").references(() => jobSeekerTable.id),
+  oauthJobSeekerId: uuid("oauth_job_seeker_id").references(
+    () => oauthJobSeekerTable.id
+  ),
+  employerId: uuid("employer_id").references(() => employerTable.id),
+  oauthEmployerId: uuid("oauth_employer_id").references(
+    () => oauthEmployerTable.id
+  ),
+  companyId: uuid("company_id").references(() => companyTable.id),
+  oauthCompanyId: uuid("oauth_company_id").references(
+    () => oauthCompanyTable.id
+  ),
+  adminType: adminTypeEnum("admin_type").notNull(), // approved by
+  adminId: uuid("admin_id").references(() => adminTable.id),
+  oauthAdminId: uuid("oauth_admin_id").references(() => oauthAdminTable.id),
+  createdAt: timestamp("created_at").notNull().defaultNow(), // registered time
+  approvedAt: timestamp("approved_at"),
+  updatedAt: timestamp("updated_at")
+    .notNull()
+    .defaultNow()
+    .$onUpdate(() => new Date()),
+});
+
 export const notificationTable = pgTable("notification", {
   id: uuid("id").primaryKey(),
   status: notificationStatusEnum("status").notNull().default("UNREAD"),
@@ -612,6 +618,8 @@ export const notificationTable = pgTable("notification", {
 
 // Relations
 
+// {Users}
+
 export const jobSeekerRelation = relations(jobSeekerTable, ({ many }) => {
   return {
     vulnerabilities: many(jobSeekerVulnerabilityTable),
@@ -636,3 +644,358 @@ export const oauthJobSeekerRelation = relations(
     };
   }
 );
+
+export const employerRelation = relations(employerTable, ({ many }) => {
+  return {
+    registrationApproval: many(registrationApprovalTable),
+    jobHiringPosted: many(jobHiringPostTable),
+    matchedJobFindingPost: many(jobFindingPostMatchedTable),
+    notify: many(notificationTable),
+  };
+});
+
+export const oauthEmployerRelation = relations(
+  oauthEmployerTable,
+  ({ many }) => {
+    return {
+      registrationApproval: many(registrationApprovalTable),
+      jobHiringPosted: many(jobHiringPostTable),
+      matchedJobFindingPost: many(jobFindingPostMatchedTable),
+      notify: many(notificationTable),
+    };
+  }
+);
+
+export const companyRelation = relations(companyTable, ({ many }) => {
+  return {
+    registrationApproval: many(registrationApprovalTable),
+    jobHiringPosted: many(jobHiringPostTable),
+    matchedJobFindingPost: many(jobFindingPostMatchedTable),
+    notify: many(notificationTable),
+  };
+});
+
+export const oauthCompanyRelation = relations(oauthCompanyTable, ({ many }) => {
+  return {
+    registrationApproval: many(registrationApprovalTable),
+    jobHiringPosted: many(jobHiringPostTable),
+    matchedJobFindingPost: many(jobFindingPostMatchedTable),
+    notify: many(notificationTable),
+  };
+});
+
+export const adminRelation = relations(adminTable, ({ many }) => {
+  return {
+    approvedBy: many(registrationApprovalTable),
+  };
+});
+
+export const oauthAdminRelation = relations(oauthAdminTable, ({ many }) => {
+  return {
+    approvedBy: many(registrationApprovalTable),
+  };
+});
+
+// {Jobs}
+
+export const jobFindingPostRelation = relations(
+  jobFindingPostTable,
+  ({ one, many }) => {
+    return {
+      postMatched: many(jobFindingPostMatchedTable), //only one should be accepted
+      inCategory: many(jobFindCategoryTable),
+      postByNormal: one(jobSeekerTable, {
+        fields: [jobFindingPostTable.jobSeekerId],
+        references: [jobSeekerTable.id],
+      }),
+      postByOauth: one(oauthJobSeekerTable, {
+        fields: [jobFindingPostTable.oauthJobSeekerId],
+        references: [oauthJobSeekerTable.id],
+      }),
+    };
+  }
+);
+
+export const jobHiringPostRelation = relations(
+  jobHiringPostTable,
+  ({ one, many }) => {
+    return {
+      postMatched: many(jobHiringPostMatchedTable), //only one should be accepted
+      inCategory: many(jobHireCategoryTable),
+      postByEmployer: one(employerTable, {
+        fields: [jobHiringPostTable.employerId],
+        references: [employerTable.id],
+      }),
+      postByOauthEmployer: one(oauthEmployerTable, {
+        fields: [jobHiringPostTable.oauthEmployerId],
+        references: [oauthEmployerTable.id],
+      }),
+      postByCompany: one(companyTable, {
+        fields: [jobHiringPostTable.companyId],
+        references: [companyTable.id],
+      }),
+      postByOauthCompany: one(oauthCompanyTable, {
+        fields: [jobHiringPostTable.oauthCompanyId],
+        references: [oauthCompanyTable.id],
+      }),
+    };
+  }
+);
+
+export const jobCategoryRelation = relations(jobCategoryTable, ({ many }) => {
+  return {
+    toFindingPost: many(jobFindCategoryTable),
+    toHiringPost: many(jobHireCategoryTable),
+  };
+});
+
+export const jobFindCategoryRelation = relations(
+  jobFindCategoryTable,
+  ({ one }) => {
+    return {
+      toPost: one(jobFindingPostTable, {
+        fields: [jobFindCategoryTable.jobFindingPostId],
+        references: [jobFindingPostTable.id],
+      }),
+      toCategory: one(jobCategoryTable, {
+        fields: [jobFindCategoryTable.jobCategoryId],
+        references: [jobCategoryTable.id],
+      }),
+    };
+  }
+);
+
+export const jobHireCategoryRelation = relations(
+  jobHireCategoryTable,
+  ({ one }) => {
+    return {
+      toPost: one(jobHiringPostTable, {
+        fields: [jobHireCategoryTable.jobHiringPostId],
+        references: [jobHiringPostTable.id],
+      }),
+      toCategory: one(jobCategoryTable, {
+        fields: [jobHireCategoryTable.jobCategoryId],
+        references: [jobCategoryTable.id],
+      }),
+    };
+  }
+);
+
+export const jobFindingPostMatchedRelation = relations(
+  jobFindingPostMatchedTable,
+  ({ one }) => {
+    return {
+      toPost: one(jobFindingPostTable, {
+        fields: [jobFindingPostMatchedTable.jobFindingPostId],
+        references: [jobFindingPostTable.id],
+      }),
+      toEmployer: one(employerTable, {
+        fields: [jobFindingPostMatchedTable.employerId],
+        references: [employerTable.id],
+      }),
+      toOauthEmployer: one(oauthEmployerTable, {
+        fields: [jobFindingPostMatchedTable.oauthEmployerId],
+        references: [oauthEmployerTable.id],
+      }),
+      toCompany: one(companyTable, {
+        fields: [jobFindingPostMatchedTable.companyId],
+        references: [companyTable.id],
+      }),
+      toOauthCompany: one(oauthCompanyTable, {
+        fields: [jobFindingPostMatchedTable.oauthCompanyId],
+        references: [oauthCompanyTable.id],
+      }),
+    };
+  }
+);
+
+export const jobHiringPostMatchedRelation = relations(
+  jobHiringPostMatchedTable,
+  ({ one, many }) => {
+    return {
+      toPost: one(jobHiringPostTable, {
+        fields: [jobHiringPostMatchedTable.jobHiringPostId],
+        references: [jobHiringPostTable.id],
+      }),
+      toMatchSeekers: many(jobHiringPostMatchedSeekersTable),
+    };
+  }
+);
+
+export const jobHiringPostMatchedSeekersRelation = relations(
+  jobHiringPostMatchedSeekersTable,
+  ({ one }) => {
+    return {
+      toPostMatched: one(jobHiringPostMatchedTable, {
+        fields: [jobHiringPostMatchedSeekersTable.jobHiringPostMatchedId],
+        references: [jobHiringPostMatchedTable.id],
+      }),
+      toJobSeeker: one(jobSeekerTable, {
+        fields: [jobHiringPostMatchedSeekersTable.jobSeekerId],
+        references: [jobSeekerTable.id],
+      }),
+      toOauthJobSeeker: one(oauthJobSeekerTable, {
+        fields: [jobHiringPostMatchedSeekersTable.oauthJobSeekerId],
+        references: [oauthJobSeekerTable.id],
+      }),
+    };
+  }
+);
+
+// {Job Seeker's Skill}
+
+export const skillRelation = relations(skillTable, ({ many }) => {
+  return {
+    toJobSeeker: many(jobSeekerTable),
+    toOauthJobSeeker: many(oauthJobSeekerTable),
+  };
+});
+
+export const jobSeekerSkillRelation = relations(
+  jobSeekerSkillTable,
+  ({ one }) => {
+    return {
+      toJobSeeker: one(jobSeekerTable, {
+        fields: [jobSeekerSkillTable.jobSeekerId],
+        references: [jobSeekerTable.id],
+      }),
+      toSkill: one(skillTable, {
+        fields: [jobSeekerSkillTable.skillId],
+        references: [skillTable.id],
+      }),
+    };
+  }
+);
+
+export const oauthJobSeekerSkillRelation = relations(
+  oauthJobSeekerSkillTable,
+  ({ one }) => {
+    return {
+      toOauthJobSeeker: one(oauthJobSeekerTable, {
+        fields: [oauthJobSeekerSkillTable.oauthJobSeekerId],
+        references: [oauthJobSeekerTable.id],
+      }),
+      toSkill: one(skillTable, {
+        fields: [oauthJobSeekerSkillTable.skillId],
+        references: [skillTable.id],
+      }),
+    };
+  }
+);
+
+// {Job Seeker's Vulnerability}
+
+export const vulnerabilityTypeRelation = relations(
+  vulnerabilityTypeTable,
+  ({ many }) => {
+    return {
+      toJobSeeker: many(jobSeekerVulnerabilityTable),
+      toOauthJobSeeker: many(oauthJobSeekerVulnerabilityTable),
+    };
+  }
+);
+
+export const jobSeekerVulnerabilityRelation = relations(
+  jobSeekerVulnerabilityTable,
+  ({ one }) => {
+    return {
+      toJobSeeker: one(jobSeekerTable, {
+        fields: [jobSeekerVulnerabilityTable.jobSeekerId],
+        references: [jobSeekerTable.id],
+      }),
+      toVulnerabilityType: one(vulnerabilityTypeTable, {
+        fields: [jobSeekerVulnerabilityTable.vulnerabilityTypeId],
+        references: [vulnerabilityTypeTable.id],
+      }),
+    };
+  }
+);
+
+export const oauthJobSeekerVulnerabilityRelation = relations(
+  oauthJobSeekerVulnerabilityTable,
+  ({ one }) => {
+    return {
+      toOauthJobSeeker: one(oauthJobSeekerTable, {
+        fields: [oauthJobSeekerVulnerabilityTable.oauthJobSeekerId],
+        references: [oauthJobSeekerTable.id],
+      }),
+      toVulnerabilityType: one(vulnerabilityTypeTable, {
+        fields: [oauthJobSeekerVulnerabilityTable.vulnerabilityTypeId],
+        references: [vulnerabilityTypeTable.id],
+      }),
+    };
+  }
+);
+
+// {Others}
+
+export const registrationApprovalRelation = relations(
+  registrationApprovalTable,
+  ({ one, many }) => {
+    return {
+      // being approved
+      approveJobSeeker: one(jobSeekerTable, {
+        fields: [registrationApprovalTable.jobSeekerId],
+        references: [jobSeekerTable.id],
+      }),
+      approveOauthJobSeeker: one(oauthJobSeekerTable, {
+        fields: [registrationApprovalTable.oauthJobSeekerId],
+        references: [oauthJobSeekerTable.id],
+      }),
+      approveEmployer: one(employerTable, {
+        fields: [registrationApprovalTable.employerId],
+        references: [employerTable.id],
+      }),
+      approveOauthEmployer: one(oauthEmployerTable, {
+        fields: [registrationApprovalTable.oauthEmployerId],
+        references: [oauthEmployerTable.id],
+      }),
+      approveCompany: one(companyTable, {
+        fields: [registrationApprovalTable.companyId],
+        references: [companyTable.id],
+      }),
+      approveOauthCompany: one(oauthCompanyTable, {
+        fields: [registrationApprovalTable.oauthCompanyId],
+        references: [oauthCompanyTable.id],
+      }),
+      // approved by
+      approvedByAdmin: one(adminTable, {
+        fields: [registrationApprovalTable.adminId],
+        references: [adminTable.id],
+      }),
+      approvedByOauthAdmin: one(oauthAdminTable, {
+        fields: [registrationApprovalTable.oauthAdminId],
+        references: [oauthAdminTable.id],
+      }),
+    };
+  }
+);
+
+export const notificationRelation = relations(notificationTable, ({ one }) => {
+  return {
+    notifyJobSeeker: one(jobSeekerTable, {
+      fields: [notificationTable.jobSeekerId],
+      references: [jobSeekerTable.id],
+    }),
+    notifyOauthJobSeeker: one(oauthJobSeekerTable, {
+      fields: [notificationTable.oauthJobSeekerId],
+      references: [oauthJobSeekerTable.id],
+    }),
+    notifyEmployer: one(employerTable, {
+      fields: [notificationTable.employerId],
+      references: [employerTable.id],
+    }),
+    notifyOauthEmployer: one(oauthEmployerTable, {
+      fields: [notificationTable.oauthEmployerId],
+      references: [oauthEmployerTable.id],
+    }),
+    notifyCompany: one(companyTable, {
+      fields: [notificationTable.companyId],
+      references: [companyTable.id],
+    }),
+    notifyOauthCompany: one(oauthCompanyTable, {
+      fields: [notificationTable.oauthCompanyId],
+      references: [oauthCompanyTable.id],
+    }),
+  };
+});
