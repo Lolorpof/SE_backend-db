@@ -2,7 +2,6 @@ import "dotenv/config";
 import express from "express";
 import cors from "cors";
 import helmet from "helmet";
-import { drizzlePool } from "../db/conn";
 
 const port = process.env.BACKEND_PORT; //6977
 
