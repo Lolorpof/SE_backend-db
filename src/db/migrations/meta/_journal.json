@@ -15,6 +15,13 @@
       "when": 1737284720391,
       "tag": "0001_harsh_miracleman",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1737564759376,
+      "tag": "0002_medical_mariko_yashida",
+      "breakpoints": true
     }
   ]
 }
