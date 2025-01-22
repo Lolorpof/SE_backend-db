@@ -66,6 +66,11 @@ export const approvalStatusEnum = pgEnum("approvalStatus", [
   "ACCEPTED",
   "DENIED",
   "UNAPPROVED",
+]); // in 'registration_approval' table
+
+export const usersApprovalStatusEnum = pgEnum("userApprovalStatus", [
+  "APPROVED",
+  "UNAPPROVED",
 ]);
 
 export const notificationStatusEnum = pgEnum("notificationStatus", [
@@ -98,6 +103,9 @@ export const jobSeekerTable = pgTable(
     contact: varchar("contact", { length: 255 }),
     resume: varchar("resume", { length: 255 }).notNull().default(undef),
     address: varchar("address", { length: 255 }),
+    approvalStatus: usersApprovalStatusEnum("approval_status")
+      .notNull()
+      .default("UNAPPROVED"),
     createdAt: timestamp("created_at").notNull().defaultNow(),
     updatedAt: timestamp("updated_at")
       .notNull()
@@ -128,6 +136,9 @@ export const oauthJobSeekerTable = pgTable(
     resume: varchar("resume", { length: 255 }).notNull().default(undef),
     oauthType: oauthTypeEnum("oauth_type").notNull(),
     address: varchar("address", { length: 255 }),
+    approvalStatus: usersApprovalStatusEnum("approval_status")
+      .notNull()
+      .default("UNAPPROVED"),
     createdAt: timestamp("created_at").notNull().defaultNow(),
     updatedAt: timestamp("updated_at")
       .notNull()
@@ -156,6 +167,9 @@ export const employerTable = pgTable(
     aboutMe: varchar("about_me", { length: 2050 }),
     contact: varchar("contact", { length: 255 }),
     address: varchar("address", { length: 255 }),
+    approvalStatus: usersApprovalStatusEnum("approval_status")
+      .notNull()
+      .default("UNAPPROVED"),
     createdAt: timestamp("created_at").notNull().defaultNow(),
     updatedAt: timestamp("updated_at")
       .notNull()
@@ -185,6 +199,9 @@ export const oauthEmployerTable = pgTable(
     contact: varchar("contact", { length: 255 }),
     oauthType: oauthTypeEnum("oauth_type").notNull(),
     address: varchar("address", { length: 255 }),
+    approvalStatus: usersApprovalStatusEnum("approval_status")
+      .notNull()
+      .default("UNAPPROVED"),
     createdAt: timestamp("created_at").notNull().defaultNow(),
     updatedAt: timestamp("updated_at")
       .notNull()
@@ -209,6 +226,9 @@ export const companyTable = pgTable("company", {
   aboutUs: varchar("about_us", { length: 2050 }),
   contact: varchar("contact", { length: 255 }),
   address: varchar("address", { length: 255 }),
+  approvalStatus: usersApprovalStatusEnum("approval_status")
+    .notNull()
+    .default("UNAPPROVED"),
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at")
     .notNull()
@@ -227,6 +247,9 @@ export const oauthCompanyTable = pgTable("oauth_company", {
   contact: varchar("contact", { length: 255 }),
   oauthType: oauthTypeEnum("oauth_type").notNull(),
   address: varchar("address", { length: 255 }),
+  approvalStatus: usersApprovalStatusEnum("approval_status")
+    .notNull()
+    .default("UNAPPROVED"),
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at")
     .notNull()
@@ -562,6 +585,37 @@ export const jobSeekerSkillTable = pgTable(
   ]
 );
 
+// {Skill in Post}
+export const jobFindingPostSkillTable = pgTable(
+  "job_finding_post_skill",
+  {
+    jobFindingPostId: uuid("job_finding_post_id")
+      .references(() => jobFindingPostTable.id)
+      .notNull(),
+    skillId: uuid("skill_id")
+      .references(() => skillTable.id)
+      .notNull(),
+  },
+  (t) => [
+    { postSkillKey: primaryKey({ columns: [t.jobFindingPostId, t.skillId] }) },
+  ]
+);
+
+export const jobHiringPostSkillTable = pgTable(
+  "job_hiring_post_skill",
+  {
+    jobHiringPostId: uuid("job_hiring_post_id")
+      .references(() => jobHiringPostTable.id)
+      .notNull(),
+    skillId: uuid("skill_id")
+      .references(() => skillTable.id)
+      .notNull(),
+  },
+  (t) => [
+    { postSkillKey: primaryKey({ columns: [t.jobHiringPostId, t.skillId] }) },
+  ]
+);
+
 // {Others}
 
 export const registrationApprovalTable = pgTable("registration_approval", {
@@ -879,6 +933,27 @@ export const oauthJobSeekerSkillRelation = relations(
         fields: [oauthJobSeekerSkillTable.skillId],
         references: [skillTable.id],
       }),
+    };
+  }
+);
+
+// {Skill in Post}
+export const jobFindingPostSkillRelation = relations(
+  jobFindingPostSkillTable,
+  ({ one }) => {
+    return {
+      toFindingPost: one(jobFindingPostTable),
+      toSkill: one(skillTable),
+    };
+  }
+);
+
+export const jobHiringPostSkillRelation = relations(
+  jobHiringPostSkillTable,
+  ({ one }) => {
+    return {
+      toHiringPost: one(jobHiringPostTable),
+      toSkill: one(skillTable),
     };
   }
 );
