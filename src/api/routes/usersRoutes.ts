@@ -1,9 +1,14 @@
 import express from "express";
-import { usersController } from "../controllers/usersController";
+import { usersControllers } from "../controllers/usersControllers";
+import { checkAuthenticated, checkUnauthenticated } from "../middlewares/auth";
 
-export const usersRouter = express.Router();
+const userRouter = express.Router();
 
 // {/user}
-usersRouter.route("/").get(async (req, res) => {
-  return usersController.getAllUsers();
-});
+
+// job seeker, fetch(GET), register(POST), delete account(DELETE)
+userRouter
+  .route("/job-seeker")
+  .post(checkUnauthenticated, usersControllers.jobSeekerRegister);
+
+export { userRouter };

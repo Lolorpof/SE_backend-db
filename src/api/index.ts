@@ -5,7 +5,7 @@ import helmet from "helmet";
 import session from "express-session";
 import { sessionStore } from "./utilities/sessionStore";
 import passport from "passport";
-import { usersRouter } from "./routes/usersRoutes";
+import { userRouter } from "./routes/usersRoutes";
 
 const port = process.env.BACKEND_PORT; //6977
 const cookieExpireTime = { real: 1000 * 60 * 60 * 4, dev: 1000 * 60 * 5 };
@@ -33,8 +33,9 @@ app.get("/", async (req, res) => {
 });
 
 // Routes
-app.use("/user", usersRouter);
+app.use("/user", userRouter);
 
+// HTTP Server setup
 app.listen(port, () => {
   console.log(`listening on port ${port}...`);
 });
