@@ -90,7 +90,7 @@ export const oauthTypeEnum = pgEnum("oauthType", ["GOOGLE", "LINE"]);
 export const jobSeekerTable = pgTable(
   "job_seeker",
   {
-    id: uuid("id").primaryKey(),
+    id: uuid("id").primaryKey().defaultRandom(),
     username: varchar("username", { length: 255 }).notNull(),
     password: varchar("password", { length: 255 }).notNull(),
     firstName: varchar("first_name", { length: 255 }).notNull(),
@@ -123,7 +123,7 @@ export const jobSeekerTable = pgTable(
 export const oauthJobSeekerTable = pgTable(
   "oauth_job_seeker",
   {
-    id: uuid("id").primaryKey(),
+    id: uuid("id").primaryKey().defaultRandom(),
     username: varchar("username", { length: 255 }).notNull(),
     firstName: varchar("first_name", { length: 255 }).notNull(),
     lastName: varchar("last_name", { length: 255 }).notNull(),
@@ -155,7 +155,7 @@ export const oauthJobSeekerTable = pgTable(
 export const employerTable = pgTable(
   "employer",
   {
-    id: uuid("id").primaryKey(),
+    id: uuid("id").primaryKey().defaultRandom(),
     username: varchar("username", { length: 255 }).notNull(),
     password: varchar("password", { length: 255 }).notNull(),
     firstName: varchar("first_name", { length: 255 }).notNull(),
@@ -187,7 +187,7 @@ export const employerTable = pgTable(
 export const oauthEmployerTable = pgTable(
   "oauth_employer",
   {
-    id: uuid("id").primaryKey(),
+    id: uuid("id").primaryKey().defaultRandom(),
     username: varchar("username", { length: 255 }).notNull(),
     firstName: varchar("first_name", { length: 255 }).notNull(),
     lastName: varchar("last_name", { length: 255 }).notNull(),
@@ -216,7 +216,7 @@ export const oauthEmployerTable = pgTable(
 );
 
 export const companyTable = pgTable("company", {
-  id: uuid("id").primaryKey(),
+  id: uuid("id").primaryKey().defaultRandom(),
   officialName: varchar("official_name", { length: 255 }).notNull().unique(),
   password: varchar("password", { length: 255 }).notNull(),
   email: varchar("email", { length: 255 }).notNull().unique(),
@@ -237,7 +237,7 @@ export const companyTable = pgTable("company", {
 });
 
 export const oauthCompanyTable = pgTable("oauth_company", {
-  id: uuid("id").primaryKey(),
+  id: uuid("id").primaryKey().defaultRandom(),
   officialName: varchar("official_name", { length: 255 }).notNull().unique(),
   email: varchar("email", { length: 255 }).notNull().unique(),
   profile_picture: varchar("profile_picture", { length: 255 })
@@ -260,7 +260,7 @@ export const oauthCompanyTable = pgTable("oauth_company", {
 export const adminTable = pgTable(
   "admin",
   {
-    id: uuid("id").primaryKey(),
+    id: uuid("id").primaryKey().defaultRandom(),
     username: varchar("username", { length: 255 }).notNull(),
     password: varchar("varchar", { length: 255 }).notNull(),
     email: varchar("email", { length: 255 }).notNull().unique(),
@@ -282,7 +282,7 @@ export const adminTable = pgTable(
 );
 
 export const oauthAdminTable = pgTable("oauth_admin", {
-  id: uuid("id").primaryKey(),
+  id: uuid("id").primaryKey().defaultRandom(),
   username: varchar("username", { length: 255 }).notNull(),
   email: varchar("email", { length: 255 }).notNull().unique(),
   profilePicture: varchar("profile_picture", { length: 255 })
@@ -300,7 +300,7 @@ export const oauthAdminTable = pgTable("oauth_admin", {
 // {Jobs}
 
 export const jobCategoryTable = pgTable("job_category", {
-  id: uuid("id").primaryKey(),
+  id: uuid("id").primaryKey().defaultRandom(),
   name: varchar("name", { length: 255 }).notNull().unique(),
   description: varchar("description", { length: 540 }),
   createdAt: timestamp("created_at").notNull().defaultNow(),
@@ -359,7 +359,7 @@ export const jobHireCategoryTable = pgTable(
 );
 
 export const jobFindingPostTable = pgTable("job_finding_post", {
-  id: uuid("id").primaryKey(),
+  id: uuid("id").primaryKey().defaultRandom(),
   title: varchar("title", { length: 255 }).notNull(),
   description: varchar("description", { length: 540 }),
   jobLocation: varchar("job_location", { length: 255 }).notNull(),
@@ -380,7 +380,7 @@ export const jobFindingPostTable = pgTable("job_finding_post", {
 });
 
 export const jobHiringPostTable = pgTable("job_hiring_post", {
-  id: uuid("id").primaryKey(),
+  id: uuid("id").primaryKey().defaultRandom(),
   title: varchar("title", { length: 255 }).notNull(),
   description: varchar("description", { length: 540 }),
   jobLocation: varchar("job_location", { length: 255 }).notNull(),
@@ -406,7 +406,7 @@ export const jobHiringPostTable = pgTable("job_hiring_post", {
 });
 
 export const jobHiringPostMatchedTable = pgTable("job_hiring_post_matched", {
-  id: uuid("id").primaryKey(),
+  id: uuid("id").primaryKey().defaultRandom(),
   jobHiringPostId: uuid("job_hiring_post_id")
     .notNull()
     .references(() => jobHiringPostTable.id),
@@ -447,7 +447,7 @@ export const jobHiringPostMatchedSeekersTable = pgTable(
 );
 
 export const jobFindingPostMatchedTable = pgTable("job_finding_post_matched", {
-  id: uuid("id").primaryKey(),
+  id: uuid("id").primaryKey().defaultRandom(),
   jobFindingPostId: uuid("job_finding_post_id")
     .references(() => jobFindingPostTable.id)
     .notNull(),
@@ -472,7 +472,7 @@ export const jobFindingPostMatchedTable = pgTable("job_finding_post_matched", {
 // {Job Seeker's Vulnerability}
 
 export const vulnerabilityTypeTable = pgTable("vulnerability_type", {
-  id: uuid("id").primaryKey(),
+  id: uuid("id").primaryKey().defaultRandom(),
   name: varchar("name", { length: 255 }).notNull().unique(),
   description: varchar("description", { length: 2048 }),
   createdAt: timestamp("created_at").notNull().defaultNow(),
@@ -537,7 +537,7 @@ export const jobSeekerVulnerabilityTable = pgTable(
 // {Job Seeker's Skill}
 
 export const skillTable = pgTable("skill", {
-  id: uuid("id").primaryKey(),
+  id: uuid("id").primaryKey().defaultRandom(),
   name: varchar("name", { length: 255 }).notNull().unique(),
   description: varchar("description", { length: 1024 }),
   createdAt: timestamp("created_at").notNull().defaultNow(),
@@ -619,7 +619,7 @@ export const jobHiringPostSkillTable = pgTable(
 // {Others}
 
 export const registrationApprovalTable = pgTable("registration_approval", {
-  id: uuid("id").primaryKey(),
+  id: uuid("id").primaryKey().defaultRandom(),
   status: approvalStatusEnum("status").notNull().default("UNAPPROVED"),
   userType: normalUserTypeEnum("user_type").notNull(), // user's approved
   jobSeekerId: uuid("job_seeker_id").references(() => jobSeekerTable.id),
@@ -646,7 +646,7 @@ export const registrationApprovalTable = pgTable("registration_approval", {
 });
 
 export const notificationTable = pgTable("notification", {
-  id: uuid("id").primaryKey(),
+  id: uuid("id").primaryKey().defaultRandom(),
   status: notificationStatusEnum("status").notNull().default("UNREAD"),
   title: varchar("title", { length: 255 }).notNull(),
   description: varchar("description", { length: 1024 }).notNull(),
