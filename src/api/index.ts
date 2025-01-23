@@ -5,7 +5,7 @@ import helmet from "helmet";
 import session from "express-session";
 import { sessionStore } from "./utilities/sessionStore";
 import passport from "passport";
-import { userRouter } from "./routes/usersRoutes";
+import { userRouter } from "./routes/userRoutes";
 
 const port = process.env.BACKEND_PORT; //6977
 const cookieExpireTime = { real: 1000 * 60 * 60 * 4, dev: 1000 * 60 * 5 };
@@ -26,6 +26,7 @@ app.use([
   }),
   passport.initialize(),
   passport.session(),
+  express.json(),
 ]);
 
 app.get("/", async (req, res) => {
