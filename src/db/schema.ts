@@ -315,10 +315,16 @@ export const jobFindCategoryTable = pgTable(
   {
     jobFindingPostId: uuid("job_finding_post_id")
       .notNull()
-      .references(() => jobFindingPostTable.id),
+      .references(() => jobFindingPostTable.id, {
+        onDelete: "cascade",
+        onUpdate: "cascade",
+      }),
     jobCategoryId: uuid("job_category_id")
       .notNull()
-      .references(() => jobCategoryTable.id),
+      .references(() => jobCategoryTable.id, {
+        onDelete: "cascade",
+        onUpdate: "cascade",
+      }),
     createdAt: timestamp("created_at").notNull().defaultNow(),
     updatedAt: timestamp("updated_at")
       .notNull()
@@ -339,10 +345,16 @@ export const jobHireCategoryTable = pgTable(
   {
     jobHiringPostId: uuid("job_hiring_post_id")
       .notNull()
-      .references(() => jobHiringPostTable.id),
+      .references(() => jobHiringPostTable.id, {
+        onDelete: "cascade",
+        onUpdate: "cascade",
+      }),
     jobCategoryId: uuid("job_category_id")
       .notNull()
-      .references(() => jobCategoryTable.id),
+      .references(() => jobCategoryTable.id, {
+        onDelete: "cascade",
+        onUpdate: "cascade",
+      }),
     createdAt: timestamp("created_at").notNull().defaultNow(),
     updatedAt: timestamp("updated_at")
       .notNull()
@@ -368,9 +380,16 @@ export const jobFindingPostTable = pgTable("job_finding_post", {
   workHoursRange: varchar("work_hours_range", { length: 255 }).notNull(),
   status: postStatusEnum("status").notNull().default("UNMATCHED"),
   jobSeekerType: jobSeekerTypeEnum("job_seeker_type").notNull(),
-  jobSeekerId: uuid("job_seeker_id").references(() => jobSeekerTable.id),
+  jobSeekerId: uuid("job_seeker_id").references(() => jobSeekerTable.id, {
+    onDelete: "cascade",
+    onUpdate: "cascade",
+  }),
   oauthJobSeekerId: uuid("oauth_job_seeker_id").references(
-    () => oauthJobSeekerTable.id
+    () => oauthJobSeekerTable.id,
+    {
+      onDelete: "cascade",
+      onUpdate: "cascade",
+    }
   ),
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at")
@@ -390,13 +409,27 @@ export const jobHiringPostTable = pgTable("job_hiring_post", {
   status: postStatusEnum("status").notNull().default("UNMATCHED"),
   hiredAmount: integer("hired_amount").notNull().default(1),
   jobHirerType: jobHirerTypeEnum("job_hirer_type").notNull(),
-  employerId: uuid("employer_id").references(() => employerTable.id),
+  employerId: uuid("employer_id").references(() => employerTable.id, {
+    onDelete: "cascade",
+    onUpdate: "cascade",
+  }),
   oauthEmployerId: uuid("oauth_employer_id").references(
-    () => oauthEmployerTable.id
+    () => oauthEmployerTable.id,
+    {
+      onDelete: "cascade",
+      onUpdate: "cascade",
+    }
   ),
-  companyId: uuid("company_id").references(() => companyTable.id),
+  companyId: uuid("company_id").references(() => companyTable.id, {
+    onDelete: "cascade",
+    onUpdate: "cascade",
+  }),
   oauthCompanyId: uuid("oauth_company_id").references(
-    () => oauthCompanyTable.id
+    () => oauthCompanyTable.id,
+    {
+      onDelete: "cascade",
+      onUpdate: "cascade",
+    }
   ),
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at")
@@ -409,7 +442,10 @@ export const jobHiringPostMatchedTable = pgTable("job_hiring_post_matched", {
   id: uuid("id").primaryKey().defaultRandom(),
   jobHiringPostId: uuid("job_hiring_post_id")
     .notNull()
-    .references(() => jobHiringPostTable.id),
+    .references(() => jobHiringPostTable.id, {
+      onDelete: "cascade",
+      onUpdate: "cascade",
+    }),
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at")
     .notNull()
@@ -421,12 +457,22 @@ export const jobHiringPostMatchedSeekersTable = pgTable(
   "job_hiring_post_matched_seekers",
   {
     jobSeekerType: jobSeekerTypeEnum("job_seeker_type").notNull(),
-    jobSeekerId: uuid("job_seeker_id").references(() => jobSeekerTable.id),
+    jobSeekerId: uuid("job_seeker_id").references(() => jobSeekerTable.id, {
+      onDelete: "cascade",
+      onUpdate: "cascade",
+    }),
     oauthJobSeekerId: uuid("oauth_job_seeker_id").references(
-      () => oauthJobSeekerTable.id
+      () => oauthJobSeekerTable.id,
+      {
+        onDelete: "cascade",
+        onUpdate: "cascade",
+      }
     ),
     jobHiringPostMatchedId: uuid("job_hiring_post_matched_id")
-      .references(() => jobHiringPostMatchedTable.id)
+      .references(() => jobHiringPostMatchedTable.id, {
+        onDelete: "cascade",
+        onUpdate: "cascade",
+      })
       .notNull(),
     status: jobMatchedStatusEnum("status").notNull().default("INPROGRESS"),
     createdAt: timestamp("created_at").notNull().defaultNow(), //registered time
@@ -449,17 +495,34 @@ export const jobHiringPostMatchedSeekersTable = pgTable(
 export const jobFindingPostMatchedTable = pgTable("job_finding_post_matched", {
   id: uuid("id").primaryKey().defaultRandom(),
   jobFindingPostId: uuid("job_finding_post_id")
-    .references(() => jobFindingPostTable.id)
+    .references(() => jobFindingPostTable.id, {
+      onDelete: "cascade",
+      onUpdate: "cascade",
+    })
     .notNull(),
   status: jobMatchedStatusEnum("status").notNull().default("INPROGRESS"),
   jobHirerType: jobHirerTypeEnum("job_hirer_type").notNull(),
-  employerId: uuid("employer_id").references(() => employerTable.id),
+  employerId: uuid("employer_id").references(() => employerTable.id, {
+    onDelete: "cascade",
+    onUpdate: "cascade",
+  }),
   oauthEmployerId: uuid("oauth_employer_id").references(
-    () => oauthEmployerTable.id
+    () => oauthEmployerTable.id,
+    {
+      onDelete: "cascade",
+      onUpdate: "cascade",
+    }
   ),
-  companyId: uuid("company_id").references(() => companyTable.id),
+  companyId: uuid("company_id").references(() => companyTable.id, {
+    onDelete: "cascade",
+    onUpdate: "cascade",
+  }),
   oauthCompanyId: uuid("oauth_company_id").references(
-    () => oauthCompanyTable.id
+    () => oauthCompanyTable.id,
+    {
+      onDelete: "cascade",
+      onUpdate: "cascade",
+    }
   ),
   createdAt: timestamp("created_at").notNull().defaultNow(), //registered time
   approvedAt: timestamp("approved_at"),
@@ -489,10 +552,16 @@ export const oauthJobSeekerVulnerabilityTable = pgTable(
     publicStatus: publicStatusEnum("public_status").notNull().default("SHOWN"),
     oauthJobSeekerId: uuid("oauth_job_seeker_id")
       .notNull()
-      .references(() => oauthJobSeekerTable.id),
+      .references(() => oauthJobSeekerTable.id, {
+        onDelete: "cascade",
+        onUpdate: "cascade",
+      }),
     vulnerabilityTypeId: uuid("vulnerability_type_id")
       .notNull()
-      .references(() => vulnerabilityTypeTable.id),
+      .references(() => vulnerabilityTypeTable.id, {
+        onDelete: "cascade",
+        onUpdate: "cascade",
+      }),
     createdAt: timestamp("created_at").notNull().defaultNow(),
     updatedAt: timestamp("updated_at")
       .notNull()
@@ -515,10 +584,16 @@ export const jobSeekerVulnerabilityTable = pgTable(
     publicStatus: publicStatusEnum("public_status").notNull().default("SHOWN"),
     jobSeekerId: uuid("job_seeker_id")
       .notNull()
-      .references(() => jobSeekerTable.id),
+      .references(() => jobSeekerTable.id, {
+        onDelete: "cascade",
+        onUpdate: "cascade",
+      }),
     vulnerabilityTypeId: uuid("vulnerability_type_id")
       .notNull()
-      .references(() => vulnerabilityTypeTable.id),
+      .references(() => vulnerabilityTypeTable.id, {
+        onDelete: "cascade",
+        onUpdate: "cascade",
+      }),
     createdAt: timestamp("created_at").notNull().defaultNow(),
     updatedAt: timestamp("updated_at")
       .notNull()
@@ -551,9 +626,16 @@ export const oauthJobSeekerSkillTable = pgTable(
   "oauth_job_seeker_skill",
   {
     oauthJobSeekerId: uuid("oauth_job_seeker_id").references(
-      () => oauthJobSeekerTable.id
+      () => oauthJobSeekerTable.id,
+      {
+        onDelete: "cascade",
+        onUpdate: "cascade",
+      }
     ),
-    skillId: uuid("skill_id").references(() => skillTable.id),
+    skillId: uuid("skill_id").references(() => skillTable.id, {
+      onDelete: "cascade",
+      onUpdate: "cascade",
+    }),
     createdAt: timestamp("created_at").notNull().defaultNow(),
     updatedAt: timestamp("updated_at")
       .notNull()
@@ -570,8 +652,14 @@ export const oauthJobSeekerSkillTable = pgTable(
 export const jobSeekerSkillTable = pgTable(
   "job_seeker_skill",
   {
-    jobSeekerId: uuid("job_seeker_id").references(() => jobSeekerTable.id),
-    skillId: uuid("skill_id").references(() => skillTable.id),
+    jobSeekerId: uuid("job_seeker_id").references(() => jobSeekerTable.id, {
+      onDelete: "cascade",
+      onUpdate: "cascade",
+    }),
+    skillId: uuid("skill_id").references(() => skillTable.id, {
+      onDelete: "cascade",
+      onUpdate: "cascade",
+    }),
     createdAt: timestamp("created_at").notNull().defaultNow(),
     updatedAt: timestamp("updated_at")
       .notNull()
@@ -590,10 +678,16 @@ export const jobFindingPostSkillTable = pgTable(
   "job_finding_post_skill",
   {
     jobFindingPostId: uuid("job_finding_post_id")
-      .references(() => jobFindingPostTable.id)
+      .references(() => jobFindingPostTable.id, {
+        onDelete: "cascade",
+        onUpdate: "cascade",
+      })
       .notNull(),
     skillId: uuid("skill_id")
-      .references(() => skillTable.id)
+      .references(() => skillTable.id, {
+        onDelete: "cascade",
+        onUpdate: "cascade",
+      })
       .notNull(),
   },
   (t) => [
@@ -605,10 +699,16 @@ export const jobHiringPostSkillTable = pgTable(
   "job_hiring_post_skill",
   {
     jobHiringPostId: uuid("job_hiring_post_id")
-      .references(() => jobHiringPostTable.id)
+      .references(() => jobHiringPostTable.id, {
+        onDelete: "cascade",
+        onUpdate: "cascade",
+      })
       .notNull(),
     skillId: uuid("skill_id")
-      .references(() => skillTable.id)
+      .references(() => skillTable.id, {
+        onDelete: "cascade",
+        onUpdate: "cascade",
+      })
       .notNull(),
   },
   (t) => [
@@ -622,21 +722,42 @@ export const registrationApprovalTable = pgTable("registration_approval", {
   id: uuid("id").primaryKey().defaultRandom(),
   status: approvalStatusEnum("status").notNull().default("UNAPPROVED"),
   userType: normalUserTypeEnum("user_type").notNull(), // user's approved
-  jobSeekerId: uuid("job_seeker_id").references(() => jobSeekerTable.id),
+  jobSeekerId: uuid("job_seeker_id").references(() => jobSeekerTable.id, {
+    onDelete: "cascade",
+    onUpdate: "cascade",
+  }),
   oauthJobSeekerId: uuid("oauth_job_seeker_id").references(
-    () => oauthJobSeekerTable.id
+    () => oauthJobSeekerTable.id,
+    {
+      onDelete: "cascade",
+      onUpdate: "cascade",
+    }
   ),
   employerId: uuid("employer_id").references(() => employerTable.id),
   oauthEmployerId: uuid("oauth_employer_id").references(
-    () => oauthEmployerTable.id
+    () => oauthEmployerTable.id,
+    {
+      onDelete: "cascade",
+      onUpdate: "cascade",
+    }
   ),
   companyId: uuid("company_id").references(() => companyTable.id),
   oauthCompanyId: uuid("oauth_company_id").references(
-    () => oauthCompanyTable.id
+    () => oauthCompanyTable.id,
+    {
+      onDelete: "cascade",
+      onUpdate: "cascade",
+    }
   ),
-  adminType: adminTypeEnum("admin_type").notNull(), // approved by
-  adminId: uuid("admin_id").references(() => adminTable.id),
-  oauthAdminId: uuid("oauth_admin_id").references(() => oauthAdminTable.id),
+  adminType: adminTypeEnum("admin_type"), // approved by
+  adminId: uuid("admin_id").references(() => adminTable.id, {
+    onDelete: "set null",
+    onUpdate: "cascade",
+  }),
+  oauthAdminId: uuid("oauth_admin_id").references(() => oauthAdminTable.id, {
+    onDelete: "set null",
+    onUpdate: "cascade",
+  }),
   createdAt: timestamp("created_at").notNull().defaultNow(), // registered time
   approvedAt: timestamp("approved_at"),
   updatedAt: timestamp("updated_at")
@@ -651,17 +772,35 @@ export const notificationTable = pgTable("notification", {
   title: varchar("title", { length: 255 }).notNull(),
   description: varchar("description", { length: 1024 }).notNull(),
   userType: normalUserTypeEnum("user_type").notNull(), // normal user
-  jobSeekerId: uuid("job_seeker_id").references(() => jobSeekerTable.id),
+  jobSeekerId: uuid("job_seeker_id").references(() => jobSeekerTable.id, {
+    onDelete: "cascade",
+    onUpdate: "cascade",
+  }),
   oauthJobSeekerId: uuid("oauth_job_seeker_id").references(
-    () => oauthJobSeekerTable.id
+    () => oauthJobSeekerTable.id,
+    {
+      onDelete: "cascade",
+      onUpdate: "cascade",
+    }
   ),
   employerId: uuid("employer_id").references(() => employerTable.id),
   oauthEmployerId: uuid("oauth_employer_id").references(
-    () => oauthEmployerTable.id
+    () => oauthEmployerTable.id,
+    {
+      onDelete: "cascade",
+      onUpdate: "cascade",
+    }
   ),
-  companyId: uuid("company_id").references(() => companyTable.id),
+  companyId: uuid("company_id").references(() => companyTable.id, {
+    onDelete: "cascade",
+    onUpdate: "cascade",
+  }),
   oauthCompanyId: uuid("oauth_company_id").references(
-    () => oauthCompanyTable.id
+    () => oauthCompanyTable.id,
+    {
+      onDelete: "cascade",
+      onUpdate: "cascade",
+    }
   ),
   createdAt: timestamp("created_at").notNull().defaultNow(), // notify time
   updatedAt: timestamp("updated_at") // read time
