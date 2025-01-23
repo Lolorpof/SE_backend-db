@@ -6,6 +6,8 @@ import session from "express-session";
 import { sessionStore } from "./utilities/sessionStore";
 import passport from "passport";
 import { userRouter } from "./routes/userRoutes";
+import swaggerUi from "swagger-ui-express";
+import swaggerOption from "./swagger";
 
 const port = process.env.BACKEND_PORT; //6977
 const cookieExpireTime = { real: 1000 * 60 * 60 * 4, dev: 1000 * 60 * 5 };
@@ -29,12 +31,14 @@ app.use([
   express.json(),
 ]);
 
+app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerOption));
+
 app.get("/", async (req, res) => {
   res.json({ success: true, msg: "hello world" });
 });
 
 // Routes
-app.use("/user", userRouter);
+app.use("/api/user", userRouter);
 
 // HTTP Server setup
 app.listen(port, () => {

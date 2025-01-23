@@ -36,6 +36,13 @@
       "when": 1737605790162,
       "tag": "0004_lowly_leopardon",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1737652485193,
+      "tag": "0005_curly_reaper",
+      "breakpoints": true
     }
   ]
 }
