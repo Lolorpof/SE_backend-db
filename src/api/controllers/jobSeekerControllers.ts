@@ -29,4 +29,20 @@ export class jobSeekerControllers {
       .status(result.status)
       .json({ success: result.success, msg: result.msg });
   }
+
+  // get all
+  async getAll(req: Request, res: Response) {
+    const result = await jobSeekerServices.instance().getAll();
+
+    if (result.data) {
+      res
+        .status(result.status)
+        .json({ success: result.success, msg: result.msg, data: result.data });
+      return;
+    }
+
+    res
+      .status(result.status)
+      .json({ success: result.success, msg: result.msg });
+  }
 }

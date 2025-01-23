@@ -1,5 +1,5 @@
 import { jobSeekerModels } from "../models/jobSeekerModels";
-import * as usersSchemas from "../validators/usersSchemas";
+import * as usersSchemas from "../validators/usersValidator";
 import { fromError } from "zod-validation-error";
 import "../types/usersTypes";
 import bcrypt from "bcrypt";
@@ -112,6 +112,28 @@ export class jobSeekerServices {
       msg: "Successfully registered",
       data: registeredUser,
       status: 201,
+    };
+  }
+
+  // get all
+  async getAll() {
+    let jobSeekers;
+    try {
+      jobSeekers = await jobSeekerModels.instance().getAll();
+    } catch (error) {
+      console.log(error);
+      return { success: false, msg: "Something went wrong", status: 403 };
+    }
+
+    if (jobSeekers.length === 0) {
+      return { success: true, msg: "There's no job seekers", status: 200 };
+    }
+
+    return {
+      success: true,
+      msg: "Successfully get all job seekers",
+      data: jobSeekers,
+      status: 200,
     };
   }
 }

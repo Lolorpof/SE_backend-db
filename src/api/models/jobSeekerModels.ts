@@ -64,4 +64,26 @@ export class jobSeekerModels {
 
     return registeredUser[0];
   }
+
+  // get all
+  async getAll() {
+    // get all user's info
+    const result = await drizzlePool.query.jobSeekerTable.findMany({
+      columns: {
+        id: false,
+        password: false,
+        createdAt: false,
+        updatedAt: false,
+        approvalStatus: false,
+      },
+      with: {
+        skills: { with: { toSkill: { columns: { name: true } } } },
+        vulnerabilities: {
+          with: { toVulnerabilityType: { columns: { name: true } } },
+        },
+      },
+    });
+
+    return result;
+  }
 }
