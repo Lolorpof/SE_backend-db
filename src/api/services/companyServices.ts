@@ -1,42 +1,43 @@
-import { fromError } from "zod-validation-error";
-import { employerModels } from "../models/employerModels";
+import { companyModels } from "../models/companyModels";
 import {
-  singleUserRegisterType,
-  singleUserRegisterSchema,
+  companyRegisterSchema,
+  companyRegisterType,
 } from "../validators/usersValidator";
+import { fromError } from "zod-validation-error";
 import bcrypt from "bcrypt";
 
-export class employerServices {
+export class companyServices {
   // singleton design
-  private static employerService: employerServices | undefined;
+  private static companyService: companyServices | undefined;
   static instance() {
-    if (!this.employerService) {
-      this.employerService = new employerServices();
+    if (!this.companyService) {
+      this.companyService = new companyServices();
     }
-    return this.employerService;
+    return this.companyService;
   }
 
-  async employerRegister(userForm: any) {
+  async companyRegister(userForm: any) {
     // {Business Logic}
     // user form validation
     try {
-      singleUserRegisterSchema.parse(userForm);
+      companyRegisterSchema.parse(userForm);
     } catch (error) {
       const formattedError = fromError(error).toString();
       console.log(formattedError);
       return { success: false, msg: formattedError, status: 403 };
     }
 
-    const validatedUserForm: singleUserRegisterType = userForm;
-    // split to first name and last name
-    const [firstName, lastName] = validatedUserForm.name.split(" ");
+    const validatedUserForm: companyRegisterType = userForm;
 
     // Duplicated name or email check
     let duplicatedUserCheck;
     try {
-      duplicatedUserCheck = await employerModels
+      duplicatedUserCheck = await companyModels
         .instance()
-        .duplicatedEmployerCheck(firstName, lastName, validatedUserForm.email);
+        .duplicatedCompanyCheck(
+          validatedUserForm.officialName,
+          validatedUserForm.email
+        );
     } catch (error) {
       console.log(error);
       return { success: false, msg: "Something went wrong", status: 403 };
@@ -45,8 +46,8 @@ export class employerServices {
     if (duplicatedUserCheck) {
       // duped name
       if (
-        firstName === (duplicatedUserCheck.firstName as string) &&
-        lastName === (duplicatedUserCheck.lastName as string) &&
+        validatedUserForm.officialName ===
+          (duplicatedUserCheck.officialName as string) &&
         validatedUserForm.email !== (duplicatedUserCheck.email as string)
       ) {
         return {
@@ -90,9 +91,7 @@ export class employerServices {
     }
 
     // format user
-    const { name, password, confirmPassword, ...formattedUser } = {
-      firstName,
-      lastName,
+    const { password, confirmPassword, ...formattedUser } = {
       hashedPassword,
       ...validatedUserForm,
     };
@@ -100,9 +99,9 @@ export class employerServices {
     // insert into database
     let registeredUser;
     try {
-      registeredUser = await employerModels
+      registeredUser = await companyModels
         .instance()
-        .employerRegister(formattedUser);
+        .companyRegister(formattedUser);
     } catch (error) {
       console.log(error);
       return { success: false, msg: "Something went wrong", status: 403 };
