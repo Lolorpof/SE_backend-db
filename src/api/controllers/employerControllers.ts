@@ -8,4 +8,9 @@ export class employerControllers {
     }
     return this.employerController;
   }
+
+  // register
+  async employerRegister(req: Request, res: Response) {
+    const userForm = req.body;
+  }
 }

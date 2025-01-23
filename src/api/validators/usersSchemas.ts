@@ -12,5 +12,7 @@ export const jobSeekerRegisterSchema = z.object({
   confirmPassword: z.string(),
 });
 
+export const employerRegisterSchema = z.object({});
+
 // Infer Type
 export type jobSeekerRegisterType = z.infer<typeof jobSeekerRegisterSchema>;
