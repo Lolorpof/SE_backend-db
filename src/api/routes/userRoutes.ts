@@ -1,9 +1,18 @@
 import express from "express";
 import { jobSeekerControllers } from "../controllers/jobSeekerControllers";
 import { employerControllers } from "../controllers/employerControllers";
+import { Controllers } from "../controllers/controllers";
 import { checkAuthenticated, checkUnauthenticated } from "../middlewares/auth";
+import "../types/usersTypes";
+import "../validators/usersValidator";
+import { singleUserRegisterType } from "../validators/usersValidator";
+import { companyControllers } from "../controllers/companyControllers";
 
 const userRouter = express.Router();
+
+// Generics Controllers
+const jobSeekerGenericController =
+  Controllers.instances<formattedSingleUserRegisterType>("jobSeeker");
 
 // {/api/user}
 
@@ -40,13 +49,17 @@ const userRouter = express.Router();
  *     responses:
  *       201:
  *         description: Return the job seeker id.
+ *   get:
+ *     summary: fetch all job seekers with infos
+ *     tags: [Users]
+ *     responses:
+ *       200:
+ *         description: Return the job seekers infos.
  */
 userRouter
   .route("/job-seeker")
-  .post(
-    checkUnauthenticated,
-    jobSeekerControllers.instance().jobSeekerRegister
-  );
+  .post(checkUnauthenticated, jobSeekerControllers.instance().jobSeekerRegister)
+  .get(jobSeekerControllers.instance().getAll);
 
 /**
  * @openapi
@@ -85,6 +98,41 @@ userRouter
   .route("/employer")
   .post(checkUnauthenticated, employerControllers.instance().employerRegister);
 
-// ีuserRouter.route("/company").post(checkUnauthenticated, )
+/**
+ * @openapi
+ * /api/user/company:
+ *   post:
+ *     summary: register a company
+ *     tags: [Users]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *        application/json:
+ *          schema:
+ *            type: object
+ *            properties:
+ *              officialName:
+ *                type: string
+ *                description: a name
+ *                example: The Company 3000
+ *              email:
+ *                type: string
+ *                description: an email
+ *                example: company69@gmail.com
+ *              password:
+ *                type: string
+ *                description: a password
+ *                example: dunjuang9876
+ *              confirmPassword:
+ *                type: string
+ *                description: match password above
+ *                example: dunjuang9876
+ *     responses:
+ *       201:
+ *         description: Return the company id.
+ */
+userRouter
+  .route("/company")
+  .post(checkUnauthenticated, companyControllers.instance().companyRegister);
 
 export { userRouter };
