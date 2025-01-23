@@ -2,6 +2,7 @@ import { jobSeekerServices } from "../services/jobSeekerServices";
 import { Request, Response } from "express";
 
 export class jobSeekerControllers {
+  // singleton design
   private static userController: jobSeekerControllers | undefined;
   static instance() {
     if (!this.userController) {

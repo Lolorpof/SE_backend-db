@@ -1,6 +1,8 @@
 import { Request, Response } from "express";
+import { employerServices } from "../services/employerServices";
 
 export class employerControllers {
+  // singleton design
   private static employerController: employerControllers | undefined;
   static instance() {
     if (!this.employerController) {
@@ -11,6 +13,18 @@ export class employerControllers {
 
   // register
   async employerRegister(req: Request, res: Response) {
-    const userForm = req.body;
+    const userForm = req.body; // frontend sent in body user object
+    const result = await employerServices.instance().employerRegister(userForm);
+
+    if (result.data) {
+      res
+        .status(result.status)
+        .json({ success: result.success, msg: result.msg, data: result.data });
+      return;
+    }
+
+    res
+      .status(result.status)
+      .json({ success: result.success, msg: result.msg });
   }
 }

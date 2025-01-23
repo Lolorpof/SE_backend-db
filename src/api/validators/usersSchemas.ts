@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 // Zod Form
-export const jobSeekerRegisterSchema = z.object({
+export const singleUserRegisterSchema = z.object({
   name: z
     .string()
     .refine((val) => [...val].filter((c) => c === " ").length === 1, {
@@ -12,7 +12,14 @@ export const jobSeekerRegisterSchema = z.object({
   confirmPassword: z.string(),
 });
 
-export const employerRegisterSchema = z.object({});
+export const companyRegisterSchema = z.object({
+  officialName: z.string(),
+  email: z.string().email(),
+  password: z.string(),
+  confirmPassword: z.string(),
+});
 
 // Infer Type
-export type jobSeekerRegisterType = z.infer<typeof jobSeekerRegisterSchema>;
+export type singleUserRegisterType = z.infer<typeof singleUserRegisterSchema>;
+
+export type companyRegisterType = z.infer<typeof companyRegisterSchema>;

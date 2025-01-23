@@ -33,6 +33,10 @@ const userRouter = express.Router();
  *                type: string
  *                description: a password
  *                example: duangjun1234
+ *              confirmPassword:
+ *                type: string
+ *                description: match password above
+ *                example: duangjun1234
  *     responses:
  *       201:
  *         description: Return the job seeker id.
@@ -68,6 +72,10 @@ userRouter
  *              password:
  *                type: string
  *                description: a password
+ *                example: duangjun1234
+ *              confirmPassword:
+ *                type: string
+ *                description: match password above
  *                example: duangjun1234
  *     responses:
  *       201:

@@ -5,6 +5,7 @@ import "../types/usersTypes";
 import bcrypt from "bcrypt";
 
 export class jobSeekerServices {
+  // singleton design
   private static jobSeekerService: jobSeekerServices | undefined;
   static instance() {
     if (!this.jobSeekerService) {
@@ -18,14 +19,14 @@ export class jobSeekerServices {
     // {Business Logic}
     // user form validation
     try {
-      usersSchemas.jobSeekerRegisterSchema.parse(userForm);
+      usersSchemas.singleUserRegisterSchema.parse(userForm);
     } catch (error) {
       const formattedError = fromError(error).toString();
       console.log(formattedError);
       return { success: false, msg: formattedError, status: 403 };
     }
 
-    const validatedUserForm: usersSchemas.jobSeekerRegisterType = userForm;
+    const validatedUserForm: usersSchemas.singleUserRegisterType = userForm;
     // split to first name and last name
     const [firstName, lastName] = validatedUserForm.name.split(" ");
 
@@ -63,6 +64,15 @@ export class jobSeekerServices {
           status: 400,
         };
       }
+    }
+
+    // password  & confirmPassword should be the same
+    if (validatedUserForm.password !== validatedUserForm.confirmPassword) {
+      return {
+        success: false,
+        msg: "Password does not match",
+        status: 400,
+      };
     }
 
     // {Done with Business Logic}

@@ -6,6 +6,7 @@ import { and, eq, or } from "drizzle-orm";
 import bcrypt from "bcrypt";
 
 export class jobSeekerModels {
+  // singleton design
   private static jobSeekerModel: jobSeekerModels | undefined;
   static instance() {
     if (!this.jobSeekerModel) {
@@ -43,7 +44,7 @@ export class jobSeekerModels {
   }
 
   // register
-  async jobSeekerRegister(user: formattedUserType) {
+  async jobSeekerRegister(user: formattedSingleUserRegisterType) {
     // job seeker
     const registeredUser = await drizzlePool
       .insert(jobSeekerTable)
@@ -61,6 +62,6 @@ export class jobSeekerModels {
       .insert(registrationApprovalTable)
       .values({ userType: "JOBSEEKER", jobSeekerId: registeredUser[0].id });
 
-    return registeredUser;
+    return registeredUser[0];
   }
 }
