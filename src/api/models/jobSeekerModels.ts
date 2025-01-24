@@ -1,6 +1,10 @@
 import "dotenv/config";
 import { drizzlePool } from "../../db/conn";
-import { jobSeekerTable, registrationApprovalTable } from "../../db/schema";
+import {
+  jobSeekerTable,
+  oauthJobSeekerTable,
+  registrationApprovalTable,
+} from "../../db/schema";
 import "../types/usersTypes";
 import { and, eq, or } from "drizzle-orm";
 import bcrypt from "bcrypt";
@@ -44,7 +48,7 @@ export class jobSeekerModels {
   }
 
   // register
-  async jobSeekerRegister(user: formattedSingleUserRegisterType) {
+  async register(user: formattedSingleUserRegisterType) {
     // job seeker
     const registeredUser = await drizzlePool
       .insert(jobSeekerTable)
@@ -63,6 +67,20 @@ export class jobSeekerModels {
       .values({ userType: "JOBSEEKER", jobSeekerId: registeredUser[0].id });
 
     return registeredUser[0];
+  }
+
+  // {login}
+  async matchNameEmail(nameEmail: string, password: string) {
+    // find users with name or email
+    const users = await drizzlePool.query.jobSeekerTable.findMany({
+      columns: { id: true, password: true, approvalStatus: true },
+      where: or(
+        eq(jobSeekerTable.username, nameEmail),
+        eq(jobSeekerTable.email, nameEmail)
+      ),
+    });
+
+    return users;
   }
 
   // get all
@@ -85,5 +103,52 @@ export class jobSeekerModels {
     });
 
     return result;
+  }
+
+  // get by id
+  async getById(id: string, isOauth: boolean) {
+    let user: jobSeekerType | undefined;
+    if (!isOauth) {
+      user = await drizzlePool.query.jobSeekerTable.findFirst({
+        columns: {
+          id: false,
+          password: false,
+          createdAt: false,
+          updatedAt: false,
+        },
+        where: eq(jobSeekerTable.id, id),
+        with: {
+          skills: {
+            with: { toSkill: { columns: { name: true, description: true } } },
+          },
+          vulnerabilities: {
+            with: {
+              toVulnerabilityType: {
+                columns: { name: true, description: true },
+              },
+            },
+          },
+        },
+      });
+    } else {
+      user = await drizzlePool.query.oauthJobSeekerTable.findFirst({
+        columns: { id: false, createdAt: false, updatedAt: false },
+        where: eq(oauthJobSeekerTable.id, id),
+        with: {
+          skills: {
+            with: { toSkill: { columns: { name: true, description: true } } },
+          },
+          vulnerabilities: {
+            with: {
+              toVulnerabilityType: {
+                columns: { name: true, description: true },
+              },
+            },
+          },
+        },
+      });
+    }
+
+    return user;
   }
 }

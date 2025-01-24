@@ -3,6 +3,8 @@ import * as usersSchemas from "../validators/usersValidator";
 import { fromError } from "zod-validation-error";
 import "../types/usersTypes";
 import bcrypt from "bcrypt";
+import { IVerifyOptions } from "passport-local";
+import "../types/usersTypes";
 
 export class jobSeekerServices {
   // singleton design
@@ -15,7 +17,7 @@ export class jobSeekerServices {
   }
 
   // register
-  async jobSeekerRegister(userForm: any) {
+  async register(userForm: any): Promise<SerivcesResponse<any>> {
     // {Business Logic}
     // user form validation
     try {
@@ -99,9 +101,7 @@ export class jobSeekerServices {
     // insert job seeker into database
     let registeredUser;
     try {
-      registeredUser = await jobSeekerModels
-        .instance()
-        .jobSeekerRegister(formattedUser);
+      registeredUser = await jobSeekerModels.instance().register(formattedUser);
     } catch (error) {
       console.log(error);
       return { success: false, msg: "Something went wrong", status: 403 };
@@ -115,8 +115,69 @@ export class jobSeekerServices {
     };
   }
 
+  // login (passport format)
+  async login(
+    username: string,
+    password: string,
+    done: (
+      error: any,
+      user?: Express.User | false,
+      options?: IVerifyOptions
+    ) => void
+  ) {
+    // match name or email, and approved
+    let users: any[];
+    try {
+      users = await jobSeekerModels
+        .instance()
+        .matchNameEmail(username, password);
+    } catch (error) {
+      console.log(error);
+      return done(error, false, { message: "Something went wrong" });
+    }
+
+    if (users.length === 0) {
+      return done(null, false, { message: "User doesn't existed" });
+    }
+
+    // match password
+    let exactUser;
+    try {
+      for (const user of users) {
+        const matched = await bcrypt.compare(password, user.password);
+
+        if (matched) {
+          exactUser = user;
+          break;
+        }
+      }
+    } catch (error) {
+      console.log(error);
+      return done(error, false, { message: "Something went wrong" });
+    }
+
+    // wrong password
+    if (!exactUser) {
+      return done(null, false, { message: "Wrong password" });
+    }
+
+    // not approved yet
+    if (exactUser.approvalStatus === "UNAPPROVED") {
+      return done(null, false, { message: "User isn't approved yet" });
+    }
+
+    // formatting
+    const formattedUser = {
+      type: "JOBSEEKER",
+      isOauth: false,
+      id: exactUser.id,
+    };
+
+    return done(null, formattedUser, { message: "Successfully logged in" });
+  }
+
   // get all
-  async getAll() {
+  async getAll(): Promise<SerivcesResponse<any>> {
     let jobSeekers;
     try {
       jobSeekers = await jobSeekerModels.instance().getAll();
@@ -133,6 +194,48 @@ export class jobSeekerServices {
       success: true,
       msg: "Successfully get all job seekers",
       data: jobSeekers,
+      status: 200,
+    };
+  }
+
+  // get by id
+  async getById(
+    id: string,
+    isOauth: boolean
+  ): Promise<SerivcesResponse<jobSeekerType>> {
+    let user: jobSeekerType | undefined;
+    // getting user
+    try {
+      user = await jobSeekerModels.instance().getById(id, isOauth);
+    } catch (error) {
+      console.log(error);
+      return { success: false, msg: "Something went wrong", status: 403 };
+    }
+
+    if (!user) {
+      return { success: false, msg: "Something went wrong", status: 403 };
+    }
+
+    return {
+      success: true,
+      msg: "Retrieve user successfully",
+      data: user,
+      status: 200,
+    };
+  }
+
+  // get current
+  async getCurrent(
+    user: Express.User | undefined
+  ): Promise<SerivcesResponse<Express.User>> {
+    if (!user) {
+      return { success: false, msg: "Something went wrong", status: 403 };
+    }
+
+    return {
+      success: true,
+      msg: "Successfully retrieve current user",
+      data: user,
       status: 200,
     };
   }

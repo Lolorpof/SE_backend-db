@@ -40,4 +40,7 @@ export class Models<T> {
 
     return result;
   }
+
+  // getUser
+  async getUser(id: string) {}
 }

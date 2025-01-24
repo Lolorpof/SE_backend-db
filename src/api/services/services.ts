@@ -1,4 +1,5 @@
-import {} from "../models/models";
+import { IVerifyOptions } from "passport-local";
+import { Models } from "../models/models";
 import {
   singleUserRegisterSchema,
   schemaValidation,
