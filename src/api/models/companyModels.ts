@@ -1,6 +1,10 @@
 import { and, eq, or } from "drizzle-orm";
 import { drizzlePool } from "../../db/conn";
-import { companyTable, registrationApprovalTable } from "../../db/schema";
+import {
+  companyTable,
+  oauthCompanyTable,
+  registrationApprovalTable,
+} from "../../db/schema";
 
 export class companyModels {
   // singleton design
@@ -30,7 +34,7 @@ export class companyModels {
     return duplicatedNameOrEmail[0];
   }
 
-  async companyRegister(user: formattedCompanyRegisterType) {
+  async register(user: formattedCompanyRegisterType) {
     const registeredUser = await drizzlePool
       .insert(companyTable)
       .values({
@@ -46,5 +50,25 @@ export class companyModels {
       .values({ userType: "COMPANY", companyId: registeredUser[0].id });
 
     return registeredUser[0];
+  }
+
+  // get by id
+  async getById(id: string, isOauth: boolean) {
+    let user: companyType | undefined;
+    if (!isOauth) {
+      user = await drizzlePool.query.companyTable.findFirst({
+        columns: { password: false, createdAt: false, updatedAt: false },
+        where: eq(companyTable.id, id),
+        with: {},
+      });
+    } else {
+      user = await drizzlePool.query.oauthCompanyTable.findFirst({
+        columns: { createdAt: false, updatedAt: false },
+        where: eq(oauthCompanyTable.id, id),
+        with: {},
+      });
+    }
+
+    return user;
   }
 }

@@ -11,9 +11,9 @@ export class companyControllers {
     return this.companyController;
   }
 
-  async companyRegister(req: Request, res: Response) {
+  async register(req: Request, res: Response) {
     const userForm = req.body;
-    const result = await companyServices.instance().companyRegister(userForm);
+    const result = await companyServices.instance().register(userForm);
 
     if (result.data) {
       res

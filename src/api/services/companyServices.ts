@@ -16,7 +16,7 @@ export class companyServices {
     return this.companyService;
   }
 
-  async companyRegister(userForm: any) {
+  async register(userForm: any): Promise<SerivcesResponse<any>> {
     // {Business Logic}
     // user form validation
     try {
@@ -99,9 +99,7 @@ export class companyServices {
     // insert into database
     let registeredUser;
     try {
-      registeredUser = await companyModels
-        .instance()
-        .companyRegister(formattedUser);
+      registeredUser = await companyModels.instance().register(formattedUser);
     } catch (error) {
       console.log(error);
       return { success: false, msg: "Something went wrong", status: 403 };
@@ -112,6 +110,29 @@ export class companyServices {
       msg: "Successfully registered",
       data: registeredUser,
       status: 201,
+    };
+  }
+
+  // get by id
+  async getById(id: string, isOauth: boolean): Promise<SerivcesResponse<any>> {
+    let user: companyType | undefined;
+    // getting user
+    try {
+      user = await companyModels.instance().getById(id, isOauth);
+    } catch (error) {
+      console.log(error);
+      return { success: false, msg: "Something went wrong", status: 403 };
+    }
+
+    if (!user) {
+      return { success: false, msg: "Something went wrong", status: 403 };
+    }
+
+    return {
+      success: true,
+      msg: "Retrieve user successfully",
+      data: user,
+      status: 200,
     };
   }
 }

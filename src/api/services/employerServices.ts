@@ -16,7 +16,7 @@ export class employerServices {
     return this.employerService;
   }
 
-  async employerRegister(userForm: any) {
+  async register(userForm: any): Promise<SerivcesResponse<any>> {
     // {Business Logic}
     // user form validation
     try {
@@ -100,9 +100,7 @@ export class employerServices {
     // insert into database
     let registeredUser;
     try {
-      registeredUser = await employerModels
-        .instance()
-        .employerRegister(formattedUser);
+      registeredUser = await employerModels.instance().register(formattedUser);
     } catch (error) {
       console.log(error);
       return { success: false, msg: "Something went wrong", status: 403 };
@@ -113,6 +111,29 @@ export class employerServices {
       msg: "Successfully registered",
       data: registeredUser,
       status: 201,
+    };
+  }
+
+  // get by id
+  async getById(id: string, isOauth: boolean): Promise<SerivcesResponse<any>> {
+    let user: employerType | undefined;
+    // getting user
+    try {
+      user = await employerModels.instance().getById(id, isOauth);
+    } catch (error) {
+      console.log(error);
+      return { success: false, msg: "Something went wrong", status: 403 };
+    }
+
+    if (!user) {
+      return { success: false, msg: "Something went wrong", status: 403 };
+    }
+
+    return {
+      success: true,
+      msg: "Retrieve user successfully",
+      data: user,
+      status: 200,
     };
   }
 }

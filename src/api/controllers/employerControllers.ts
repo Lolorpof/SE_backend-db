@@ -14,7 +14,7 @@ export class employerControllers {
   // register
   async employerRegister(req: Request, res: Response) {
     const userForm = req.body; // frontend sent in body user object
-    const result = await employerServices.instance().employerRegister(userForm);
+    const result = await employerServices.instance().register(userForm);
 
     if (result.data) {
       res
