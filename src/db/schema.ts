@@ -8,6 +8,7 @@ import {
   primaryKey,
   timestamp,
   integer,
+  json,
 } from "drizzle-orm/pg-core";
 
 const undef = "UNDEFINED";
@@ -816,6 +817,12 @@ export const notificationTable = pgTable("notification", {
     .notNull()
     .defaultNow()
     .$onUpdate(() => new Date()),
+});
+
+export const userSessionsTable = pgTable("user_sessions", {
+  sid: varchar("sid", { length: 255 }).primaryKey(),
+  sess: json("sess").notNull(),
+  expire: timestamp("expire").notNull(),
 });
 
 // Relations

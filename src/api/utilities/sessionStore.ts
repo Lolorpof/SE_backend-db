@@ -8,4 +8,5 @@ export const sessionStore = new pgSession({
   pool: superPool,
   createTableIfMissing: true,
   pruneSessionInterval: 60,
+  tableName: "user_sessions",
 });

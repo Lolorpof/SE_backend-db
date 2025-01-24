@@ -43,6 +43,13 @@
       "when": 1737652485193,
       "tag": "0005_curly_reaper",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1737750573639,
+      "tag": "0006_dusty_legion",
+      "breakpoints": true
     }
   ]
 }
