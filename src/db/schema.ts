@@ -8,6 +8,7 @@ import {
   primaryKey,
   timestamp,
   integer,
+  json,
 } from "drizzle-orm/pg-core";
 
 const undef = "UNDEFINED";
@@ -733,7 +734,10 @@ export const registrationApprovalTable = pgTable("registration_approval", {
       onUpdate: "cascade",
     }
   ),
-  employerId: uuid("employer_id").references(() => employerTable.id),
+  employerId: uuid("employer_id").references(() => employerTable.id, {
+    onDelete: "cascade",
+    onUpdate: "cascade",
+  }),
   oauthEmployerId: uuid("oauth_employer_id").references(
     () => oauthEmployerTable.id,
     {
@@ -741,7 +745,10 @@ export const registrationApprovalTable = pgTable("registration_approval", {
       onUpdate: "cascade",
     }
   ),
-  companyId: uuid("company_id").references(() => companyTable.id),
+  companyId: uuid("company_id").references(() => companyTable.id, {
+    onDelete: "cascade",
+    onUpdate: "cascade",
+  }),
   oauthCompanyId: uuid("oauth_company_id").references(
     () => oauthCompanyTable.id,
     {
@@ -783,7 +790,10 @@ export const notificationTable = pgTable("notification", {
       onUpdate: "cascade",
     }
   ),
-  employerId: uuid("employer_id").references(() => employerTable.id),
+  employerId: uuid("employer_id").references(() => employerTable.id, {
+    onDelete: "cascade",
+    onUpdate: "cascade",
+  }),
   oauthEmployerId: uuid("oauth_employer_id").references(
     () => oauthEmployerTable.id,
     {
@@ -807,6 +817,12 @@ export const notificationTable = pgTable("notification", {
     .notNull()
     .defaultNow()
     .$onUpdate(() => new Date()),
+});
+
+export const userSessionsTable = pgTable("user_sessions", {
+  sid: varchar("sid", { length: 255 }).primaryKey(),
+  sess: json("sess").notNull(),
+  expire: timestamp("expire").notNull(),
 });
 
 // Relations
