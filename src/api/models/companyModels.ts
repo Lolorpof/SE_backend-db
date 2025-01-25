@@ -1,12 +1,13 @@
-import { and, eq, or } from "drizzle-orm";
+import { eq, or } from "drizzle-orm";
 import { drizzlePool } from "../../db/conn";
 import {
   companyTable,
   oauthCompanyTable,
   registrationApprovalTable,
 } from "../../db/schema";
+import { userModelInterfaces } from "../interfaces/userModelInterfaces";
 
-export class companyModels {
+export class companyModels implements userModelInterfaces {
   // singleton design
   private static companyModel: companyModels | undefined;
   static instance() {
@@ -16,7 +17,8 @@ export class companyModels {
     return this.companyModel;
   }
 
-  async duplicatedCompanyCheck(officialName: string, email: string) {
+  // check for same name or email
+  async duplicateNameEmail(officialName: string, email: string) {
     // getting duplicated name or email
     const duplicatedNameOrEmail = await drizzlePool
       .select({
@@ -26,12 +28,25 @@ export class companyModels {
       .from(companyTable)
       .where(
         or(
-          and(eq(companyTable.officialName, officialName)),
+          eq(companyTable.officialName, officialName),
           eq(companyTable.email, email)
         )
       );
 
     return duplicatedNameOrEmail[0];
+  }
+
+  // get users with matched name or email
+  async matchNameEmail(nameEmail: string): Promise<matchNameEmailType[]> {
+    const users = await drizzlePool.query.companyTable.findMany({
+      columns: { id: true, approvalStatus: true, password: true },
+      where: or(
+        eq(companyTable.officialName, nameEmail),
+        eq(companyTable.email, nameEmail)
+      ),
+    });
+
+    return users;
   }
 
   async register(user: formattedCompanyRegisterType) {

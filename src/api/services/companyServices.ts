@@ -5,8 +5,11 @@ import {
 } from "../validators/usersValidator";
 import { fromError } from "zod-validation-error";
 import bcrypt from "bcrypt";
+import { userServiceInterfaces } from "../interfaces/userServiceInterfaces";
+import { IVerifyOptions } from "passport-local";
+import "../types/usersTypes";
 
-export class companyServices {
+export class companyServices implements userServiceInterfaces {
   // singleton design
   private static companyService: companyServices | undefined;
   static instance() {
@@ -16,8 +19,9 @@ export class companyServices {
     return this.companyService;
   }
 
+  // {Business Logic}
+  // register company
   async register(userForm: any): Promise<SerivcesResponse<any>> {
-    // {Business Logic}
     // user form validation
     try {
       companyRegisterSchema.parse(userForm);
@@ -34,7 +38,7 @@ export class companyServices {
     try {
       duplicatedUserCheck = await companyModels
         .instance()
-        .duplicatedCompanyCheck(
+        .duplicateNameEmail(
           validatedUserForm.officialName,
           validatedUserForm.email
         );
@@ -113,8 +117,119 @@ export class companyServices {
     };
   }
 
-  // get by id
-  async getById(id: string, isOauth: boolean): Promise<SerivcesResponse<any>> {
+  // login company (passport form)
+  async login(
+    username: string,
+    password: string,
+    done: (
+      error: any,
+      user?: Express.User | false,
+      options?: IVerifyOptions
+    ) => void
+  ): Promise<void> {
+    let users: matchNameEmailType[];
+    // get all match name or email
+    try {
+      users = await companyModels.instance().matchNameEmail(username);
+    } catch (error) {
+      console.log(error);
+      return done(error, false, { message: "Something went wrong" });
+    }
+
+    if (users.length === 0) {
+      return done(null, false, { message: "User doesn't existed" });
+    }
+
+    // match password
+    let exactUser: matchNameEmailType | undefined;
+    for (const user of users) {
+      const matched = await bcrypt.compare(password, user.password);
+
+      if (matched) {
+        exactUser = user;
+        break;
+      }
+    }
+
+    // wrong password
+    if (!exactUser) {
+      return done(null, false, { message: "Wrong password" });
+    }
+
+    // not approved
+    if (exactUser.approvalStatus === "UNAPPROVED") {
+      return done(null, false, { message: "User isn't approved yet" });
+    }
+
+    // format user
+    const formattedUser: userSessionType = {
+      id: exactUser.id,
+      isOauth: false,
+      type: "COMPANY",
+    };
+
+    done(null, formattedUser, { message: "Successfully logged in" });
+  }
+
+  async checkCurrent(
+    user: Express.User | undefined,
+    isOauth: boolean,
+    type: string
+  ): Promise<SerivcesResponse<any>> {
+    if (!user) {
+      return { success: false, status: 403, msg: "Something went wrong" };
+    }
+
+    let userObj: companySessionType;
+    try {
+      userObj = user as companySessionType;
+    } catch (error) {
+      console.log(error);
+      return { success: false, status: 403, msg: "Something went wrong" };
+    }
+
+    if (userObj.isOauth !== isOauth || userObj.type !== type) {
+      return { success: false, status: 401, msg: "User isn't logged in" };
+    }
+
+    return {
+      success: true,
+      status: 200,
+      msg: "Sucessfully retrieve checked user",
+      data: { id: userObj.id, officialName: userObj.officialName },
+    };
+  }
+
+  // get current user
+  async getCurrent(
+    user: Express.User | undefined
+  ): Promise<SerivcesResponse<companySessionType>> {
+    if (!user) {
+      return { success: false, status: 403, msg: "Something went wrong" };
+    }
+    let userObj: companySessionType;
+    try {
+      userObj = user as companySessionType;
+      if (userObj.type !== "COMPANY") {
+        throw Error();
+      }
+    } catch (error) {
+      return { success: false, status: 400, msg: "User isn't logged in" };
+    }
+
+    return {
+      success: true,
+      status: 200,
+      msg: "Successfully retrieve user",
+      data: user as companySessionType,
+    };
+  }
+
+  // deserialized user (passport calls)
+  async deserializer(
+    id: string,
+    isOauth: boolean
+  ): Promise<SerivcesResponse<companyType>> {
     let user: companyType | undefined;
     // getting user
     try {

@@ -7,7 +7,6 @@ import {
 } from "../../db/schema";
 import "../types/usersTypes";
 import { and, eq, or } from "drizzle-orm";
-import bcrypt from "bcrypt";
 
 export class jobSeekerModels {
   // singleton design
@@ -19,12 +18,8 @@ export class jobSeekerModels {
     return this.jobSeekerModel;
   }
 
-  // duplicate name check
-  async duplicatedJobSeekerCheck(
-    firstName: string,
-    lastName: string,
-    email: string
-  ) {
+  // duplicate name or email check
+  async duplicateNameEmail(firstName: string, lastName: string, email: string) {
     let duplicatedNameOrEmail;
     // getting duplicated first name & last name
     duplicatedNameOrEmail = await drizzlePool
@@ -70,7 +65,7 @@ export class jobSeekerModels {
   }
 
   // {login}
-  async matchNameEmail(nameEmail: string, password: string) {
+  async matchNameEmail(nameEmail: string) {
     // find users with name or email
     const users = await drizzlePool.query.jobSeekerTable.findMany({
       columns: { id: true, password: true, approvalStatus: true },
@@ -105,13 +100,12 @@ export class jobSeekerModels {
     return result;
   }
 
-  // get by id
+  // get user by id
   async getById(id: string, isOauth: boolean) {
     let user: jobSeekerType | undefined;
     if (!isOauth) {
       user = await drizzlePool.query.jobSeekerTable.findFirst({
         columns: {
-          id: false,
           password: false,
           createdAt: false,
           updatedAt: false,
@@ -132,7 +126,7 @@ export class jobSeekerModels {
       });
     } else {
       user = await drizzlePool.query.oauthJobSeekerTable.findFirst({
-        columns: { id: false, createdAt: false, updatedAt: false },
+        columns: { createdAt: false, updatedAt: false },
         where: eq(oauthJobSeekerTable.id, id),
         with: {
           skills: {

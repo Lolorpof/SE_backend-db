@@ -5,8 +5,10 @@ import "../types/usersTypes";
 import bcrypt from "bcrypt";
 import { IVerifyOptions } from "passport-local";
 import "../types/usersTypes";
+import "../interfaces/userServiceInterfaces";
+import { userServiceInterfaces } from "../interfaces/userServiceInterfaces";
 
-export class jobSeekerServices {
+export class jobSeekerServices implements userServiceInterfaces {
   // singleton design
   private static jobSeekerService: jobSeekerServices | undefined;
   static instance() {
@@ -37,7 +39,7 @@ export class jobSeekerServices {
     try {
       duplicatedNameUser = await jobSeekerModels
         .instance()
-        .duplicatedJobSeekerCheck(firstName, lastName, validatedUserForm.email);
+        .duplicateNameEmail(firstName, lastName, validatedUserForm.email);
     } catch (error) {
       console.log(error);
       return { success: false, msg: "Something went wrong", status: 403 };
@@ -124,13 +126,11 @@ export class jobSeekerServices {
       user?: Express.User | false,
       options?: IVerifyOptions
     ) => void
-  ) {
+  ): Promise<void> {
     // match name or email, and approved
-    let users: any[];
+    let users: matchNameEmailType[];
     try {
-      users = await jobSeekerModels
-        .instance()
-        .matchNameEmail(username, password);
+      users = await jobSeekerModels.instance().matchNameEmail(username);
     } catch (error) {
       console.log(error);
       return done(error, false, { message: "Something went wrong" });
@@ -141,7 +141,7 @@ export class jobSeekerServices {
     }
 
     // match password
-    let exactUser;
+    let exactUser: matchNameEmailType | undefined;
     try {
       for (const user of users) {
         const matched = await bcrypt.compare(password, user.password);
@@ -176,6 +176,35 @@ export class jobSeekerServices {
     return done(null, formattedUser, { message: "Successfully logged in" });
   }
 
+  // check current user, for logout
+  async checkCurrent(
+    user: Express.User | undefined,
+    isOauth: boolean,
+    type: string
+  ): Promise<SerivcesResponse<checkUserType>> {
+    if (!user) {
+      return { success: false, status: 403, msg: "Something went wrong" };
+    }
+    let userObj: jobSeekerSessionType;
+    try {
+      userObj = user as jobSeekerSessionType;
+    } catch (error) {
+      console.log(error);
+      return { success: false, status: 403, msg: "Something went wrong" };
+    }
+
+    if (userObj.isOauth !== isOauth || userObj.type !== type) {
+      return { success: false, status: 401, msg: "User isn't logged in" };
+    }
+
+    return {
+      success: true,
+      status: 200,
+      msg: "Successfully retrieve checked user",
+      data: { id: userObj.id, username: userObj.username },
+    };
+  }
+
   // get all
   async getAll(): Promise<SerivcesResponse<any>> {
     let jobSeekers;
@@ -198,8 +227,8 @@ export class jobSeekerServices {
     };
   }
 
-  // get by id
-  async getById(
+  // deserialized user (passport calls)
+  async deserializer(
     id: string,
     isOauth: boolean
   ): Promise<SerivcesResponse<jobSeekerType>> {
@@ -227,15 +256,24 @@ export class jobSeekerServices {
   // get current
   async getCurrent(
     user: Express.User | undefined
-  ): Promise<SerivcesResponse<Express.User>> {
+  ): Promise<SerivcesResponse<jobSeekerSessionType>> {
     if (!user) {
       return { success: false, msg: "Something went wrong", status: 403 };
+    }
+    let userObj: jobSeekerSessionType;
+    try {
+      userObj = user as jobSeekerSessionType;
+      if (userObj.type !== "JOBSEEKER") {
+        throw Error();
+      }
+    } catch (error) {
+      return { success: false, status: 400, msg: "User isn't logged in" };
     }
 
     return {
       success: true,
       msg: "Successfully retrieve current user",
-      data: user,
+      data: user as jobSeekerSessionType,
       status: 200,
     };
   }

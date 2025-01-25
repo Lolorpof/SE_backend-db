@@ -6,8 +6,9 @@ import {
   registrationApprovalTable,
 } from "../../db/schema";
 import "../types/usersTypes";
+import { userModelInterfaces } from "../interfaces/userModelInterfaces";
 
-export class employerModels {
+export class employerModels implements userModelInterfaces {
   // singleton design
   private static employerModel: employerModels | undefined;
   static instance() {
@@ -18,11 +19,7 @@ export class employerModels {
   }
 
   // duplicate name check
-  async duplicatedEmployerCheck(
-    firstName: string,
-    lastName: string,
-    email: string
-  ) {
+  async duplicateNameEmail(firstName: string, lastName: string, email: string) {
     // getting duplicated first name & last name
     const duplicatedNameOrEmail = await drizzlePool
       .select({
@@ -44,6 +41,20 @@ export class employerModels {
     return duplicatedNameOrEmail[0];
   }
 
+  // {login}
+  async matchNameEmail(nameEmail: string): Promise<matchNameEmailType[]> {
+    const users = await drizzlePool.query.employerTable.findMany({
+      columns: { id: true, approvalStatus: true, password: true },
+      where: or(
+        eq(employerTable.username, nameEmail),
+        eq(employerTable.email, nameEmail)
+      ),
+    });
+
+    return users;
+  }
+
+  // register employer
   async register(user: formattedSingleUserRegisterType) {
     const registeredUser = await drizzlePool
       .insert(employerTable)
@@ -71,13 +82,11 @@ export class employerModels {
       user = await drizzlePool.query.employerTable.findFirst({
         columns: { password: false, createdAt: false, updatedAt: false },
         where: eq(employerTable.id, id),
-        with: {},
       });
     } else {
       user = await drizzlePool.query.oauthEmployerTable.findFirst({
         columns: { createdAt: false, updatedAt: false },
         where: eq(oauthEmployerTable.id, id),
-        with: {},
       });
     }
 
