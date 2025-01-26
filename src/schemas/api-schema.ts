@@ -13,13 +13,6 @@ export const getFindEmpSchema = z.object({
     .max(255, "Work hours range must be less than 255 characters"),
 });
 
-export const postSchema = z.object({
-  title: z.string().max(255, "Title must be less than 255 characters"),
-  description: z
-    .string()
-    .max(255, "Description must be less than 255 characters"),
-});
-
 export const createJobHiringPostSchema = z.object({
   title: z
     .string()
@@ -56,4 +49,25 @@ export const createJobHiringPostSchema = z.object({
   jobCategories: z
     .array(z.string().uuid("Invalid category ID"))
     .min(1, "At least one job category is required"),
+});
+
+export const getJobSeekerSchema = z.object({
+  officialName: z.string().optional(),
+  jobCategories: z.array(z.string().uuid("Invalid category ID")).optional(),
+  skills: z.array(z.string().uuid("Invalid skill ID")).optional(),
+  province: z.enum(provinces).optional(),
+  jobLocation: z
+    .string()
+    .max(255, "Job location must be less than 255 characters")
+    .optional(),
+  salaryRange: z
+    .object({
+      min: z.number().int().positive().optional(),
+      max: z.number().int().positive().optional(),
+    })
+    .optional(),
+  workHoursRange: z
+    .string()
+    .max(255, "Work hours range must be less than 255 characters")
+    .optional(),
 });
