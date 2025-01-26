@@ -1,3 +1,4 @@
+import { Profile as GoogleProfile } from "passport-google-oauth20";
 import "../types/usersTypes";
 
 export interface userModelInterfaces {
@@ -15,7 +16,25 @@ export interface userModelInterfaces {
   matchNameEmail(nameEmail: string): Promise<matchNameEmailType[]>;
 
   getById(
-    id: string,
-    isOauth: boolean
+    id: string
+  ): Promise<jobSeekerType | employerType | companyType | undefined>;
+}
+
+export interface userOauthModelInterfaces extends userModelInterfaces {
+  oauthUserInsert(
+    profile: GoogleProfile,
+    provider: "GOOGLE" | "LINE"
+  ): Promise<registerUserType>;
+
+  oauthUserUpdate(
+    profile: GoogleProfile,
+    currentUser: jobSeekerType,
+    provider: "GOOGLE" | "LINE"
+  ): Promise<jobSeekerType>;
+
+  getById(
+    providerId: string,
+    getByProviderId?: boolean,
+    provider?: "GOOGLE" | "LINE"
   ): Promise<jobSeekerType | employerType | companyType | undefined>;
 }

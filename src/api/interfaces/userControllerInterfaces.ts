@@ -11,3 +11,7 @@ export interface userControllerInterfaces {
 
   getCurrent(req: Request, res: Response): Promise<void>;
 }
+
+export interface userOauthControllerInterfaces {
+  googleLogin(req: Request, res: Response): Promise<void>;
+}

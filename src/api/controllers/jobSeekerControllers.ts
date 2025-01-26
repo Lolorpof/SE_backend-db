@@ -2,9 +2,13 @@ import { jobSeekerServices } from "../services/jobSeekerServices";
 import { Request, Response } from "express";
 import passport from "../middlewares/passport";
 import "../interfaces/userControllerInterfaces";
-import { userControllerInterfaces } from "../interfaces/userControllerInterfaces";
+import {
+  userControllerInterfaces,
+  userOauthControllerInterfaces,
+} from "../interfaces/userControllerInterfaces";
+import { CustomRequest } from "../../typings/types";
 
-export class jobSeekerControllers implements userControllerInterfaces {
+export class jobSeekerControllers implements userOauthControllerInterfaces {
   // singleton design
   private static userController: jobSeekerControllers | undefined;
   static instance() {
@@ -15,7 +19,7 @@ export class jobSeekerControllers implements userControllerInterfaces {
   }
 
   // register route handler
-  async register(req: Request, res: Response) {
+  async register(req: Request, res: Response): Promise<void> {
     const userForm = req.body; // frontend sent in body user object
     const result = await jobSeekerServices.instance().register(userForm);
 
@@ -32,7 +36,7 @@ export class jobSeekerControllers implements userControllerInterfaces {
   }
 
   // login route handler
-  async login(req: Request, res: Response) {
+  async login(req: Request, res: Response): Promise<void> {
     passport.authenticate(
       "local-jobSeeker",
       (err: any, user: any, info: any) => {
@@ -59,12 +63,45 @@ export class jobSeekerControllers implements userControllerInterfaces {
     )(req, res);
   }
 
+  // google oauth 2.0 route handler
+  async googleLogin(req: CustomRequest, res: Response): Promise<void> {
+    passport.authenticate(
+      "google-jobSeeker",
+      (err: any, user: any, info: any) => {
+        if (err) {
+          console.log(err);
+          return res.redirect(
+            `${process.env.FRONTEND_URL}:${process.env.FRONTEND_PORT}/login?msg=${info.message}`
+          );
+        }
+        if (!user) {
+          return res.redirect(
+            `${process.env.FRONTEND_URL}:${process.env.FRONTEND_PORT}/login?msg=${info.message}`
+          );
+        }
+
+        req.logIn(user, (err) => {
+          if (err) {
+            console.log(err);
+            return res.redirect(
+              `${process.env.FRONTEND_URL}:${process.env.FRONTEND_PORT}/login?msg=login`
+            );
+          }
+
+          res.redirect(
+            `${process.env.FRONTEND_URL}:${process.env.FRONTEND_PORT}?msg=success`
+          );
+        });
+      }
+    )(req, res);
+  }
+
   // logout route handler
   async logout(req: Request, res: Response): Promise<void> {
     // check current user type
     const result = await jobSeekerServices
       .instance()
-      .checkCurrent(req.user, false, "JOBSEEKER");
+      .checkCurrent(req.user, "JOBSEEKER", false);
     if (!result.success || !result.data) {
       res.status(result.status).json({
         success: false,
@@ -103,7 +140,7 @@ export class jobSeekerControllers implements userControllerInterfaces {
   }
 
   // get all
-  async getAll(req: Request, res: Response) {
+  async getAll(req: Request, res: Response): Promise<void> {
     const result = await jobSeekerServices.instance().getAll();
 
     if (result.data) {
@@ -119,7 +156,7 @@ export class jobSeekerControllers implements userControllerInterfaces {
   }
 
   // get current user
-  async getCurrent(req: Request, res: Response) {
+  async getCurrent(req: Request, res: Response): Promise<void> {
     const responseUser = await jobSeekerServices
       .instance()
       .getCurrent(req.user);

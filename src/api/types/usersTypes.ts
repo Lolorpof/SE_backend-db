@@ -17,7 +17,8 @@ interface jobSeekerType {
   toSkill?: nameDescType[];
   toVulnerabilityType?: nameDescType[];
 
-  oauthType?: string; // oauth exclusive
+  providerId?: string;
+  provider?: string; // oauth exclusive
 }
 
 interface employerType {
@@ -35,7 +36,8 @@ interface employerType {
   updatedAt?: string;
   approvalStatus?: string;
 
-  oauthType?: string;
+  providerId?: string;
+  provider?: string;
 }
 
 interface companyType {
@@ -50,8 +52,6 @@ interface companyType {
   createdAt?: string;
   updatedAt?: string;
   approvalStatus?: string;
-
-  oauthType?: string;
 }
 
 // middleware types
@@ -59,7 +59,7 @@ interface companyType {
 interface userSessionType {
   id: string;
   type: string;
-  isOauth: boolean;
+  provider?: "GOOGLE" | "LINE";
 }
 
 interface jobSeekerSessionType extends jobSeekerType {

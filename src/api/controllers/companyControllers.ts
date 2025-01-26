@@ -60,7 +60,7 @@ export class companyControllers implements userControllerInterfaces {
     // check current user type
     const result = await companyServices
       .instance()
-      .checkCurrent(req.user, false, "COMPANY");
+      .checkCurrent(req.user, "COMPANY");
     if (!result.success || !result.data) {
       res.status(result.status).json({
         success: false,

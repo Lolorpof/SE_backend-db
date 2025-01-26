@@ -1,3 +1,4 @@
+import "dotenv/config";
 import { Request, Response, NextFunction } from "express";
 
 export const checkAuthenticated = async (
@@ -34,6 +35,29 @@ export const checkUnauthenticated = async (
   } catch (error) {
     console.log(error);
     res.status(404).json({ success: false, msg: "Something went wrong" });
+    return;
+  }
+
+  next();
+};
+
+export const checkUnauthenticatedOauth = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    if (req.isAuthenticated()) {
+      res.redirect(
+        `${process.env.FRONTEND_URL}:${process.env.FRONTEND_PORT}?msg=Already logged in`
+      );
+      return;
+    }
+  } catch (error) {
+    console.log(error);
+    res.redirect(
+      `${process.env.FRONTEND_URL}:${process.env.FRONTEND_PORT}?msg=error`
+    );
     return;
   }
 

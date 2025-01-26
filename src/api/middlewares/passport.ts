@@ -1,11 +1,12 @@
+import "dotenv/config";
 import passport from "passport";
 import { Strategy as LocalStrategy } from "passport-local";
+import { Strategy as GoogleStrategy } from "passport-google-oauth20";
 import { jobSeekerServices } from "../services/jobSeekerServices";
 import { employerServices } from "../services/employerServices";
 import "../types/usersTypes";
 import "../types/responseTypes";
 import { companyServices } from "../services/companyServices";
-import { format } from "path";
 
 // Serializer (turn into session when logging in)
 passport.serializeUser(async (user, done) => {
@@ -23,21 +24,18 @@ passport.deserializeUser(async (userSession: userSessionType, done) => {
   ) {
     responseUser = await jobSeekerServices
       .instance()
-      .deserializer(userSession.id, userSession.isOauth);
+      .deserializer(userSession.id, userSession.provider);
   } else if (
     userSession.type === "EMPLOYER" ||
     userSession.type === "OAUTHEMPLOYER"
   ) {
     responseUser = await employerServices
       .instance()
-      .deserializer(userSession.id, userSession.isOauth);
-  } else if (
-    userSession.type === "COMPANY" ||
-    userSession.type === "OAUTHCOMPANY"
-  ) {
+      .deserializer(userSession.id, userSession.provider);
+  } else if (userSession.type === "COMPANY") {
     responseUser = await companyServices
       .instance()
-      .deserializer(userSession.id, userSession.isOauth);
+      .deserializer(userSession.id);
   }
 
   if (!responseUser || !responseUser.data || !responseUser.success) {
@@ -45,7 +43,7 @@ passport.deserializeUser(async (userSession: userSessionType, done) => {
   }
 
   const formattedUser = {
-    isOauth: userSession.isOauth,
+    isOauth: userSession.provider ? true : false,
     type: userSession.type,
     ...responseUser.data,
   };
@@ -55,6 +53,7 @@ passport.deserializeUser(async (userSession: userSessionType, done) => {
 
 // Strategies
 
+// [Credentials]
 // job seeker auth
 passport.use(
   "local-jobSeeker",
@@ -79,6 +78,36 @@ passport.use(
   new LocalStrategy(
     { usernameField: "nameEmail" },
     companyServices.instance().login
+  )
+);
+
+// [OAuth 2.0]
+// <Google>
+// job seeker
+passport.use(
+  "google-jobSeeker",
+  new GoogleStrategy(
+    {
+      clientID: process.env.GOOGLE_CLIENTID as string,
+      clientSecret: process.env.GOOGLE_CLIENTSECRET as string,
+      callbackURL: process.env.GOOGLE_JOBSEEKER_CALLBACK_URL as string,
+      scope: ["email", "profile"],
+    },
+    jobSeekerServices.instance().googleLogin
+  )
+);
+
+// employer
+passport.use(
+  "google-employer",
+  new GoogleStrategy(
+    {
+      clientID: process.env.GOOGLE_CLIENTID as string,
+      clientSecret: process.env.GOOGLE_CLIENTSECRET as string,
+      callbackURL: process.env.GOOGLE_EMPLOYER_CALLBACK_URL as string,
+      scope: ["email", "profile"],
+    },
+    employerServices.instance().googleLogin
   )
 );
 

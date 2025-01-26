@@ -1,10 +1,6 @@
 import { eq, or } from "drizzle-orm";
 import { drizzlePool } from "../../db/conn";
-import {
-  companyTable,
-  oauthCompanyTable,
-  registrationApprovalTable,
-} from "../../db/schema";
+import { companyTable, registrationApprovalTable } from "../../db/schema";
 import { userModelInterfaces } from "../interfaces/userModelInterfaces";
 
 export class companyModels implements userModelInterfaces {
@@ -68,22 +64,12 @@ export class companyModels implements userModelInterfaces {
   }
 
   // get by id
-  async getById(id: string, isOauth: boolean) {
-    let user: companyType | undefined;
-    if (!isOauth) {
-      user = await drizzlePool.query.companyTable.findFirst({
-        columns: { password: false, createdAt: false, updatedAt: false },
-        where: eq(companyTable.id, id),
-        with: {},
-      });
-    } else {
-      user = await drizzlePool.query.oauthCompanyTable.findFirst({
-        columns: { createdAt: false, updatedAt: false },
-        where: eq(oauthCompanyTable.id, id),
-        with: {},
-      });
-    }
+  async getById(id: string) {
+    const user = await drizzlePool.query.companyTable.findFirst({
+      columns: { password: false, createdAt: false, updatedAt: false },
+      where: eq(companyTable.id, id),
+    });
 
-    return user;
+    return user as companyType | undefined;
   }
 }

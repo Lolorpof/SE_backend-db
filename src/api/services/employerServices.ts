@@ -5,11 +5,15 @@ import {
   singleUserRegisterSchema,
 } from "../validators/usersValidator";
 import bcrypt from "bcrypt";
-import { userServiceInterfaces } from "../interfaces/userServiceInterfaces";
+import {
+  userOauthServiceInterfaces,
+  userServiceInterfaces,
+} from "../interfaces/userServiceInterfaces";
 import { IVerifyOptions } from "passport-local";
 import "../types/usersTypes";
+import { Profile, VerifyCallback } from "passport-google-oauth20";
 
-export class employerServices implements userServiceInterfaces {
+export class employerServices implements userOauthServiceInterfaces {
   // singleton design
   private static employerService: employerServices | undefined;
   static instance() {
@@ -142,8 +146,12 @@ export class employerServices implements userServiceInterfaces {
     }
 
     let exactUser: matchNameEmailType | undefined;
+    let approvedExisted = false;
     try {
       for (const user of users) {
+        if (user.approvalStatus === "APPROVED") {
+          approvedExisted = true;
+        }
         const matched = await bcrypt.compare(password, user.password);
 
         // exact user found
@@ -157,9 +165,15 @@ export class employerServices implements userServiceInterfaces {
       return done(error, false, { message: "Something went wrong" });
     }
 
-    // wrong password
     if (!exactUser) {
-      return done(null, false, { message: "Wrong password" });
+      // wrong password
+      if (approvedExisted) {
+        return done(null, false, { message: "Wrong password" });
+      }
+      // none of the username is approved
+      else {
+        return done(null, false, { message: "User doesn't existed" });
+      }
     }
 
     // user isn't approved yet
@@ -180,11 +194,80 @@ export class employerServices implements userServiceInterfaces {
     return done(null, formattedUser, { message: "Successfully logged in" });
   }
 
+  // google oauth login (passport form)
+  async googleLogin(
+    accessToken: string,
+    refreshToken: string,
+    profile: Profile,
+    done: VerifyCallback
+  ): Promise<void> {
+    // check if user existed
+    let user: employerType | undefined;
+    try {
+      user = await employerModels
+        .instance()
+        .getById(profile.id, true, "GOOGLE");
+    } catch (error) {
+      console.log(error);
+      done(error, false, { message: "Something went wrong" });
+    }
+
+    // first time oauth login
+    let insertUser: registerUserType;
+    if (!user) {
+      try {
+        insertUser = await employerModels
+          .instance()
+          .oauthUserInsert(profile, "GOOGLE");
+      } catch (error) {
+        console.log(error);
+        return done(error, false, {
+          message: "Something went wrong",
+        });
+      }
+
+      return done(null, false, {
+        message:
+          "Detecting that you have logged in for the first time, please wait until your account is approved",
+      });
+    }
+
+    // user already existed
+    else {
+      // update user info, if there's any change made
+      try {
+        user = await employerModels
+          .instance()
+          .oauthUserUpdate(profile, user, "GOOGLE");
+      } catch (error) {
+        console.log(error);
+        return done(error, false, {
+          message: "Something went wrong",
+        });
+      }
+
+      // user isn't approved yet
+      if (user.approvalStatus === "UNAPPROVED") {
+        return done(null, false, { message: "User isn't approved yet" });
+      }
+
+      // format user
+      const formattedUser: userSessionType = {
+        id: user.id,
+        type: "EMPLOYER",
+        provider: "GOOGLE",
+      };
+
+      // user is approved
+      done(null, formattedUser, { message: "Successfully login" });
+    }
+  }
+
   // check current user, for logout
   async checkCurrent(
     user: Express.User | undefined,
-    isOauth: boolean,
-    type: string
+    type: string,
+    isOauth: boolean
   ): Promise<SerivcesResponse<any>> {
     if (!user) {
       return { success: false, status: 403, msg: "Something went wrong" };
@@ -237,12 +320,16 @@ export class employerServices implements userServiceInterfaces {
   // deserialize user (passport calls)
   async deserializer(
     id: string,
-    isOauth: boolean
+    provider?: "GOOGLE" | "LINE"
   ): Promise<SerivcesResponse<any>> {
     let user: employerType | undefined;
     // getting user
     try {
-      user = await employerModels.instance().getById(id, isOauth);
+      if (!provider) {
+        user = await employerModels.instance().getById(id);
+      } else {
+        user = await employerModels.instance().getById(id, false, provider);
+      }
     } catch (error) {
       console.log(error);
       return { success: false, msg: "Something went wrong", status: 403 };

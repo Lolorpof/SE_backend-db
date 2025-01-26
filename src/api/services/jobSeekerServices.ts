@@ -6,9 +6,13 @@ import bcrypt from "bcrypt";
 import { IVerifyOptions } from "passport-local";
 import "../types/usersTypes";
 import "../interfaces/userServiceInterfaces";
-import { userServiceInterfaces } from "../interfaces/userServiceInterfaces";
+import {
+  userOauthServiceInterfaces,
+  userServiceInterfaces,
+} from "../interfaces/userServiceInterfaces";
+import { Profile, VerifyCallback } from "passport-google-oauth20";
 
-export class jobSeekerServices implements userServiceInterfaces {
+export class jobSeekerServices implements userOauthServiceInterfaces {
   // singleton design
   private static jobSeekerService: jobSeekerServices | undefined;
   static instance() {
@@ -142,8 +146,12 @@ export class jobSeekerServices implements userServiceInterfaces {
 
     // match password
     let exactUser: matchNameEmailType | undefined;
+    let approvedExisted = false;
     try {
       for (const user of users) {
+        if (user.approvalStatus === "APPROVED") {
+          approvedExisted = true;
+        }
         const matched = await bcrypt.compare(password, user.password);
 
         if (matched) {
@@ -156,9 +164,15 @@ export class jobSeekerServices implements userServiceInterfaces {
       return done(error, false, { message: "Something went wrong" });
     }
 
-    // wrong password
     if (!exactUser) {
-      return done(null, false, { message: "Wrong password" });
+      // wrong password
+      if (approvedExisted) {
+        return done(null, false, { message: "Wrong password" });
+      }
+      // none of the username is approved
+      else {
+        return done(null, false, { message: "User doesn't existed" });
+      }
     }
 
     // not approved yet
@@ -168,19 +182,87 @@ export class jobSeekerServices implements userServiceInterfaces {
 
     // formatting
     const formattedUser = {
-      type: "JOBSEEKER",
-      isOauth: false,
       id: exactUser.id,
+      type: "JOBSEEKER",
     };
 
     return done(null, formattedUser, { message: "Successfully logged in" });
   }
 
+  // google oauth (passport format)
+  async googleLogin(
+    accessToken: string,
+    refreshToken: string,
+    profile: Profile,
+    done: VerifyCallback
+  ): Promise<void> {
+    // check if user existed
+    let user: jobSeekerType | undefined;
+    try {
+      user = await jobSeekerModels
+        .instance()
+        .getById(profile.id, true, "GOOGLE");
+    } catch (error) {
+      console.log(error);
+      done(error, false, { message: "Something went wrong" });
+    }
+
+    // first time oauth login
+    let insertUser: registerUserType;
+    if (!user) {
+      try {
+        insertUser = await jobSeekerModels
+          .instance()
+          .oauthUserInsert(profile, "GOOGLE");
+      } catch (error) {
+        console.log(error);
+        return done(error, false, {
+          message: "Something went wrong",
+        });
+      }
+
+      return done(null, false, {
+        message:
+          "Detecting that you have logged in for the first time, please wait until your account is approved",
+      });
+    }
+
+    // user already existed
+    else {
+      // update user info, if there's any change made
+      try {
+        user = await jobSeekerModels
+          .instance()
+          .oauthUserUpdate(profile, user, "GOOGLE");
+      } catch (error) {
+        console.log(error);
+        return done(error, false, {
+          message: "Something went wrong",
+        });
+      }
+
+      // user isn't approved yet
+      if (user.approvalStatus === "UNAPPROVED") {
+        return done(null, false, { message: "User isn't approved yet" });
+      }
+
+      // format user
+      const formattedUser: userSessionType = {
+        id: user.id,
+        type: "JOBSEEKER",
+        provider: "GOOGLE",
+      };
+
+      // user is approved
+      done(null, formattedUser, { message: "Successfully login" });
+    }
+  }
+
   // check current user, for logout
   async checkCurrent(
     user: Express.User | undefined,
-    isOauth: boolean,
-    type: string
+    type: string,
+    isOauth: boolean
   ): Promise<SerivcesResponse<checkUserType>> {
     if (!user) {
       return { success: false, status: 403, msg: "Something went wrong" };
@@ -230,12 +312,16 @@ export class jobSeekerServices implements userServiceInterfaces {
   // deserialized user (passport calls)
   async deserializer(
     id: string,
-    isOauth: boolean
+    provider?: "GOOGLE" | "LINE"
   ): Promise<SerivcesResponse<jobSeekerType>> {
     let user: jobSeekerType | undefined;
     // getting user
     try {
-      user = await jobSeekerModels.instance().getById(id, isOauth);
+      if (!provider) {
+        user = await jobSeekerModels.instance().getById(id);
+      } else {
+        user = await jobSeekerModels.instance().getById(id, false, provider);
+      }
     } catch (error) {
       console.log(error);
       return { success: false, msg: "Something went wrong", status: 403 };

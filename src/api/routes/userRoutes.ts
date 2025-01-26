@@ -1,8 +1,12 @@
-import express from "express";
+import express, { NextFunction, Response } from "express";
 import { jobSeekerControllers } from "../controllers/jobSeekerControllers";
 import { employerControllers } from "../controllers/employerControllers";
 import { Controllers } from "../controllers/controllers";
-import { checkAuthenticated, checkUnauthenticated } from "../middlewares/auth";
+import {
+  checkAuthenticated,
+  checkUnauthenticated,
+  checkUnauthenticatedOauth,
+} from "../middlewares/auth";
 import "../types/usersTypes";
 import "../validators/usersValidator";
 import { singleUserRegisterType } from "../validators/usersValidator";
@@ -96,6 +100,27 @@ userRouter
   .get(checkAuthenticated, jobSeekerControllers.instance().getCurrent)
   .delete(checkAuthenticated, jobSeekerControllers.instance().logout);
 
+// job seeker, google oauth login(GET)
+/**
+ * @openapi
+ * /api/user/job-seeker/oauth/google:
+ *   get:
+ *     summary: google login as job seeker (call by 'window.open()')
+ *     tags: [Job Seeker]
+ *     responses:
+ *       200:
+ *         description: Redirect user to home page
+ */
+userRouter.get(
+  "/job-seeker/oauth/google",
+  checkUnauthenticatedOauth,
+  jobSeekerControllers.instance().googleLogin
+);
+userRouter.get(
+  "/job-seeker/oauth/google/callback",
+  jobSeekerControllers.instance().googleLogin
+);
+
 // job seeker, get user by id(GET) {Not implemented cuz no usage yet}
 userRouter.route("/job-seeker/auth/:id");
 
@@ -181,6 +206,27 @@ userRouter
   .post(checkUnauthenticated, employerControllers.instance().login)
   .get(checkAuthenticated, employerControllers.instance().getCurrent)
   .delete(checkAuthenticated, employerControllers.instance().logout);
+
+// employer, google oauth login(GET)
+/**
+ * @openapi
+ * /api/user/employer/oauth/google:
+ *   get:
+ *     summary: google login as employer (call by 'window.open()')
+ *     tags: [Employer]
+ *     responses:
+ *       200:
+ *         description: Redirect user to home page
+ */
+userRouter.get(
+  "/employer/oauth/google",
+  checkUnauthenticatedOauth,
+  employerControllers.instance().googleLogin
+);
+userRouter.get(
+  "/employer/oauth/google/callback",
+  employerControllers.instance().googleLogin
+);
 
 // [Company]
 // company, register(POST)

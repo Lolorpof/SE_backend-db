@@ -7,8 +7,13 @@ import {
 } from "../../db/schema";
 import "../types/usersTypes";
 import { and, eq, or } from "drizzle-orm";
+import {
+  userModelInterfaces,
+  userOauthModelInterfaces,
+} from "../interfaces/userModelInterfaces";
+import { Profile as GoogleProfile } from "passport-google-oauth20";
 
-export class jobSeekerModels {
+export class jobSeekerModels implements userOauthModelInterfaces {
   // singleton design
   private static jobSeekerModel: jobSeekerModels | undefined;
   static instance() {
@@ -43,7 +48,9 @@ export class jobSeekerModels {
   }
 
   // register
-  async register(user: formattedSingleUserRegisterType) {
+  async register(
+    user: formattedSingleUserRegisterType
+  ): Promise<registerUserType> {
     // job seeker
     const registeredUser = await drizzlePool
       .insert(jobSeekerTable)
@@ -62,6 +69,73 @@ export class jobSeekerModels {
       .values({ userType: "JOBSEEKER", jobSeekerId: registeredUser[0].id });
 
     return registeredUser[0];
+  }
+
+  // oauth first time
+  async oauthUserInsert(
+    profile: GoogleProfile,
+    provider: "GOOGLE" | "LINE"
+  ): Promise<registerUserType> {
+    let user: registerUserType[];
+    // ***remove true***
+    if (provider === "GOOGLE" || true) {
+      user = await drizzlePool
+        .insert(oauthJobSeekerTable)
+        .values({
+          firstName: profile._json.given_name as string,
+          lastName: profile._json.family_name as string,
+          email: profile._json.email as string,
+          provider: "GOOGLE",
+          providerId: profile.id,
+          username: profile._json.given_name as string,
+        })
+        .returning({ id: oauthJobSeekerTable.id });
+    } else {
+    }
+
+    // insert into registration approval
+    await drizzlePool
+      .insert(registrationApprovalTable)
+      .values({ userType: "OAUTHJOBSEEKER", oauthJobSeekerId: user[0].id });
+
+    return user[0];
+  }
+
+  // update oauth profile
+  async oauthUserUpdate(
+    profile: GoogleProfile,
+    currentUser: jobSeekerType,
+    provider: "GOOGLE" | "LINE"
+  ): Promise<jobSeekerType> {
+    // remove true if done
+    let updateUser;
+    if (provider === "GOOGLE" || true) {
+      if (
+        currentUser.lastName !== profile._json.family_name ||
+        currentUser.firstName !== profile._json.given_name ||
+        currentUser.email !== profile._json.email ||
+        currentUser.profilePicture !== profile._json.picture
+      ) {
+        updateUser = await drizzlePool
+          .update(oauthJobSeekerTable)
+          .set({
+            firstName: profile._json.given_name,
+            lastName: profile._json.family_name,
+            email: profile._json.email,
+            profilePicture: profile._json.picture,
+          })
+          .where(eq(oauthJobSeekerTable.id, currentUser.id))
+          .returning();
+      }
+    }
+
+    // no updated done
+    if (!updateUser) {
+      return currentUser;
+    }
+
+    const user: jobSeekerType = updateUser[0] as jobSeekerType;
+    return user;
   }
 
   // {login}
@@ -101,16 +175,40 @@ export class jobSeekerModels {
   }
 
   // get user by id
-  async getById(id: string, isOauth: boolean) {
+  async getById(
+    idOrProviderId: string,
+    getByProviderId?: boolean,
+    provider?: "GOOGLE" | "LINE"
+  ) {
     let user: jobSeekerType | undefined;
-    if (!isOauth) {
+    if (!provider) {
       user = await drizzlePool.query.jobSeekerTable.findFirst({
         columns: {
           password: false,
           createdAt: false,
           updatedAt: false,
         },
-        where: eq(jobSeekerTable.id, id),
+        where: eq(jobSeekerTable.id, idOrProviderId),
+        with: {
+          skills: {
+            with: { toSkill: { columns: { name: true, description: true } } },
+          },
+          vulnerabilities: {
+            with: {
+              toVulnerabilityType: {
+                columns: { name: true, description: true },
+              },
+            },
+          },
+        },
+      });
+    } else if (getByProviderId) {
+      user = await drizzlePool.query.oauthJobSeekerTable.findFirst({
+        columns: { createdAt: false, updatedAt: false },
+        where: and(
+          eq(oauthJobSeekerTable.providerId, idOrProviderId),
+          eq(oauthJobSeekerTable.provider, provider)
+        ),
         with: {
           skills: {
             with: { toSkill: { columns: { name: true, description: true } } },
@@ -127,7 +225,7 @@ export class jobSeekerModels {
     } else {
       user = await drizzlePool.query.oauthJobSeekerTable.findFirst({
         columns: { createdAt: false, updatedAt: false },
-        where: eq(oauthJobSeekerTable.id, id),
+        where: eq(oauthJobSeekerTable.id, idOrProviderId),
         with: {
           skills: {
             with: { toSkill: { columns: { name: true, description: true } } },

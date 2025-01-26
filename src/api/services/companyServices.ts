@@ -142,7 +142,11 @@ export class companyServices implements userServiceInterfaces {
 
     // match password
     let exactUser: matchNameEmailType | undefined;
+    let approvedExisted = false;
     for (const user of users) {
+      if (user.approvalStatus === "APPROVED") {
+        approvedExisted = true;
+      }
       const matched = await bcrypt.compare(password, user.password);
 
       if (matched) {
@@ -151,9 +155,15 @@ export class companyServices implements userServiceInterfaces {
       }
     }
 
-    // wrong password
     if (!exactUser) {
-      return done(null, false, { message: "Wrong password" });
+      // wrong password
+      if (approvedExisted) {
+        return done(null, false, { message: "Wrong password" });
+      }
+      // none of the username is approved
+      else {
+        return done(null, false, { message: "User doesn't existed" });
+      }
     }
 
     // not approved
@@ -164,7 +174,6 @@ export class companyServices implements userServiceInterfaces {
     // format user
     const formattedUser: userSessionType = {
       id: exactUser.id,
-      isOauth: false,
       type: "COMPANY",
     };
 
@@ -173,7 +182,6 @@ export class companyServices implements userServiceInterfaces {
 
   async checkCurrent(
     user: Express.User | undefined,
-    isOauth: boolean,
     type: string
   ): Promise<SerivcesResponse<any>> {
     if (!user) {
@@ -188,7 +196,7 @@ export class companyServices implements userServiceInterfaces {
       return { success: false, status: 403, msg: "Something went wrong" };
     }
 
-    if (userObj.isOauth !== isOauth || userObj.type !== type) {
+    if (userObj.type !== type) {
       return { success: false, status: 401, msg: "User isn't logged in" };
     }
 
@@ -226,14 +234,11 @@ export class companyServices implements userServiceInterfaces {
   }
 
   // deserialized user (passport calls)
-  async deserializer(
-    id: string,
-    isOauth: boolean
-  ): Promise<SerivcesResponse<companyType>> {
+  async deserializer(id: string): Promise<SerivcesResponse<companyType>> {
     let user: companyType | undefined;
     // getting user
     try {
-      user = await companyModels.instance().getById(id, isOauth);
+      user = await companyModels.instance().getById(id);
     } catch (error) {
       console.log(error);
       return { success: false, msg: "Something went wrong", status: 403 };

@@ -1,9 +1,12 @@
 import { Request, Response } from "express";
 import { employerServices } from "../services/employerServices";
-import { userControllerInterfaces } from "../interfaces/userControllerInterfaces";
+import {
+  userControllerInterfaces,
+  userOauthControllerInterfaces,
+} from "../interfaces/userControllerInterfaces";
 import passport from "../middlewares/passport";
 
-export class employerControllers implements userControllerInterfaces {
+export class employerControllers implements userOauthControllerInterfaces {
   // singleton design
   private static employerController: employerControllers | undefined;
   static instance() {
@@ -61,12 +64,45 @@ export class employerControllers implements userControllerInterfaces {
     )(req, res);
   }
 
+  // google oauth route handler
+  async googleLogin(req: Request, res: Response): Promise<void> {
+    passport.authenticate(
+      "google-employer",
+      (err: any, user: any, info: any) => {
+        if (err) {
+          console.log(err);
+          return res.redirect(
+            `${process.env.FRONTEND_URL}:${process.env.FRONTEND_PORT}/login?msg=${info.message}`
+          );
+        }
+        if (!user) {
+          return res.redirect(
+            `${process.env.FRONTEND_URL}:${process.env.FRONTEND_PORT}/login?msg=${info.message}`
+          );
+        }
+
+        req.logIn(user, (err) => {
+          if (err) {
+            console.log(err);
+            return res.redirect(
+              `${process.env.FRONTEND_URL}:${process.env.FRONTEND_PORT}/login?msg=login`
+            );
+          }
+
+          res.redirect(
+            `${process.env.FRONTEND_URL}:${process.env.FRONTEND_PORT}?msg=success`
+          );
+        });
+      }
+    )(req, res);
+  }
+
   // logout route handler
   async logout(req: Request, res: Response): Promise<void> {
     // check current user type
     const result = await employerServices
       .instance()
-      .checkCurrent(req.user, false, "EMPLOYER");
+      .checkCurrent(req.user, "EMPLOYER", false);
     if (!result.success || !result.data) {
       res.status(result.status).json({
         success: false,
