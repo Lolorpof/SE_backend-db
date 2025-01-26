@@ -117,11 +117,12 @@ export async function createJobHiringPost(req: Request, res: Response) {
     console.error("Error creating job hiring post:", error);
 
     if (error.name === "ZodError") {
-      return res.status(400).json({
+      res.status(400).json({
         success: false,
         message: "Invalid request data",
         errors: error.errors,
       });
+      return;
     }
 
     res.status(500).json({

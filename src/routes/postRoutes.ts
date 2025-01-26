@@ -4,16 +4,22 @@ import {
   getFindEmpSchema,
   createJobHiringPostSchema,
 } from "../schemas/api-schema";
-import { handleGetEmp, handlePost } from "../controllers/postController";
+import {
+  handleGetEmp,
+  createJobHiringPost,
+} from "../controllers/postController";
 
 const postRoutes = Router();
 
-postRoutes.get("/findemp", validateData(getFindEmpSchema), handleGetEmp);
+// Job hiring routes
 postRoutes.post(
   "/postemp",
   validateData(createJobHiringPostSchema),
-  handlePost
+  createJobHiringPost
 );
+
+// Legacy routes - consider updating these names to be more RESTful
+postRoutes.get("/findemp", validateData(getFindEmpSchema), handleGetEmp);
 postRoutes.get("/jobseeker", validateData(getFindEmpSchema), handleGetEmp);
 
 export default postRoutes;
