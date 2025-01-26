@@ -243,7 +243,7 @@ export const adminTable = pgTable(
     profilePicture: varchar("profile_picture", { length: 255 })
       .notNull()
       .default(undef),
-    contact: varchar("varchar", { length: 255 }),
+    contact: varchar("contact", { length: 255 }),
     createdAt: timestamp("created_at").notNull().defaultNow(),
     updatedAt: timestamp("updated_at")
       .notNull()
