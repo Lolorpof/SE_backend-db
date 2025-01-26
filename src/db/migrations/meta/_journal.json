@@ -5,64 +5,8 @@
     {
       "idx": 0,
       "version": "7",
-      "when": 1737219542935,
-      "tag": "0000_conscious_shaman",
-      "breakpoints": true
-    },
-    {
-      "idx": 1,
-      "version": "7",
-      "when": 1737284720391,
-      "tag": "0001_harsh_miracleman",
-      "breakpoints": true
-    },
-    {
-      "idx": 2,
-      "version": "7",
-      "when": 1737564759376,
-      "tag": "0002_medical_mariko_yashida",
-      "breakpoints": true
-    },
-    {
-      "idx": 3,
-      "version": "7",
-      "when": 1737603365651,
-      "tag": "0003_famous_crystal",
-      "breakpoints": true
-    },
-    {
-      "idx": 4,
-      "version": "7",
-      "when": 1737605790162,
-      "tag": "0004_lowly_leopardon",
-      "breakpoints": true
-    },
-    {
-      "idx": 5,
-      "version": "7",
-      "when": 1737652485193,
-      "tag": "0005_curly_reaper",
-      "breakpoints": true
-    },
-    {
-      "idx": 6,
-      "version": "7",
-      "when": 1737750573639,
-      "tag": "0006_dusty_legion",
-      "breakpoints": true
-    },
-    {
-      "idx": 7,
-      "version": "7",
-      "when": 1737876957491,
-      "tag": "0007_misty_tusk",
-      "breakpoints": true
-    },
-    {
-      "idx": 8,
-      "version": "7",
-      "when": 1737877391925,
-      "tag": "0008_hot_the_captain",
+      "when": 1737882474474,
+      "tag": "0000_robust_stephen_strange",
       "breakpoints": true
     }
   ]

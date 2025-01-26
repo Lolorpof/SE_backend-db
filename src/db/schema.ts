@@ -22,9 +22,7 @@ export const userTypeEnum = pgEnum("userType", [
   "EMPLOYER",
   "OAUTH_EMPLOYER",
   "COMPANY",
-  "OAUTH_COMPANY",
   "ADMIN",
-  "OAUTH_ADMIN",
 ]);
 
 export const normalUserTypeEnum = pgEnum("normalUserType", [
@@ -33,7 +31,6 @@ export const normalUserTypeEnum = pgEnum("normalUserType", [
   "EMPLOYER",
   "OAUTHEMPLOYER",
   "COMPANY",
-  "OAUTHCOMPANY",
 ]);
 
 export const jobSeekerTypeEnum = pgEnum("jobSeekerType", ["NORMAL", "OAUTH"]);
@@ -42,10 +39,7 @@ export const jobHirerTypeEnum = pgEnum("jobHirerType", [
   "EMPLOYER",
   "OAUTHEMPLOYER",
   "COMPANY",
-  "OAUTHCOMPANY",
 ]);
-
-export const adminTypeEnum = pgEnum("adminType", ["NORMAL", "OAUTH"]);
 
 // {Status}
 
@@ -239,29 +233,6 @@ export const companyTable = pgTable("company", {
     .$onUpdate(() => new Date()),
 });
 
-// company shouldn't have oauth?
-export const oauthCompanyTable = pgTable("oauth_company", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  providerId: varchar("provider_id", { length: 255 }).notNull(),
-  officialName: varchar("official_name", { length: 255 }).notNull().unique(),
-  email: varchar("email", { length: 255 }).notNull().unique(),
-  profile_picture: varchar("profile_picture", { length: 255 })
-    .notNull()
-    .default(undef),
-  aboutUs: varchar("about_us", { length: 2050 }),
-  contact: varchar("contact", { length: 255 }),
-  provider: providerEnum("provider").notNull(),
-  address: varchar("address", { length: 255 }),
-  approvalStatus: usersApprovalStatusEnum("approval_status")
-    .notNull()
-    .default("UNAPPROVED"),
-  createdAt: timestamp("created_at").notNull().defaultNow(),
-  updatedAt: timestamp("updated_at")
-    .notNull()
-    .defaultNow()
-    .$onUpdate(() => new Date()),
-});
-
 export const adminTable = pgTable(
   "admin",
   {
@@ -285,23 +256,6 @@ export const adminTable = pgTable(
     },
   ]
 );
-
-export const oauthAdminTable = pgTable("oauth_admin", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  providerId: varchar("provider_id", { length: 255 }).notNull(),
-  username: varchar("username", { length: 255 }).notNull(),
-  email: varchar("email", { length: 255 }).notNull().unique(),
-  profilePicture: varchar("profile_picture", { length: 255 })
-    .notNull()
-    .default(undef),
-  contact: varchar("varchar", { length: 255 }),
-  provider: providerEnum("provider").notNull(),
-  createdAt: timestamp("created_at").notNull().defaultNow(),
-  updatedAt: timestamp("updated_at")
-    .notNull()
-    .defaultNow()
-    .$onUpdate(() => new Date()),
-});
 
 // {Jobs}
 
@@ -430,13 +384,6 @@ export const jobHiringPostTable = pgTable("job_hiring_post", {
     onDelete: "cascade",
     onUpdate: "cascade",
   }),
-  oauthCompanyId: uuid("oauth_company_id").references(
-    () => oauthCompanyTable.id,
-    {
-      onDelete: "cascade",
-      onUpdate: "cascade",
-    }
-  ),
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at")
     .notNull()
@@ -523,13 +470,6 @@ export const jobFindingPostMatchedTable = pgTable("job_finding_post_matched", {
     onDelete: "cascade",
     onUpdate: "cascade",
   }),
-  oauthCompanyId: uuid("oauth_company_id").references(
-    () => oauthCompanyTable.id,
-    {
-      onDelete: "cascade",
-      onUpdate: "cascade",
-    }
-  ),
   createdAt: timestamp("created_at").notNull().defaultNow(), //registered time
   approvedAt: timestamp("approved_at"),
   updatedAt: timestamp("updated_at")
@@ -754,19 +694,8 @@ export const registrationApprovalTable = pgTable("registration_approval", {
     onDelete: "cascade",
     onUpdate: "cascade",
   }),
-  oauthCompanyId: uuid("oauth_company_id").references(
-    () => oauthCompanyTable.id,
-    {
-      onDelete: "cascade",
-      onUpdate: "cascade",
-    }
-  ),
-  adminType: adminTypeEnum("admin_type"), // approved by
+  // approved by
   adminId: uuid("admin_id").references(() => adminTable.id, {
-    onDelete: "set null",
-    onUpdate: "cascade",
-  }),
-  oauthAdminId: uuid("oauth_admin_id").references(() => oauthAdminTable.id, {
     onDelete: "set null",
     onUpdate: "cascade",
   }),
@@ -810,13 +739,6 @@ export const notificationTable = pgTable("notification", {
     onDelete: "cascade",
     onUpdate: "cascade",
   }),
-  oauthCompanyId: uuid("oauth_company_id").references(
-    () => oauthCompanyTable.id,
-    {
-      onDelete: "cascade",
-      onUpdate: "cascade",
-    }
-  ),
   createdAt: timestamp("created_at").notNull().defaultNow(), // notify time
   updatedAt: timestamp("updated_at") // read time
     .notNull()
@@ -889,22 +811,7 @@ export const companyRelation = relations(companyTable, ({ many }) => {
   };
 });
 
-export const oauthCompanyRelation = relations(oauthCompanyTable, ({ many }) => {
-  return {
-    registrationApproval: many(registrationApprovalTable),
-    jobHiringPosted: many(jobHiringPostTable),
-    matchedJobFindingPost: many(jobFindingPostMatchedTable),
-    notify: many(notificationTable),
-  };
-});
-
 export const adminRelation = relations(adminTable, ({ many }) => {
-  return {
-    approvedBy: many(registrationApprovalTable),
-  };
-});
-
-export const oauthAdminRelation = relations(oauthAdminTable, ({ many }) => {
   return {
     approvedBy: many(registrationApprovalTable),
   };
@@ -947,10 +854,6 @@ export const jobHiringPostRelation = relations(
       postByCompany: one(companyTable, {
         fields: [jobHiringPostTable.companyId],
         references: [companyTable.id],
-      }),
-      postByOauthCompany: one(oauthCompanyTable, {
-        fields: [jobHiringPostTable.oauthCompanyId],
-        references: [oauthCompanyTable.id],
       }),
     };
   }
@@ -1014,10 +917,6 @@ export const jobFindingPostMatchedRelation = relations(
       toCompany: one(companyTable, {
         fields: [jobFindingPostMatchedTable.companyId],
         references: [companyTable.id],
-      }),
-      toOauthCompany: one(oauthCompanyTable, {
-        fields: [jobFindingPostMatchedTable.oauthCompanyId],
-        references: [oauthCompanyTable.id],
       }),
     };
   }
@@ -1189,18 +1088,10 @@ export const registrationApprovalRelation = relations(
         fields: [registrationApprovalTable.companyId],
         references: [companyTable.id],
       }),
-      approveOauthCompany: one(oauthCompanyTable, {
-        fields: [registrationApprovalTable.oauthCompanyId],
-        references: [oauthCompanyTable.id],
-      }),
       // approved by
       approvedByAdmin: one(adminTable, {
         fields: [registrationApprovalTable.adminId],
         references: [adminTable.id],
-      }),
-      approvedByOauthAdmin: one(oauthAdminTable, {
-        fields: [registrationApprovalTable.oauthAdminId],
-        references: [oauthAdminTable.id],
       }),
     };
   }
@@ -1227,10 +1118,6 @@ export const notificationRelation = relations(notificationTable, ({ one }) => {
     notifyCompany: one(companyTable, {
       fields: [notificationTable.companyId],
       references: [companyTable.id],
-    }),
-    notifyOauthCompany: one(oauthCompanyTable, {
-      fields: [notificationTable.oauthCompanyId],
-      references: [oauthCompanyTable.id],
     }),
   };
 });
