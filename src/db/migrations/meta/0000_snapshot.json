@@ -1,5 +1,5 @@
 {
-  "id": "01b56cdb-dba6-4b67-bf2c-8a53ec90e73f",
+  "id": "d1bfaff9-cfb9-4a40-a4f1-2e2ef183a9aa",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -12,7 +12,8 @@
           "name": "id",
           "type": "uuid",
           "primaryKey": true,
-          "notNull": true
+          "notNull": true,
+          "default": "gen_random_uuid()"
         },
         "username": {
           "name": "username",
@@ -78,7 +79,8 @@
           "name": "id",
           "type": "uuid",
           "primaryKey": true,
-          "notNull": true
+          "notNull": true,
+          "default": "gen_random_uuid()"
         },
         "official_name": {
           "name": "official_name",
@@ -122,6 +124,14 @@
           "type": "varchar(255)",
           "primaryKey": false,
           "notNull": false
+        },
+        "approval_status": {
+          "name": "approval_status",
+          "type": "userApprovalStatus",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'UNAPPROVED'"
         },
         "created_at": {
           "name": "created_at",
@@ -169,7 +179,8 @@
           "name": "id",
           "type": "uuid",
           "primaryKey": true,
-          "notNull": true
+          "notNull": true,
+          "default": "gen_random_uuid()"
         },
         "username": {
           "name": "username",
@@ -226,6 +237,14 @@
           "primaryKey": false,
           "notNull": false
         },
+        "approval_status": {
+          "name": "approval_status",
+          "type": "userApprovalStatus",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'UNAPPROVED'"
+        },
         "created_at": {
           "name": "created_at",
           "type": "timestamp",
@@ -265,7 +284,8 @@
           "name": "id",
           "type": "uuid",
           "primaryKey": true,
-          "notNull": true
+          "notNull": true,
+          "default": "gen_random_uuid()"
         },
         "name": {
           "name": "name",
@@ -353,8 +373,8 @@
           "columnsTo": [
             "id"
           ],
-          "onDelete": "no action",
-          "onUpdate": "no action"
+          "onDelete": "cascade",
+          "onUpdate": "cascade"
         },
         "job_find_category_job_category_id_job_category_id_fk": {
           "name": "job_find_category_job_category_id_job_category_id_fk",
@@ -366,8 +386,8 @@
           "columnsTo": [
             "id"
           ],
-          "onDelete": "no action",
-          "onUpdate": "no action"
+          "onDelete": "cascade",
+          "onUpdate": "cascade"
         }
       },
       "compositePrimaryKeys": {},
@@ -384,7 +404,8 @@
           "name": "id",
           "type": "uuid",
           "primaryKey": true,
-          "notNull": true
+          "notNull": true,
+          "default": "gen_random_uuid()"
         },
         "job_finding_post_id": {
           "name": "job_finding_post_id",
@@ -425,12 +446,6 @@
           "primaryKey": false,
           "notNull": false
         },
-        "oauth_company_id": {
-          "name": "oauth_company_id",
-          "type": "uuid",
-          "primaryKey": false,
-          "notNull": false
-        },
         "created_at": {
           "name": "created_at",
           "type": "timestamp",
@@ -464,8 +479,8 @@
           "columnsTo": [
             "id"
           ],
-          "onDelete": "no action",
-          "onUpdate": "no action"
+          "onDelete": "cascade",
+          "onUpdate": "cascade"
         },
         "job_finding_post_matched_employer_id_employer_id_fk": {
           "name": "job_finding_post_matched_employer_id_employer_id_fk",
@@ -477,8 +492,8 @@
           "columnsTo": [
             "id"
           ],
-          "onDelete": "no action",
-          "onUpdate": "no action"
+          "onDelete": "cascade",
+          "onUpdate": "cascade"
         },
         "job_finding_post_matched_oauth_employer_id_oauth_employer_id_fk": {
           "name": "job_finding_post_matched_oauth_employer_id_oauth_employer_id_fk",
@@ -490,8 +505,8 @@
           "columnsTo": [
             "id"
           ],
-          "onDelete": "no action",
-          "onUpdate": "no action"
+          "onDelete": "cascade",
+          "onUpdate": "cascade"
         },
         "job_finding_post_matched_company_id_company_id_fk": {
           "name": "job_finding_post_matched_company_id_company_id_fk",
@@ -503,21 +518,60 @@
           "columnsTo": [
             "id"
           ],
-          "onDelete": "no action",
-          "onUpdate": "no action"
+          "onDelete": "cascade",
+          "onUpdate": "cascade"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.job_finding_post_skill": {
+      "name": "job_finding_post_skill",
+      "schema": "",
+      "columns": {
+        "job_finding_post_id": {
+          "name": "job_finding_post_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
         },
-        "job_finding_post_matched_oauth_company_id_oauth_company_id_fk": {
-          "name": "job_finding_post_matched_oauth_company_id_oauth_company_id_fk",
-          "tableFrom": "job_finding_post_matched",
-          "tableTo": "oauth_company",
+        "skill_id": {
+          "name": "skill_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "job_finding_post_skill_job_finding_post_id_job_finding_post_id_fk": {
+          "name": "job_finding_post_skill_job_finding_post_id_job_finding_post_id_fk",
+          "tableFrom": "job_finding_post_skill",
+          "tableTo": "job_finding_post",
           "columnsFrom": [
-            "oauth_company_id"
+            "job_finding_post_id"
           ],
           "columnsTo": [
             "id"
           ],
-          "onDelete": "no action",
-          "onUpdate": "no action"
+          "onDelete": "cascade",
+          "onUpdate": "cascade"
+        },
+        "job_finding_post_skill_skill_id_skill_id_fk": {
+          "name": "job_finding_post_skill_skill_id_skill_id_fk",
+          "tableFrom": "job_finding_post_skill",
+          "tableTo": "skill",
+          "columnsFrom": [
+            "skill_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "cascade"
         }
       },
       "compositePrimaryKeys": {},
@@ -534,7 +588,8 @@
           "name": "id",
           "type": "uuid",
           "primaryKey": true,
-          "notNull": true
+          "notNull": true,
+          "default": "gen_random_uuid()"
         },
         "title": {
           "name": "title",
@@ -626,8 +681,8 @@
           "columnsTo": [
             "id"
           ],
-          "onDelete": "no action",
-          "onUpdate": "no action"
+          "onDelete": "cascade",
+          "onUpdate": "cascade"
         },
         "job_finding_post_oauth_job_seeker_id_oauth_job_seeker_id_fk": {
           "name": "job_finding_post_oauth_job_seeker_id_oauth_job_seeker_id_fk",
@@ -639,8 +694,8 @@
           "columnsTo": [
             "id"
           ],
-          "onDelete": "no action",
-          "onUpdate": "no action"
+          "onDelete": "cascade",
+          "onUpdate": "cascade"
         }
       },
       "compositePrimaryKeys": {},
@@ -692,8 +747,8 @@
           "columnsTo": [
             "id"
           ],
-          "onDelete": "no action",
-          "onUpdate": "no action"
+          "onDelete": "cascade",
+          "onUpdate": "cascade"
         },
         "job_hire_category_job_category_id_job_category_id_fk": {
           "name": "job_hire_category_job_category_id_job_category_id_fk",
@@ -705,8 +760,8 @@
           "columnsTo": [
             "id"
           ],
-          "onDelete": "no action",
-          "onUpdate": "no action"
+          "onDelete": "cascade",
+          "onUpdate": "cascade"
         }
       },
       "compositePrimaryKeys": {},
@@ -785,8 +840,8 @@
           "columnsTo": [
             "id"
           ],
-          "onDelete": "no action",
-          "onUpdate": "no action"
+          "onDelete": "cascade",
+          "onUpdate": "cascade"
         },
         "job_hiring_post_matched_seekers_oauth_job_seeker_id_oauth_job_seeker_id_fk": {
           "name": "job_hiring_post_matched_seekers_oauth_job_seeker_id_oauth_job_seeker_id_fk",
@@ -798,8 +853,8 @@
           "columnsTo": [
             "id"
           ],
-          "onDelete": "no action",
-          "onUpdate": "no action"
+          "onDelete": "cascade",
+          "onUpdate": "cascade"
         },
         "job_hiring_post_matched_seekers_job_hiring_post_matched_id_job_hiring_post_matched_id_fk": {
           "name": "job_hiring_post_matched_seekers_job_hiring_post_matched_id_job_hiring_post_matched_id_fk",
@@ -811,8 +866,8 @@
           "columnsTo": [
             "id"
           ],
-          "onDelete": "no action",
-          "onUpdate": "no action"
+          "onDelete": "cascade",
+          "onUpdate": "cascade"
         }
       },
       "compositePrimaryKeys": {},
@@ -829,7 +884,8 @@
           "name": "id",
           "type": "uuid",
           "primaryKey": true,
-          "notNull": true
+          "notNull": true,
+          "default": "gen_random_uuid()"
         },
         "job_hiring_post_id": {
           "name": "job_hiring_post_id",
@@ -864,8 +920,60 @@
           "columnsTo": [
             "id"
           ],
-          "onDelete": "no action",
-          "onUpdate": "no action"
+          "onDelete": "cascade",
+          "onUpdate": "cascade"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.job_hiring_post_skill": {
+      "name": "job_hiring_post_skill",
+      "schema": "",
+      "columns": {
+        "job_hiring_post_id": {
+          "name": "job_hiring_post_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "skill_id": {
+          "name": "skill_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "job_hiring_post_skill_job_hiring_post_id_job_hiring_post_id_fk": {
+          "name": "job_hiring_post_skill_job_hiring_post_id_job_hiring_post_id_fk",
+          "tableFrom": "job_hiring_post_skill",
+          "tableTo": "job_hiring_post",
+          "columnsFrom": [
+            "job_hiring_post_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "cascade"
+        },
+        "job_hiring_post_skill_skill_id_skill_id_fk": {
+          "name": "job_hiring_post_skill_skill_id_skill_id_fk",
+          "tableFrom": "job_hiring_post_skill",
+          "tableTo": "skill",
+          "columnsFrom": [
+            "skill_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "cascade"
         }
       },
       "compositePrimaryKeys": {},
@@ -882,7 +990,8 @@
           "name": "id",
           "type": "uuid",
           "primaryKey": true,
-          "notNull": true
+          "notNull": true,
+          "default": "gen_random_uuid()"
         },
         "title": {
           "name": "title",
@@ -960,12 +1069,6 @@
           "primaryKey": false,
           "notNull": false
         },
-        "oauth_company_id": {
-          "name": "oauth_company_id",
-          "type": "uuid",
-          "primaryKey": false,
-          "notNull": false
-        },
         "created_at": {
           "name": "created_at",
           "type": "timestamp",
@@ -993,8 +1096,8 @@
           "columnsTo": [
             "id"
           ],
-          "onDelete": "no action",
-          "onUpdate": "no action"
+          "onDelete": "cascade",
+          "onUpdate": "cascade"
         },
         "job_hiring_post_oauth_employer_id_oauth_employer_id_fk": {
           "name": "job_hiring_post_oauth_employer_id_oauth_employer_id_fk",
@@ -1006,8 +1109,8 @@
           "columnsTo": [
             "id"
           ],
-          "onDelete": "no action",
-          "onUpdate": "no action"
+          "onDelete": "cascade",
+          "onUpdate": "cascade"
         },
         "job_hiring_post_company_id_company_id_fk": {
           "name": "job_hiring_post_company_id_company_id_fk",
@@ -1019,21 +1122,8 @@
           "columnsTo": [
             "id"
           ],
-          "onDelete": "no action",
-          "onUpdate": "no action"
-        },
-        "job_hiring_post_oauth_company_id_oauth_company_id_fk": {
-          "name": "job_hiring_post_oauth_company_id_oauth_company_id_fk",
-          "tableFrom": "job_hiring_post",
-          "tableTo": "oauth_company",
-          "columnsFrom": [
-            "oauth_company_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "no action",
-          "onUpdate": "no action"
+          "onDelete": "cascade",
+          "onUpdate": "cascade"
         }
       },
       "compositePrimaryKeys": {},
@@ -1085,8 +1175,8 @@
           "columnsTo": [
             "id"
           ],
-          "onDelete": "no action",
-          "onUpdate": "no action"
+          "onDelete": "cascade",
+          "onUpdate": "cascade"
         },
         "job_seeker_skill_skill_id_skill_id_fk": {
           "name": "job_seeker_skill_skill_id_skill_id_fk",
@@ -1098,8 +1188,8 @@
           "columnsTo": [
             "id"
           ],
-          "onDelete": "no action",
-          "onUpdate": "no action"
+          "onDelete": "cascade",
+          "onUpdate": "cascade"
         }
       },
       "compositePrimaryKeys": {},
@@ -1116,7 +1206,8 @@
           "name": "id",
           "type": "uuid",
           "primaryKey": true,
-          "notNull": true
+          "notNull": true,
+          "default": "gen_random_uuid()"
         },
         "username": {
           "name": "username",
@@ -1179,6 +1270,14 @@
           "type": "varchar(255)",
           "primaryKey": false,
           "notNull": false
+        },
+        "approval_status": {
+          "name": "approval_status",
+          "type": "userApprovalStatus",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'UNAPPROVED'"
         },
         "created_at": {
           "name": "created_at",
@@ -1270,8 +1369,8 @@
           "columnsTo": [
             "id"
           ],
-          "onDelete": "no action",
-          "onUpdate": "no action"
+          "onDelete": "cascade",
+          "onUpdate": "cascade"
         },
         "job_seeker_vulnerability_vulnerability_type_id_vulnerability_type_id_fk": {
           "name": "job_seeker_vulnerability_vulnerability_type_id_vulnerability_type_id_fk",
@@ -1283,8 +1382,8 @@
           "columnsTo": [
             "id"
           ],
-          "onDelete": "no action",
-          "onUpdate": "no action"
+          "onDelete": "cascade",
+          "onUpdate": "cascade"
         }
       },
       "compositePrimaryKeys": {},
@@ -1301,7 +1400,8 @@
           "name": "id",
           "type": "uuid",
           "primaryKey": true,
-          "notNull": true
+          "notNull": true,
+          "default": "gen_random_uuid()"
         },
         "status": {
           "name": "status",
@@ -1360,12 +1460,6 @@
           "primaryKey": false,
           "notNull": false
         },
-        "oauth_company_id": {
-          "name": "oauth_company_id",
-          "type": "uuid",
-          "primaryKey": false,
-          "notNull": false
-        },
         "created_at": {
           "name": "created_at",
           "type": "timestamp",
@@ -1393,8 +1487,8 @@
           "columnsTo": [
             "id"
           ],
-          "onDelete": "no action",
-          "onUpdate": "no action"
+          "onDelete": "cascade",
+          "onUpdate": "cascade"
         },
         "notification_oauth_job_seeker_id_oauth_job_seeker_id_fk": {
           "name": "notification_oauth_job_seeker_id_oauth_job_seeker_id_fk",
@@ -1406,8 +1500,8 @@
           "columnsTo": [
             "id"
           ],
-          "onDelete": "no action",
-          "onUpdate": "no action"
+          "onDelete": "cascade",
+          "onUpdate": "cascade"
         },
         "notification_employer_id_employer_id_fk": {
           "name": "notification_employer_id_employer_id_fk",
@@ -1419,8 +1513,8 @@
           "columnsTo": [
             "id"
           ],
-          "onDelete": "no action",
-          "onUpdate": "no action"
+          "onDelete": "cascade",
+          "onUpdate": "cascade"
         },
         "notification_oauth_employer_id_oauth_employer_id_fk": {
           "name": "notification_oauth_employer_id_oauth_employer_id_fk",
@@ -1432,8 +1526,8 @@
           "columnsTo": [
             "id"
           ],
-          "onDelete": "no action",
-          "onUpdate": "no action"
+          "onDelete": "cascade",
+          "onUpdate": "cascade"
         },
         "notification_company_id_company_id_fk": {
           "name": "notification_company_id_company_id_fk",
@@ -1445,190 +1539,12 @@
           "columnsTo": [
             "id"
           ],
-          "onDelete": "no action",
-          "onUpdate": "no action"
-        },
-        "notification_oauth_company_id_oauth_company_id_fk": {
-          "name": "notification_oauth_company_id_oauth_company_id_fk",
-          "tableFrom": "notification",
-          "tableTo": "oauth_company",
-          "columnsFrom": [
-            "oauth_company_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "no action",
-          "onUpdate": "no action"
+          "onDelete": "cascade",
+          "onUpdate": "cascade"
         }
       },
       "compositePrimaryKeys": {},
       "uniqueConstraints": {},
-      "policies": {},
-      "checkConstraints": {},
-      "isRLSEnabled": false
-    },
-    "public.oauth_admin": {
-      "name": "oauth_admin",
-      "schema": "",
-      "columns": {
-        "id": {
-          "name": "id",
-          "type": "uuid",
-          "primaryKey": true,
-          "notNull": true
-        },
-        "username": {
-          "name": "username",
-          "type": "varchar(255)",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "email": {
-          "name": "email",
-          "type": "varchar(255)",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "profile_picture": {
-          "name": "profile_picture",
-          "type": "varchar(255)",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "'UNDEFINED'"
-        },
-        "varchar": {
-          "name": "varchar",
-          "type": "varchar(255)",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "oauth_type": {
-          "name": "oauth_type",
-          "type": "oauthType",
-          "typeSchema": "public",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "created_at": {
-          "name": "created_at",
-          "type": "timestamp",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "now()"
-        },
-        "updated_at": {
-          "name": "updated_at",
-          "type": "timestamp",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "now()"
-        }
-      },
-      "indexes": {},
-      "foreignKeys": {},
-      "compositePrimaryKeys": {},
-      "uniqueConstraints": {
-        "oauth_admin_email_unique": {
-          "name": "oauth_admin_email_unique",
-          "nullsNotDistinct": false,
-          "columns": [
-            "email"
-          ]
-        }
-      },
-      "policies": {},
-      "checkConstraints": {},
-      "isRLSEnabled": false
-    },
-    "public.oauth_company": {
-      "name": "oauth_company",
-      "schema": "",
-      "columns": {
-        "id": {
-          "name": "id",
-          "type": "uuid",
-          "primaryKey": true,
-          "notNull": true
-        },
-        "official_name": {
-          "name": "official_name",
-          "type": "varchar(255)",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "email": {
-          "name": "email",
-          "type": "varchar(255)",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "profile_picture": {
-          "name": "profile_picture",
-          "type": "varchar(255)",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "'UNDEFINED'"
-        },
-        "about_us": {
-          "name": "about_us",
-          "type": "varchar(2050)",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "contact": {
-          "name": "contact",
-          "type": "varchar(255)",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "oauth_type": {
-          "name": "oauth_type",
-          "type": "oauthType",
-          "typeSchema": "public",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "address": {
-          "name": "address",
-          "type": "varchar(255)",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "created_at": {
-          "name": "created_at",
-          "type": "timestamp",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "now()"
-        },
-        "updated_at": {
-          "name": "updated_at",
-          "type": "timestamp",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "now()"
-        }
-      },
-      "indexes": {},
-      "foreignKeys": {},
-      "compositePrimaryKeys": {},
-      "uniqueConstraints": {
-        "oauth_company_official_name_unique": {
-          "name": "oauth_company_official_name_unique",
-          "nullsNotDistinct": false,
-          "columns": [
-            "official_name"
-          ]
-        },
-        "oauth_company_email_unique": {
-          "name": "oauth_company_email_unique",
-          "nullsNotDistinct": false,
-          "columns": [
-            "email"
-          ]
-        }
-      },
       "policies": {},
       "checkConstraints": {},
       "isRLSEnabled": false
@@ -1641,6 +1557,13 @@
           "name": "id",
           "type": "uuid",
           "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "provider_id": {
+          "name": "provider_id",
+          "type": "varchar(255)",
+          "primaryKey": false,
           "notNull": true
         },
         "username": {
@@ -1686,9 +1609,9 @@
           "primaryKey": false,
           "notNull": false
         },
-        "oauth_type": {
-          "name": "oauth_type",
-          "type": "oauthType",
+        "provider": {
+          "name": "provider",
+          "type": "providerType",
           "typeSchema": "public",
           "primaryKey": false,
           "notNull": true
@@ -1698,6 +1621,14 @@
           "type": "varchar(255)",
           "primaryKey": false,
           "notNull": false
+        },
+        "approval_status": {
+          "name": "approval_status",
+          "type": "userApprovalStatus",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'UNAPPROVED'"
         },
         "created_at": {
           "name": "created_at",
@@ -1773,8 +1704,8 @@
           "columnsTo": [
             "id"
           ],
-          "onDelete": "no action",
-          "onUpdate": "no action"
+          "onDelete": "cascade",
+          "onUpdate": "cascade"
         },
         "oauth_job_seeker_skill_skill_id_skill_id_fk": {
           "name": "oauth_job_seeker_skill_skill_id_skill_id_fk",
@@ -1786,8 +1717,8 @@
           "columnsTo": [
             "id"
           ],
-          "onDelete": "no action",
-          "onUpdate": "no action"
+          "onDelete": "cascade",
+          "onUpdate": "cascade"
         }
       },
       "compositePrimaryKeys": {},
@@ -1804,6 +1735,13 @@
           "name": "id",
           "type": "uuid",
           "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "provider_id": {
+          "name": "provider_id",
+          "type": "varchar(255)",
+          "primaryKey": false,
           "notNull": true
         },
         "username": {
@@ -1856,9 +1794,9 @@
           "notNull": true,
           "default": "'UNDEFINED'"
         },
-        "oauth_type": {
-          "name": "oauth_type",
-          "type": "oauthType",
+        "provider": {
+          "name": "provider",
+          "type": "providerType",
           "typeSchema": "public",
           "primaryKey": false,
           "notNull": true
@@ -1868,6 +1806,14 @@
           "type": "varchar(255)",
           "primaryKey": false,
           "notNull": false
+        },
+        "approval_status": {
+          "name": "approval_status",
+          "type": "userApprovalStatus",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'UNAPPROVED'"
         },
         "created_at": {
           "name": "created_at",
@@ -1959,8 +1905,8 @@
           "columnsTo": [
             "id"
           ],
-          "onDelete": "no action",
-          "onUpdate": "no action"
+          "onDelete": "cascade",
+          "onUpdate": "cascade"
         },
         "oauth_job_seeker_vulnerability_vulnerability_type_id_vulnerability_type_id_fk": {
           "name": "oauth_job_seeker_vulnerability_vulnerability_type_id_vulnerability_type_id_fk",
@@ -1972,8 +1918,8 @@
           "columnsTo": [
             "id"
           ],
-          "onDelete": "no action",
-          "onUpdate": "no action"
+          "onDelete": "cascade",
+          "onUpdate": "cascade"
         }
       },
       "compositePrimaryKeys": {},
@@ -1990,7 +1936,8 @@
           "name": "id",
           "type": "uuid",
           "primaryKey": true,
-          "notNull": true
+          "notNull": true,
+          "default": "gen_random_uuid()"
         },
         "status": {
           "name": "status",
@@ -2037,30 +1984,31 @@
           "primaryKey": false,
           "notNull": false
         },
-        "oauth_company_id": {
-          "name": "oauth_company_id",
-          "type": "uuid",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "admin_type": {
-          "name": "admin_type",
-          "type": "adminType",
-          "typeSchema": "public",
-          "primaryKey": false,
-          "notNull": true
-        },
         "admin_id": {
           "name": "admin_id",
           "type": "uuid",
           "primaryKey": false,
           "notNull": false
         },
-        "oauth_admin_id": {
-          "name": "oauth_admin_id",
-          "type": "uuid",
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "approved_at": {
+          "name": "approved_at",
+          "type": "timestamp",
           "primaryKey": false,
           "notNull": false
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
         }
       },
       "indexes": {},
@@ -2075,8 +2023,8 @@
           "columnsTo": [
             "id"
           ],
-          "onDelete": "no action",
-          "onUpdate": "no action"
+          "onDelete": "cascade",
+          "onUpdate": "cascade"
         },
         "registration_approval_oauth_job_seeker_id_oauth_job_seeker_id_fk": {
           "name": "registration_approval_oauth_job_seeker_id_oauth_job_seeker_id_fk",
@@ -2088,8 +2036,8 @@
           "columnsTo": [
             "id"
           ],
-          "onDelete": "no action",
-          "onUpdate": "no action"
+          "onDelete": "cascade",
+          "onUpdate": "cascade"
         },
         "registration_approval_employer_id_employer_id_fk": {
           "name": "registration_approval_employer_id_employer_id_fk",
@@ -2101,8 +2049,8 @@
           "columnsTo": [
             "id"
           ],
-          "onDelete": "no action",
-          "onUpdate": "no action"
+          "onDelete": "cascade",
+          "onUpdate": "cascade"
         },
         "registration_approval_oauth_employer_id_oauth_employer_id_fk": {
           "name": "registration_approval_oauth_employer_id_oauth_employer_id_fk",
@@ -2114,8 +2062,8 @@
           "columnsTo": [
             "id"
           ],
-          "onDelete": "no action",
-          "onUpdate": "no action"
+          "onDelete": "cascade",
+          "onUpdate": "cascade"
         },
         "registration_approval_company_id_company_id_fk": {
           "name": "registration_approval_company_id_company_id_fk",
@@ -2127,21 +2075,8 @@
           "columnsTo": [
             "id"
           ],
-          "onDelete": "no action",
-          "onUpdate": "no action"
-        },
-        "registration_approval_oauth_company_id_oauth_company_id_fk": {
-          "name": "registration_approval_oauth_company_id_oauth_company_id_fk",
-          "tableFrom": "registration_approval",
-          "tableTo": "oauth_company",
-          "columnsFrom": [
-            "oauth_company_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "no action",
-          "onUpdate": "no action"
+          "onDelete": "cascade",
+          "onUpdate": "cascade"
         },
         "registration_approval_admin_id_admin_id_fk": {
           "name": "registration_approval_admin_id_admin_id_fk",
@@ -2153,21 +2088,8 @@
           "columnsTo": [
             "id"
           ],
-          "onDelete": "no action",
-          "onUpdate": "no action"
-        },
-        "registration_approval_oauth_admin_id_oauth_admin_id_fk": {
-          "name": "registration_approval_oauth_admin_id_oauth_admin_id_fk",
-          "tableFrom": "registration_approval",
-          "tableTo": "oauth_admin",
-          "columnsFrom": [
-            "oauth_admin_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "no action",
-          "onUpdate": "no action"
+          "onDelete": "set null",
+          "onUpdate": "cascade"
         }
       },
       "compositePrimaryKeys": {},
@@ -2184,7 +2106,8 @@
           "name": "id",
           "type": "uuid",
           "primaryKey": true,
-          "notNull": true
+          "notNull": true,
+          "default": "gen_random_uuid()"
         },
         "name": {
           "name": "name",
@@ -2229,6 +2152,37 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
+    "public.user_sessions": {
+      "name": "user_sessions",
+      "schema": "",
+      "columns": {
+        "sid": {
+          "name": "sid",
+          "type": "varchar(255)",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "sess": {
+          "name": "sess",
+          "type": "json",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "expire": {
+          "name": "expire",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
     "public.vulnerability_type": {
       "name": "vulnerability_type",
       "schema": "",
@@ -2237,7 +2191,8 @@
           "name": "id",
           "type": "uuid",
           "primaryKey": true,
-          "notNull": true
+          "notNull": true,
+          "default": "gen_random_uuid()"
         },
         "name": {
           "name": "name",
@@ -2284,14 +2239,6 @@
     }
   },
   "enums": {
-    "public.adminType": {
-      "name": "adminType",
-      "schema": "public",
-      "values": [
-        "NORMAL",
-        "OAUTH"
-      ]
-    },
     "public.approvalStatus": {
       "name": "approvalStatus",
       "schema": "public",
@@ -2307,8 +2254,7 @@
       "values": [
         "EMPLOYER",
         "OAUTHEMPLOYER",
-        "COMPANY",
-        "OAUTHCOMPANY"
+        "COMPANY"
       ]
     },
     "public.jobMatchedStatus": {
@@ -2336,8 +2282,7 @@
         "OAUTHJOBSEEKER",
         "EMPLOYER",
         "OAUTHEMPLOYER",
-        "COMPANY",
-        "OAUTHCOMPANY"
+        "COMPANY"
       ]
     },
     "public.notificationStatus": {
@@ -2348,14 +2293,6 @@
         "UNREAD"
       ]
     },
-    "public.oauthType": {
-      "name": "oauthType",
-      "schema": "public",
-      "values": [
-        "GOOGLE",
-        "LINE"
-      ]
-    },
     "public.postStatus": {
       "name": "postStatus",
       "schema": "public",
@@ -2363,6 +2300,14 @@
         "MATCHED",
         "UNMATCHED",
         "MATCHED_INPROG"
+      ]
+    },
+    "public.providerType": {
+      "name": "providerType",
+      "schema": "public",
+      "values": [
+        "GOOGLE",
+        "LINE"
       ]
     },
     "public.publicStatus": {
@@ -2391,9 +2336,15 @@
         "EMPLOYER",
         "OAUTH_EMPLOYER",
         "COMPANY",
-        "OAUTH_COMPANY",
-        "ADMIN",
-        "OAUTH_ADMIN"
+        "ADMIN"
+      ]
+    },
+    "public.userApprovalStatus": {
+      "name": "userApprovalStatus",
+      "schema": "public",
+      "values": [
+        "APPROVED",
+        "UNAPPROVED"
       ]
     }
   },

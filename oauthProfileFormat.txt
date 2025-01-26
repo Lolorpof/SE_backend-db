@@ -1,0 +1,31 @@
+Google
+{
+  id: '111231777746610003542',
+  displayName: 'Lolorpy Unown',
+  name: { familyName: 'Unown', givenName: 'Lolorpy' },
+  emails: [ { value: 'lolorpof@gmail.com', verified: true } ],
+  photos: [
+    {
+      value: 'https://lh3.googleusercontent.com/a/ACg8ocJn0FNoarQnFTYSUI28OGezRre3LIVQxVUsDQyF-aseRhuEB0k7=s96-c'
+    }
+  ],
+  provider: 'google',
+  _raw: '{\n' +
+    '  "sub": "111231777746610003542",\n' +
+    '  "name": "Lolorpy Unown",\n' +
+    '  "given_name": "Lolorpy",\n' +
+    '  "family_name": "Unown",\n' +
+    '  "picture": "https://lh3.googleusercontent.com/a/ACg8ocJn0FNoarQnFTYSUI28OGezRre3LIVQxVUsDQyF-aseRhuEB0k7\\u003ds96-c",\n' +
+    '  "email": "lolorpof@gmail.com",\n' +
+    '  "email_verified": true\n' +
+    '}',
+  _json: {
+    sub: '111231777746610003542',
+    name: 'Lolorpy Unown',
+    given_name: 'Lolorpy',
+    family_name: 'Unown',
+    picture: 'https://lh3.googleusercontent.com/a/ACg8ocJn0FNoarQnFTYSUI28OGezRre3LIVQxVUsDQyF-aseRhuEB0k7=s96-c',
+    email: 'lolorpof@gmail.com',
+    email_verified: true
+  }
+}

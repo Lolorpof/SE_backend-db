@@ -5,22 +5,8 @@
     {
       "idx": 0,
       "version": "7",
-      "when": 1737219542935,
-      "tag": "0000_conscious_shaman",
-      "breakpoints": true
-    },
-    {
-      "idx": 1,
-      "version": "7",
-      "when": 1737284720391,
-      "tag": "0001_harsh_miracleman",
-      "breakpoints": true
-    },
-    {
-      "idx": 2,
-      "version": "7",
-      "when": 1737564759376,
-      "tag": "0002_medical_mariko_yashida",
+      "when": 1737882474474,
+      "tag": "0000_robust_stephen_strange",
       "breakpoints": true
     }
   ]
