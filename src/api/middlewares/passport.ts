@@ -7,6 +7,7 @@ import { employerServices } from "../services/employerServices";
 import "../types/usersTypes";
 import "../types/responseTypes";
 import { companyServices } from "../services/companyServices";
+import { adminServices } from "../services/adminsServices";
 
 // Serializer (turn into session when logging in)
 passport.serializeUser(async (user, done) => {
@@ -36,6 +37,8 @@ passport.deserializeUser(async (userSession: userSessionType, done) => {
     responseUser = await companyServices
       .instance()
       .deserializer(userSession.id);
+  } else if (userSession.type === "ADMIN") {
+    responseUser = await adminServices.instance().deserializer(userSession.id);
   }
 
   if (!responseUser || !responseUser.data || !responseUser.success) {
@@ -48,7 +51,12 @@ passport.deserializeUser(async (userSession: userSessionType, done) => {
     ...responseUser.data,
   };
 
-  done(null, formattedUser);
+  const finalUser =
+    userSession.type !== "COMPANY" && userSession.type !== "ADMIN"
+      ? formattedUser
+      : { type: userSession.type, ...responseUser.data };
+
+  done(null, finalUser);
 });
 
 // Strategies
@@ -78,6 +86,15 @@ passport.use(
   new LocalStrategy(
     { usernameField: "nameEmail" },
     companyServices.instance().login
+  )
+);
+
+// admin auth
+passport.use(
+  "local-admin",
+  new LocalStrategy(
+    { usernameField: "nameEmail" },
+    adminServices.instance().login
   )
 );
 

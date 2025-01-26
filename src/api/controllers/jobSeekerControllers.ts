@@ -6,7 +6,6 @@ import {
   userControllerInterfaces,
   userOauthControllerInterfaces,
 } from "../interfaces/userControllerInterfaces";
-import { CustomRequest } from "../../typings/types";
 
 export class jobSeekerControllers implements userOauthControllerInterfaces {
   // singleton design
@@ -64,7 +63,7 @@ export class jobSeekerControllers implements userOauthControllerInterfaces {
   }
 
   // google oauth 2.0 route handler
-  async googleLogin(req: CustomRequest, res: Response): Promise<void> {
+  async googleLogin(req: Request, res: Response): Promise<void> {
     passport.authenticate(
       "google-jobSeeker",
       (err: any, user: any, info: any) => {
@@ -169,6 +168,10 @@ export class jobSeekerControllers implements userOauthControllerInterfaces {
     }
 
     if (responseUser.data.type !== "JOBSEEKER") {
+      res
+        .status(responseUser.status)
+        .json({ success: responseUser.success, msg: responseUser.msg });
+      return;
     }
 
     res.status(responseUser.status).json({

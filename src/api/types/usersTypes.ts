@@ -54,6 +54,17 @@ interface companyType {
   approvalStatus?: string;
 }
 
+interface adminType {
+  id: string;
+  username?: string;
+  email?: string;
+  profilePicture?: string | null;
+  password?: string;
+  contact?: string | null;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
 // middleware types
 
 interface userSessionType {
@@ -73,7 +84,10 @@ interface employerSessionType extends employerType {
 }
 
 interface companySessionType extends companyType {
-  isOauth: boolean;
+  type: string;
+}
+
+interface adminSessionType extends adminType {
   type: string;
 }
 
@@ -89,8 +103,8 @@ interface checkUserType {
 
 interface matchNameEmailType {
   id: string;
-  approvalStatus: "UNAPPROVED" | "APPROVED";
   password: string;
+  approvalStatus?: "UNAPPROVED" | "APPROVED";
 }
 
 interface duplicateNameEmailType1 {

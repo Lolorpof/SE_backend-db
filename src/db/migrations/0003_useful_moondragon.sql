@@ -1,0 +1,1 @@
+ALTER TABLE "admin" ALTER COLUMN "email" DROP NOT NULL;

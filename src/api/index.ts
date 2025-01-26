@@ -8,6 +8,7 @@ import passport from "passport";
 import { userRouter } from "./routes/userRoutes";
 import swaggerUi from "swagger-ui-express";
 import swaggerOption from "./swagger";
+import { adminRouter } from "./routes/adminRoutes";
 
 const port = process.env.BACKEND_PORT; //6977
 const cookieExpireTime = { real: 1000 * 60 * 60 * 4, dev: 1000 * 60 * 5 };
@@ -39,6 +40,7 @@ app.get("/", async (req, res) => {
 
 // Routes
 app.use("/api/user", userRouter);
+app.use("/api/admin", adminRouter);
 
 // HTTP Server setup
 app.listen(port, () => {
