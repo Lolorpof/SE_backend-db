@@ -63,3 +63,30 @@ export const checkUnauthenticatedOauth = async (
 
   next();
 };
+
+export const checkPermissionHeader = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  const header = req.headers["permission_key"];
+  try {
+    if (!header) {
+      res
+        .status(401)
+        .json({ success: false, msg: "You don't have permission" });
+      return;
+    } else if (header !== process.env.CREATE_ADMIN_PERMISSIONKEY) {
+      res
+        .status(401)
+        .json({ success: false, msg: "You don't have permission" });
+      return;
+    }
+  } catch (error) {
+    console.log(error);
+    res.status(403).json({ success: false, msg: "Something went wrong" });
+    return;
+  }
+
+  next();
+};

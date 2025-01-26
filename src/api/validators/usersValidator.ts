@@ -32,6 +32,11 @@ export const companyRegisterSchema = z.object({
   confirmPassword: z.string(),
 });
 
+export const loginSchema = z.object({
+  nameEmail: z.string(),
+  password: z.string(),
+});
+
 // Infer Type
 export type singleUserRegisterType = z.infer<typeof singleUserRegisterSchema>;
 
