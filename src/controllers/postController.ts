@@ -7,9 +7,10 @@ import {
   companyTable,
   skillTable,
   jobCategoryTable,
+  jobFindingPostTable,
 } from "../db/schema"; // Import the relevant tables
 import { Pool } from "pg"; // Import the Pool from pg
-import { and, desc, eq, lte, gte, ilike, SQL, inArray } from "drizzle-orm";
+import { and, desc, eq, lte, gte, ilike, SQL, inArray, sql } from "drizzle-orm";
 import { createJobHiringPostSchema } from "../schemas/api-schema";
 
 // Initialize the database connection
@@ -28,16 +29,16 @@ export async function handleGetEmp(req: Request, res: Response) {
 
     // Title filter
     if (title) {
-      filters.push(ilike(jobHiringPostTable.title, `%${title as string}%`));
+      filters.push(ilike(jobFindingPostTable.title, `%${title as string}%`));
     }
 
     // Location filters
     if (province) {
-      filters.push(eq(jobHiringPostTable.jobLocation, province as string));
+      filters.push(eq(jobFindingPostTable.jobLocation, province as string));
     }
     if (jobLocation) {
       filters.push(
-        ilike(jobHiringPostTable.jobLocation, `%${jobLocation as string}%`)
+        ilike(jobFindingPostTable.jobLocation, `%${jobLocation as string}%`)
       );
     }
 
@@ -45,38 +46,42 @@ export async function handleGetEmp(req: Request, res: Response) {
     if (salaryRange) {
       const range = JSON.parse(salaryRange as string);
       if (range.min) {
-        filters.push(gte(jobHiringPostTable.salary, range.min));
+        filters.push(gte(jobFindingPostTable.expectedSalary, range.min));
       }
       if (range.max) {
-        filters.push(lte(jobHiringPostTable.salary, range.max));
+        filters.push(lte(jobFindingPostTable.expectedSalary, range.max));
       }
     }
 
     // Work hours filter
     if (workHoursRange) {
       filters.push(
-        eq(jobHiringPostTable.workHoursRange, workHoursRange as string)
+        eq(jobFindingPostTable.workHoursRange, workHoursRange as string)
       );
     }
 
-    // Build base query with company information
+    // Build base query with job seeker information
     const baseQuery = db
       .select({
-        id: jobHiringPostTable.id,
-        title: jobHiringPostTable.title,
-        description: jobHiringPostTable.description,
-        jobLocation: jobHiringPostTable.jobLocation,
-        salary: jobHiringPostTable.salary,
-        workDates: jobHiringPostTable.workDates,
-        workHoursRange: jobHiringPostTable.workHoursRange,
-        hiredAmount: jobHiringPostTable.hiredAmount,
-        companyName: companyTable.officialName,
+        id: jobFindingPostTable.id,
+        title: jobFindingPostTable.title,
+        description: jobFindingPostTable.description,
+        jobLocation: jobFindingPostTable.jobLocation,
+        expectedSalary: jobFindingPostTable.expectedSalary,
+        workDates: jobFindingPostTable.workDates,
+        workHoursRange: jobFindingPostTable.workHoursRange,
+        status: jobFindingPostTable.status,
+        jobSeekerType: jobFindingPostTable.jobSeekerType,
+        jobSeekerName: sql<string>`
+          CASE 
+            WHEN ${jobFindingPostTable.jobSeekerType} = 'NORMAL' THEN 
+              (SELECT concat(first_name, ' ', last_name) FROM job_seeker WHERE id = ${jobFindingPostTable.jobSeekerId})
+            ELSE 
+              (SELECT concat(first_name, ' ', last_name) FROM oauth_job_seeker WHERE id = ${jobFindingPostTable.oauthJobSeekerId})
+          END
+        `,
       })
-      .from(jobHiringPostTable)
-      .leftJoin(
-        companyTable,
-        eq(jobHiringPostTable.companyId, companyTable.id)
-      );
+      .from(jobFindingPostTable);
 
     // Execute query with all filters
     const results = await (filters.length > 0
@@ -89,10 +94,10 @@ export async function handleGetEmp(req: Request, res: Response) {
       count: results.length,
     });
   } catch (error) {
-    console.error("Error fetching job posts:", error);
+    console.error("Error fetching job finding posts:", error);
     res.status(500).json({
       success: false,
-      message: "Failed to fetch job posts",
+      message: "Failed to fetch job finding posts",
       error: error.message,
     });
   }
@@ -205,7 +210,7 @@ export async function handleGetJobSeeker(req: Request, res: Response) {
     });
   }
 }
-
+// Need review
 export async function createJobHiringPost(req: Request, res: Response) {
   try {
     // Validate request body against schema

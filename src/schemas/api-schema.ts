@@ -2,15 +2,25 @@ import { z } from "zod";
 import { provinces } from "../utils/province";
 
 export const getFindEmpSchema = z.object({
-  title: z.string().max(255, "Title must be less than 255 characters"),
-  province: z.enum(provinces),
+  title: z
+    .string()
+    .max(255, "Title must be less than 255 characters")
+    .optional(),
+  province: z.enum(provinces).optional(),
   jobLocation: z
     .string()
-    .max(255, "Job location must be less than 255 characters"),
-  salary: z.number().int(),
+    .max(255, "Job location must be less than 255 characters")
+    .optional(),
+  salaryRange: z
+    .object({
+      min: z.number().int().positive().optional(),
+      max: z.number().int().positive().optional(),
+    })
+    .optional(),
   workHoursRange: z
     .string()
-    .max(255, "Work hours range must be less than 255 characters"),
+    .max(255, "Work hours range must be less than 255 characters")
+    .optional(),
 });
 
 export const createJobHiringPostSchema = z.object({
