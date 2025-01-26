@@ -50,6 +50,20 @@
       "when": 1737750573639,
       "tag": "0006_dusty_legion",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1737876957491,
+      "tag": "0007_misty_tusk",
+      "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1737877391925,
+      "tag": "0008_hot_the_captain",
+      "breakpoints": true
     }
   ]
 }

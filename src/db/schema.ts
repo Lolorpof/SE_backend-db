@@ -83,7 +83,7 @@ export const notificationStatusEnum = pgEnum("notificationStatus", [
 
 export const severityLvlEnum = pgEnum("severityLvl", ["LOW", "MEDIUM", "HIGH"]);
 
-export const oauthTypeEnum = pgEnum("oauthType", ["GOOGLE", "LINE"]);
+export const providerEnum = pgEnum("providerType", ["GOOGLE", "LINE"]);
 
 // Tables
 
@@ -125,6 +125,7 @@ export const oauthJobSeekerTable = pgTable(
   "oauth_job_seeker",
   {
     id: uuid("id").primaryKey().defaultRandom(),
+    providerId: varchar("provider_id", { length: 255 }).notNull(),
     username: varchar("username", { length: 255 }).notNull(),
     firstName: varchar("first_name", { length: 255 }).notNull(),
     lastName: varchar("last_name", { length: 255 }).notNull(),
@@ -135,7 +136,7 @@ export const oauthJobSeekerTable = pgTable(
     aboutMe: varchar("about_me", { length: 2050 }),
     contact: varchar("contact", { length: 255 }),
     resume: varchar("resume", { length: 255 }).notNull().default(undef),
-    oauthType: oauthTypeEnum("oauth_type").notNull(),
+    provider: providerEnum("provider").notNull(),
     address: varchar("address", { length: 255 }),
     approvalStatus: usersApprovalStatusEnum("approval_status")
       .notNull()
@@ -189,6 +190,7 @@ export const oauthEmployerTable = pgTable(
   "oauth_employer",
   {
     id: uuid("id").primaryKey().defaultRandom(),
+    providerId: varchar("provider_id", { length: 255 }).notNull(),
     username: varchar("username", { length: 255 }).notNull(),
     firstName: varchar("first_name", { length: 255 }).notNull(),
     lastName: varchar("last_name", { length: 255 }).notNull(),
@@ -198,7 +200,7 @@ export const oauthEmployerTable = pgTable(
       .default(undef),
     aboutMe: varchar("about_me", { length: 2050 }),
     contact: varchar("contact", { length: 255 }),
-    oauthType: oauthTypeEnum("oauth_type").notNull(),
+    provider: providerEnum("provider").notNull(),
     address: varchar("address", { length: 255 }),
     approvalStatus: usersApprovalStatusEnum("approval_status")
       .notNull()
@@ -237,8 +239,10 @@ export const companyTable = pgTable("company", {
     .$onUpdate(() => new Date()),
 });
 
+// company shouldn't have oauth?
 export const oauthCompanyTable = pgTable("oauth_company", {
   id: uuid("id").primaryKey().defaultRandom(),
+  providerId: varchar("provider_id", { length: 255 }).notNull(),
   officialName: varchar("official_name", { length: 255 }).notNull().unique(),
   email: varchar("email", { length: 255 }).notNull().unique(),
   profile_picture: varchar("profile_picture", { length: 255 })
@@ -246,7 +250,7 @@ export const oauthCompanyTable = pgTable("oauth_company", {
     .default(undef),
   aboutUs: varchar("about_us", { length: 2050 }),
   contact: varchar("contact", { length: 255 }),
-  oauthType: oauthTypeEnum("oauth_type").notNull(),
+  provider: providerEnum("provider").notNull(),
   address: varchar("address", { length: 255 }),
   approvalStatus: usersApprovalStatusEnum("approval_status")
     .notNull()
@@ -284,13 +288,14 @@ export const adminTable = pgTable(
 
 export const oauthAdminTable = pgTable("oauth_admin", {
   id: uuid("id").primaryKey().defaultRandom(),
+  providerId: varchar("provider_id", { length: 255 }).notNull(),
   username: varchar("username", { length: 255 }).notNull(),
   email: varchar("email", { length: 255 }).notNull().unique(),
   profilePicture: varchar("profile_picture", { length: 255 })
     .notNull()
     .default(undef),
   contact: varchar("varchar", { length: 255 }),
-  oauthType: oauthTypeEnum("oauth_type").notNull(),
+  provider: providerEnum("provider").notNull(),
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at")
     .notNull()
