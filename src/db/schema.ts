@@ -238,7 +238,7 @@ export const adminTable = pgTable(
   {
     id: uuid("id").primaryKey().defaultRandom(),
     username: varchar("username", { length: 255 }).notNull(),
-    password: varchar("varchar", { length: 255 }).notNull(),
+    password: varchar("password", { length: 255 }).notNull(),
     email: varchar("email", { length: 255 }).notNull().unique(),
     profilePicture: varchar("profile_picture", { length: 255 })
       .notNull()
