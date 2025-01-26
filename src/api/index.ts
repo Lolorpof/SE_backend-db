@@ -4,7 +4,7 @@ import cors from "cors";
 import helmet from "helmet";
 import bodyParser from "body-parser";
 import { drizzlePool } from "../db/conn";
-import findEmpRoutes from "../routes/findempRoutes";
+import postRoutes from "../routes/postRoutes";
 const port = process.env.BACKEND_PORT; //6977
 
 const app = express();
@@ -17,7 +17,7 @@ app.use([
   helmet(),
 ]);
 
-app.use("/api/findemp", findEmpRoutes);
+app.use("/api/post", postRoutes);
 
 app.get("/", async (req, res) => {
   res.json({ success: true, msg: "hello world" });

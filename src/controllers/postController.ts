@@ -11,7 +11,7 @@ const pool = new Pool({
 
 const db = drizzle(pool);
 
-export async function handleGet(req: Request, res: Response) {
+export async function handleGetEmp(req: Request, res: Response) {
   try {
     const { title, province, location, salary, workHoursRange } = req.query;
 
