@@ -15,10 +15,11 @@ const postRoutes = Router();
 
 // Job hiring routes
 /**
- * @openapi/api/post/hiring:
+ * @openapi
+ * /api/post/hiring:
  *   post:
  *     tags:
- *       - Jobs
+ *       - Post
  *     summary: Create a new job hiring post
  *     requestBody:
  *       required: true
@@ -79,12 +80,168 @@ postRoutes
   .route('/hiring')
   .post(validateData(createJobHiringPostSchema), createJobHiringPost);
 
-// Job finding routes  
+/**
+ * @openapi
+ * /api/post/finding:
+ *   get:
+ *     tags:
+ *       - Post
+ *     summary: Get job finding posts with filters
+ *     parameters:
+ *       - in: query
+ *         name: title
+ *         schema:
+ *           type: string
+ *         description: Filter by job title
+ *       - in: query
+ *         name: province
+ *         schema:
+ *           type: string
+ *         description: Filter by province
+ *       - in: query
+ *         name: jobLocation
+ *         schema:
+ *           type: string
+ *         description: Filter by job location
+ *       - in: query
+ *         name: salaryRange
+ *         schema:
+ *           type: string
+ *         description: Filter by salary range (JSON string with min and max)
+ *         example: '{"min": 30000, "max": 50000}'
+ *       - in: query
+ *         name: workHoursRange
+ *         schema:
+ *           type: string
+ *         description: Filter by work hours range
+ *     responses:
+ *       200:
+ *         description: Successfully retrieved job finding posts
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       id:
+ *                         type: string
+ *                         format: uuid
+ *                       title:
+ *                         type: string
+ *                       description:
+ *                         type: string
+ *                       jobLocation:
+ *                         type: string
+ *                       expectedSalary:
+ *                         type: number
+ *                       workDates:
+ *                         type: string
+ *                       workHoursRange:
+ *                         type: string
+ *                       status:
+ *                         type: string
+ *                       jobSeekerType:
+ *                         type: string
+ *                       jobSeekerName:
+ *                         type: string
+ *                 count:
+ *                   type: number
+ *       500:
+ *         description: Server error
+ */
 postRoutes
   .route('/finding')
   .get(validateData(getFindEmpSchema), handleGetEmp);
 
-// Job seeker routes
+/**
+ * @openapi
+ * /api/post/seeker:
+ *   get:
+ *     tags:
+ *       - Post
+ *     summary: Get job hiring posts for job seekers with filters
+ *     parameters:
+ *       - in: query
+ *         name: officialName
+ *         schema:
+ *           type: string
+ *         description: Filter by company name
+ *       - in: query
+ *         name: jobCategories
+ *         schema:
+ *           type: string
+ *         description: Comma-separated list of job category IDs
+ *       - in: query
+ *         name: skills
+ *         schema:
+ *           type: string
+ *         description: Comma-separated list of skill IDs
+ *       - in: query
+ *         name: province
+ *         schema:
+ *           type: string
+ *         description: Filter by province
+ *       - in: query
+ *         name: jobLocation
+ *         schema:
+ *           type: string
+ *         description: Filter by job location
+ *       - in: query
+ *         name: salaryRange
+ *         schema:
+ *           type: string
+ *         description: Filter by salary range (JSON string with min and max)
+ *         example: '{"min": 30000, "max": 50000}'
+ *       - in: query
+ *         name: workHoursRange
+ *         schema:
+ *           type: string
+ *         description: Filter by work hours range
+ *     responses:
+ *       200:
+ *         description: Successfully retrieved job hiring posts
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       id:
+ *                         type: string
+ *                         format: uuid
+ *                       title:
+ *                         type: string
+ *                       description:
+ *                         type: string
+ *                       jobLocation:
+ *                         type: string
+ *                       salary:
+ *                         type: number
+ *                       workDates:
+ *                         type: string
+ *                       workHoursRange:
+ *                         type: string
+ *                       hiredAmount:
+ *                         type: number
+ *                       companyName:
+ *                         type: string
+ *                 count:
+ *                   type: number
+ *       500:
+ *         description: Server error
+ */
 postRoutes
   .route('/seeker')
   .get(validateData(getJobSeekerSchema), handleGetJobSeeker);
