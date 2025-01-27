@@ -93,6 +93,10 @@ export class adminControllers implements adminControllerInterfaces {
     });
   }
 
+  async approve(req: Request, res: Response): Promise<void> {
+    const result = await adminServices.instance().approve(req.body);
+  }
+
   // handle create new admin (backend only)
   async create(req: Request, res: Response): Promise<void> {
     const result = await adminServices.instance().create();

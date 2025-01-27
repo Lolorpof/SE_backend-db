@@ -134,9 +134,3 @@ interface formattedCompanyRegisterType {
   email: string;
   hashedPassword: string;
 }
-
-type sessionUser = {
-  id: string;
-  type: string;
-  isOauth: boolean;
-};

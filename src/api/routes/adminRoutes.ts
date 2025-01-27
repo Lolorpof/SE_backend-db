@@ -1,5 +1,6 @@
 import { Request, Response, Router } from "express";
 import {
+  checkAdmin,
   checkAuthenticated,
   checkPermissionHeader,
   checkUnauthenticated,
@@ -142,5 +143,9 @@ adminRouter
   .post(checkUnauthenticated, adminControllers.instance().login)
   .get(checkAuthenticated, adminControllers.instance().getCurrent)
   .delete(checkAuthenticated, adminControllers.instance().logout);
+
+adminRouter
+  .route("/approve")
+  .post(checkAuthenticated, checkAdmin, adminControllers.instance().approve);
 
 export { adminRouter };

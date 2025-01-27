@@ -1,7 +1,7 @@
 import { Profile as GoogleProfile } from "passport-google-oauth20";
 import "../types/usersTypes";
 
-export interface adminModelInterfaces {
+export interface baseUserModelInterfaces {
   // login
   matchNameEmail(nameEmail: string): Promise<matchNameEmailType[]>;
 
@@ -12,7 +12,9 @@ export interface adminModelInterfaces {
   >;
 }
 
-export interface userModelInterfaces extends adminModelInterfaces {
+export interface adminModelInterfaces extends baseUserModelInterfaces {}
+
+export interface userModelInterfaces extends baseUserModelInterfaces {
   register(
     user: formattedSingleUserRegisterType | formattedCompanyRegisterType
   ): Promise<registerUserType>;
@@ -26,7 +28,7 @@ export interface userModelInterfaces extends adminModelInterfaces {
   ): Promise<duplicateNameEmailType1 | duplicateNameEmailType2 | undefined>;
 }
 
-export interface userOauthModelInterfaces extends userModelInterfaces {
+export interface userOauthModelInterfaces extends baseUserModelInterfaces {
   oauthUserInsert(
     profile: GoogleProfile,
     provider: "GOOGLE" | "LINE"

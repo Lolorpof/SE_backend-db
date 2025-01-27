@@ -69,6 +69,11 @@ export class adminServices implements adminServiceInterfaces {
     };
   }
 
+  // approve 'user'
+  async approve(user: any): Promise<SerivcesResponse<any>> {
+    // validation
+  }
+
   async login(
     username: string,
     password: string,
