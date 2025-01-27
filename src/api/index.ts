@@ -2,7 +2,6 @@ import "dotenv/config";
 import express from "express";
 import cors from "cors";
 import helmet from "helmet";
-import bodyParser from "body-parser";
 import { drizzlePool } from "../db/conn";
 import postRoutes from "../routes/postRoutes";
 import swaggerJSDoc from "swagger-jsdoc";
@@ -11,7 +10,7 @@ const port = process.env.BACKEND_PORT; //6977
 
 const app = express();
 
-app.use(bodyParser.json());
+app.use(express.json());
 
 
 //swagger definition
@@ -19,9 +18,9 @@ const swaggerOption = {
   definition:{
     openapi: "3.0.0",
     info:{
-      title: "API Documentation",
+      title: "Job Matching API Documentation",
       version: "1.0.0",
-      description: "A simple Express Post API"  
+      description: "API for job posting and matching system"  
     }
   },
   servers: [
@@ -30,7 +29,7 @@ const swaggerOption = {
       description: "Development server"
     }
   ],
-  apis: ["index.ts"],
+  apis: ["./src/routes/*.ts"],
 }
 
 const swaggerSpec = swaggerJSDoc(swaggerOption);

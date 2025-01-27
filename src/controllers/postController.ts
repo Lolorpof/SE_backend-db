@@ -1,24 +1,16 @@
-import { query, Request, Response } from "express";
-import { drizzle } from "drizzle-orm/node-postgres";
+import { Request, Response } from "express";
 import {
   jobHiringPostTable,
   jobHiringPostSkillTable,
   jobHireCategoryTable,
   companyTable,
-  skillTable,
-  jobCategoryTable,
   jobFindingPostTable,
 } from "../db/schema"; // Import the relevant tables
-import { Pool } from "pg"; // Import the Pool from pg
-import { and, desc, eq, lte, gte, ilike, SQL, inArray, sql } from "drizzle-orm";
+import { drizzlePool } from "../db/conn";
+import { and, eq, lte, gte, ilike, SQL, inArray, sql } from "drizzle-orm";
 import { createJobHiringPostSchema } from "../schemas/api-schema";
 
-// Initialize the database connection
-const pool = new Pool({
-  connectionString: process.env.DATABASE_URL, // Ensure this environment variable is set
-});
-
-const db = drizzle(pool);
+// Remove or comment out the "Initialize the database connection" comment since we're importing drizzlePool
 
 export async function handleGetEmp(req: Request, res: Response) {
   try {
@@ -61,7 +53,7 @@ export async function handleGetEmp(req: Request, res: Response) {
     }
 
     // Build base query with job seeker information
-    const baseQuery = db
+    const baseQuery = drizzlePool
       .select({
         id: jobFindingPostTable.id,
         title: jobFindingPostTable.title,
@@ -153,7 +145,7 @@ export async function handleGetJobSeeker(req: Request, res: Response) {
     }
 
     // Build base query with joins
-    const baseQuery = db
+    const baseQuery = drizzlePool
       .select({
         id: jobHiringPostTable.id,
         title: jobHiringPostTable.title,
@@ -217,7 +209,7 @@ export async function createJobHiringPost(req: Request, res: Response) {
     const validatedData = createJobHiringPostSchema.parse(req.body);
 
     // Start a transaction since we need to insert into multiple tables
-    const result = await db.transaction(async (tx) => {
+    const result = await drizzlePool.transaction(async (tx) => {
       // Create the job hiring post
       const [jobPost] = await tx
         .insert(jobHiringPostTable)
