@@ -5,8 +5,8 @@ import {
   jobHireCategoryTable,
   companyTable,
   jobFindingPostTable,
-} from "../db/schema"; // Import the relevant tables
-import { drizzlePool } from "../db/conn";
+} from "../../db/schema"; // Import the relevant tables
+import { drizzlePool } from "../../db/conn";
 import { and, eq, lte, gte, ilike, SQL, inArray, sql } from "drizzle-orm";
 import { createJobHiringPostSchema } from "../schemas/api-schema";
 
