@@ -1,9 +1,17 @@
 import { nanoid } from "nanoid";
-import { randomNumberRange } from "../utilities/utilFunctions";
+import { catchError, randomNumberRange } from "../utilities/utilFunctions";
 import { adminModels } from "../models/adminsModels";
 import { adminServiceInterfaces } from "../interfaces/userServiceInterfaces";
 import bcrypt from "bcrypt";
 import { IVerifyOptions } from "passport-local";
+import {
+  approvedRequestSchema,
+  approvedRequestType,
+} from "../validators/usersValidator";
+import { registrationApprovalModels } from "../models/registrationApprovalModels";
+import { jobSeekerModels } from "../models/jobSeekerModels";
+import { employerModels } from "../models/employerModels";
+import { companyModels } from "../models/companyModels";
 
 export class adminServices implements adminServiceInterfaces {
   static adminService: adminServices | undefined;
@@ -69,9 +77,91 @@ export class adminServices implements adminServiceInterfaces {
     };
   }
 
-  // approve 'user'
-  async approve(user: any): Promise<SerivcesResponse<any>> {
+  // approve or unapprove 'user'
+  async approvingUser(
+    approvalRequest: any,
+    adminId: string
+  ): Promise<SerivcesResponse<approveResponse>> {
     // validation
+    try {
+      approvedRequestSchema.parse(approvalRequest);
+    } catch (error) {
+      console.log(error);
+      return { success: false, status: 403, msg: "Invalid data" };
+    }
+
+    const validatedApprovalRequest = approvalRequest as approvedRequestType;
+
+    // updating registration approval
+    const [error, result] = await catchError<approveReturn>(
+      registrationApprovalModels
+        .instance()
+        .approveUser(validatedApprovalRequest, adminId)
+    );
+
+    if (error) {
+      console.log(error);
+      return { success: false, status: 403, msg: "Something went wrong" };
+    }
+
+    const approvingUser: approvingUser = {
+      id: result.userId,
+      status: validatedApprovalRequest.status,
+    };
+
+    // updating user status to approved or unapproved(delete)
+    let err2: any, res2: approveUser | undefined;
+    if (result.userType === "JOBSEEKER") {
+      const [error2, result2] = await catchError<approveUser>(
+        jobSeekerModels.instance().approved(approvingUser, result.isOauth)
+      );
+      err2 = error2;
+      res2 = result2;
+    } else if (result.userType === "EMPLOYER") {
+      const [error2, result2] = await catchError<approveUser>(
+        employerModels.instance().approved(approvingUser, result.isOauth)
+      );
+      err2 = error2;
+      res2 = result2;
+    } else {
+      const [error2, result2] = await catchError<approveUser>(
+        companyModels.instance().approved(approvingUser)
+      );
+      err2 = error2;
+      res2 = result2;
+    }
+
+    if (err2 || !res2) {
+      console.log(err2);
+      return { success: false, status: 403, msg: "Something went wrong" };
+    }
+
+    const data: approveResponse = { approvedId: res2.id, adminId: adminId };
+
+    return {
+      success: true,
+      status: 200,
+      msg: "Successfully approved user",
+      data: data,
+    };
+  }
+
+  async getAllApproveRequest(): Promise<SerivcesResponse<any>> {
+    const [error, users] = await catchError<registrationApprovalType[]>(
+      registrationApprovalModels.instance().getAllApproveRequest()
+    );
+
+    if (error) {
+      console.log(error);
+      return { success: false, status: 403, msg: "Something went wrong" };
+    }
+
+    return {
+      success: true,
+      status: 200,
+      msg: "Successfully retrieve all approve request",
+      data: users,
+    };
   }
 
   async login(
@@ -83,12 +173,11 @@ export class adminServices implements adminServiceInterfaces {
       options?: IVerifyOptions
     ) => void
   ): Promise<void> {
-    let users: matchNameEmailType[];
-
     // get users with same name or email
-    try {
-      users = await adminModels.instance().matchNameEmail(username);
-    } catch (error) {
+    const [error, users] = await catchError<matchNameEmailType[]>(
+      adminModels.instance().matchNameEmail(username)
+    );
+    if (error) {
       console.log(error);
       return done(error, false, { message: "Something went wrong" });
     }

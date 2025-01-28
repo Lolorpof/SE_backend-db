@@ -1,5 +1,6 @@
 import { Profile as GoogleProfile } from "passport-google-oauth20";
 import "../types/usersTypes";
+import { approvedRequestType } from "../validators/usersValidator";
 
 export interface baseUserModelInterfaces {
   // login
@@ -26,9 +27,11 @@ export interface userModelInterfaces extends baseUserModelInterfaces {
     lastName?: string,
     officialName?: string
   ): Promise<duplicateNameEmailType1 | duplicateNameEmailType2 | undefined>;
+
+  approved(user: approvingUser, isOauth?: boolean): Promise<approveUser>;
 }
 
-export interface userOauthModelInterfaces extends baseUserModelInterfaces {
+export interface userOauthModelInterfaces extends userModelInterfaces {
   oauthUserInsert(
     profile: GoogleProfile,
     provider: "GOOGLE" | "LINE"

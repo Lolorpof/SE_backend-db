@@ -2,6 +2,7 @@ import { eq, or } from "drizzle-orm";
 import { drizzlePool } from "../../db/conn";
 import { companyTable, registrationApprovalTable } from "../../db/schema";
 import { userModelInterfaces } from "../interfaces/userModelInterfaces";
+import { approvedRequestType } from "../validators/usersValidator";
 
 export class companyModels implements userModelInterfaces {
   // singleton design
@@ -71,5 +72,23 @@ export class companyModels implements userModelInterfaces {
     });
 
     return user as companyType | undefined;
+  }
+
+  async approved(user: approvingUser): Promise<approveUser> {
+    let result: approveUser[];
+    if (user.status === "APPROVED") {
+      result = await drizzlePool
+        .update(companyTable)
+        .set({ approvalStatus: user.status })
+        .where(eq(companyTable.id, user.id))
+        .returning({ id: companyTable.id });
+    } else {
+      result = await drizzlePool
+        .delete(companyTable)
+        .where(eq(companyTable.id, user.id))
+        .returning({ id: companyTable.id });
+    }
+
+    return result[0];
   }
 }

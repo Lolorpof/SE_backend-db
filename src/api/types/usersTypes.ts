@@ -95,6 +95,22 @@ interface registerUserType {
   id: string;
 }
 
+type approveReturn = { userId: string; userType: string; isOauth: boolean };
+
+type approveUser = { id: string };
+
+type approvingUser = approveUser & { status: "APPROVED" | "UNAPPROVED" };
+
+type approveResponse = { approvedId: string; adminId: string };
+
+type registrationApprovalType = {
+  id: string;
+  userId: string;
+  userType: string;
+  status: string;
+  adminId?: string | null;
+};
+
 interface checkUserType {
   id: string;
   username?: string;

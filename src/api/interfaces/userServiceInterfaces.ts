@@ -26,14 +26,16 @@ export interface baseUserServiceInterfaces {
 }
 
 export interface adminServiceInterfaces extends baseUserServiceInterfaces {
-  approve(user: any): Promise<SerivcesResponse<any>>;
+  approvingUser(user: any, adminId: string): Promise<SerivcesResponse<any>>;
+
+  getAllApproveRequest(): Promise<SerivcesResponse<any>>;
 }
 
 export interface userServiceInterfaces extends baseUserServiceInterfaces {
   register(userForm: any): Promise<SerivcesResponse<any>>;
 }
 
-export interface userOauthServiceInterfaces extends baseUserServiceInterfaces {
+export interface userOauthServiceInterfaces extends userServiceInterfaces {
   // passport strategy
   googleLogin(
     accessToken: string,

@@ -11,6 +11,7 @@ import {
   userOauthModelInterfaces,
 } from "../interfaces/userModelInterfaces";
 import { Profile } from "passport-google-oauth20";
+import { approvedRequestType } from "../validators/usersValidator";
 
 export class employerModels implements userOauthModelInterfaces {
   // singleton design
@@ -174,5 +175,38 @@ export class employerModels implements userOauthModelInterfaces {
     }
 
     return user;
+  }
+
+  async approved(user: approvingUser, isOauth: boolean): Promise<approveUser> {
+    let result: approveUser[];
+    if (user.status === "APPROVED") {
+      if (isOauth) {
+        result = await drizzlePool
+          .update(oauthEmployerTable)
+          .set({ approvalStatus: user.status })
+          .where(eq(oauthEmployerTable.id, user.id))
+          .returning({ id: oauthEmployerTable.id });
+      } else {
+        result = await drizzlePool
+          .update(employerTable)
+          .set({ approvalStatus: user.status })
+          .where(eq(employerTable.id, user.id))
+          .returning({ id: employerTable.id });
+      }
+    } else {
+      if (isOauth) {
+        result = await drizzlePool
+          .delete(oauthEmployerTable)
+          .where(eq(oauthEmployerTable.id, user.id))
+          .returning({ id: oauthEmployerTable.id });
+      } else {
+        result = await drizzlePool
+          .delete(employerTable)
+          .where(eq(employerTable.id, user.id))
+          .returning({ id: employerTable.id });
+      }
+    }
+
+    return result[0];
   }
 }

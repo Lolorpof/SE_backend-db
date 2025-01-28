@@ -12,6 +12,7 @@ import {
   userOauthModelInterfaces,
 } from "../interfaces/userModelInterfaces";
 import { Profile as GoogleProfile } from "passport-google-oauth20";
+import { approvedRequestType } from "../validators/usersValidator";
 
 export class jobSeekerModels implements userOauthModelInterfaces {
   // singleton design
@@ -242,5 +243,38 @@ export class jobSeekerModels implements userOauthModelInterfaces {
     }
 
     return user;
+  }
+
+  async approved(user: approvingUser, isOauth: boolean): Promise<approveUser> {
+    let result: approveUser[];
+    if (user.status === "APPROVED") {
+      if (isOauth) {
+        result = await drizzlePool
+          .update(oauthJobSeekerTable)
+          .set({ approvalStatus: user.status })
+          .where(eq(oauthJobSeekerTable.id, user.id))
+          .returning({ id: oauthJobSeekerTable.id });
+      } else {
+        result = await drizzlePool
+          .update(jobSeekerTable)
+          .set({ approvalStatus: user.status })
+          .where(eq(jobSeekerTable.id, user.id))
+          .returning({ id: jobSeekerTable.id });
+      }
+    } else {
+      if (isOauth) {
+        result = await drizzlePool
+          .delete(oauthJobSeekerTable)
+          .where(eq(oauthJobSeekerTable.id, user.id))
+          .returning({ id: oauthJobSeekerTable.id });
+      } else {
+        result = await drizzlePool
+          .delete(jobSeekerTable)
+          .where(eq(jobSeekerTable.id, user.id))
+          .returning({ id: jobSeekerTable.id });
+      }
+    }
+
+    return result[0];
   }
 }

@@ -10,7 +10,9 @@ export interface baseUserControllerInterfaces {
 
 export interface adminControllerInterfaces
   extends baseUserControllerInterfaces {
-  approve(req: Request, res: Response): Promise<void>;
+  approvingUser(req: Request, res: Response): Promise<void>;
+
+  getAllApproveRequest(req: Request, res: Response): Promise<void>;
 }
 
 export interface userControllerInterfaces extends baseUserControllerInterfaces {

@@ -32,12 +32,18 @@ export const companyRegisterSchema = z.object({
   confirmPassword: z.string(),
 });
 
-export const loginSchema = z.object({
-  nameEmail: z.string(),
-  password: z.string(),
+export const approvedRequestSchema = z.object({
+  id: z.string(),
+  status: z
+    .string()
+    .refine((val) => val === "APPROVED" || val === "UNAPPROVED", {
+      message: "Status must be either 'APPROVED' or 'UNAPPROVED'",
+    }),
 });
 
 // Infer Type
 export type singleUserRegisterType = z.infer<typeof singleUserRegisterSchema>;
 
 export type companyRegisterType = z.infer<typeof companyRegisterSchema>;
+
+export type approvedRequestType = z.infer<typeof approvedRequestSchema>;
