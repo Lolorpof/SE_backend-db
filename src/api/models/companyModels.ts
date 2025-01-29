@@ -2,6 +2,7 @@ import { eq, or } from "drizzle-orm";
 import { drizzlePool } from "../../db/conn";
 import { companyTable, registrationApprovalTable } from "../../db/schema";
 import { userModelInterfaces } from "../interfaces/userModelInterfaces";
+import { TApprovedRequest } from "../validators/usersValidator";
 
 export class companyModels implements userModelInterfaces {
   // singleton design
@@ -33,7 +34,7 @@ export class companyModels implements userModelInterfaces {
   }
 
   // get users with matched name or email
-  async matchNameEmail(nameEmail: string): Promise<matchNameEmailType[]> {
+  async matchNameEmail(nameEmail: string): Promise<TMatchNameEmail[]> {
     const users = await drizzlePool.query.companyTable.findMany({
       columns: { id: true, approvalStatus: true, password: true },
       where: or(
@@ -45,7 +46,7 @@ export class companyModels implements userModelInterfaces {
     return users;
   }
 
-  async register(user: formattedCompanyRegisterType) {
+  async register(user: TFormattedCompanyRegister) {
     const registeredUser = await drizzlePool
       .insert(companyTable)
       .values({
@@ -70,6 +71,24 @@ export class companyModels implements userModelInterfaces {
       where: eq(companyTable.id, id),
     });
 
-    return user as companyType | undefined;
+    return user as TCompany | undefined;
+  }
+
+  async approved(user: TApprovingUser): Promise<TApproveUser> {
+    let result: TApproveUser[];
+    if (user.status === "APPROVED") {
+      result = await drizzlePool
+        .update(companyTable)
+        .set({ approvalStatus: user.status })
+        .where(eq(companyTable.id, user.id))
+        .returning({ id: companyTable.id });
+    } else {
+      result = await drizzlePool
+        .delete(companyTable)
+        .where(eq(companyTable.id, user.id))
+        .returning({ id: companyTable.id });
+    }
+
+    return result[0];
   }
 }

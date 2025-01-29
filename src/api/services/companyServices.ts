@@ -1,10 +1,12 @@
+import "dotenv/config";
 import { companyModels } from "../models/companyModels";
 import {
   companyRegisterSchema,
-  companyRegisterType,
+  TCompanyRegister,
 } from "../validators/usersValidator";
 import { fromError } from "zod-validation-error";
 import bcrypt from "bcrypt";
+import bcryptjs from "bcryptjs";
 import { userServiceInterfaces } from "../interfaces/userServiceInterfaces";
 import { IVerifyOptions } from "passport-local";
 import "../types/usersTypes";
@@ -31,7 +33,7 @@ export class companyServices implements userServiceInterfaces {
       return { success: false, msg: formattedError, status: 403 };
     }
 
-    const validatedUserForm: companyRegisterType = userForm;
+    const validatedUserForm: TCompanyRegister = userForm;
 
     // Duplicated name or email check
     let duplicatedUserCheck;
@@ -85,10 +87,16 @@ export class companyServices implements userServiceInterfaces {
     // hash password
     let hashedPassword: string | undefined;
     try {
-      hashedPassword = await bcrypt.hash(
-        validatedUserForm.password,
-        Number(process.env.BCRYPT_SALTROUNDS)
-      );
+      hashedPassword =
+        (process.env.BCRYPT_LIBRARY as string) === "bcryptjs"
+          ? await bcryptjs.hash(
+              validatedUserForm.password,
+              Number(process.env.BCRYPT_SALTROUNDS)
+            )
+          : await bcrypt.hash(
+              validatedUserForm.password,
+              Number(process.env.BCRYPT_SALTROUNDS)
+            );
     } catch (error) {
       console.log(error);
       return { success: false, msg: "Something went wrong", status: 403 };
@@ -127,7 +135,7 @@ export class companyServices implements userServiceInterfaces {
       options?: IVerifyOptions
     ) => void
   ): Promise<void> {
-    let users: matchNameEmailType[];
+    let users: TMatchNameEmail[];
     // get all match name or email
     try {
       users = await companyModels.instance().matchNameEmail(username);
@@ -141,13 +149,16 @@ export class companyServices implements userServiceInterfaces {
     }
 
     // match password
-    let exactUser: matchNameEmailType | undefined;
+    let exactUser: TMatchNameEmail | undefined;
     let approvedExisted = false;
     for (const user of users) {
       if (user.approvalStatus === "APPROVED") {
         approvedExisted = true;
       }
-      const matched = await bcrypt.compare(password, user.password);
+      const matched =
+        (process.env.BCRYPT_LIBRARY as string) === "bcryptjs"
+          ? await bcryptjs.compare(password, user.password)
+          : await bcrypt.compare(password, user.password);
 
       if (matched) {
         exactUser = user;
@@ -172,7 +183,7 @@ export class companyServices implements userServiceInterfaces {
     }
 
     // format user
-    const formattedUser: userSessionType = {
+    const formattedUser: TUserSession = {
       id: exactUser.id,
       type: "COMPANY",
     };
@@ -188,9 +199,9 @@ export class companyServices implements userServiceInterfaces {
       return { success: false, status: 403, msg: "Something went wrong" };
     }
 
-    let userObj: companySessionType;
+    let userObj: TCompanySession;
     try {
-      userObj = user as companySessionType;
+      userObj = user as TCompanySession;
     } catch (error) {
       console.log(error);
       return { success: false, status: 403, msg: "Something went wrong" };
@@ -211,13 +222,13 @@ export class companyServices implements userServiceInterfaces {
   // get current user
   async getCurrent(
     user: Express.User | undefined
-  ): Promise<SerivcesResponse<companySessionType>> {
+  ): Promise<SerivcesResponse<TCompanySession>> {
     if (!user) {
       return { success: false, status: 403, msg: "Something went wrong" };
     }
-    let userObj: companySessionType;
+    let userObj: TCompanySession;
     try {
-      userObj = user as companySessionType;
+      userObj = user as TCompanySession;
       if (userObj.type !== "COMPANY") {
         throw Error();
       }
@@ -229,13 +240,13 @@ export class companyServices implements userServiceInterfaces {
       success: true,
       status: 200,
       msg: "Successfully retrieve user",
-      data: user as companySessionType,
+      data: user as TCompanySession,
     };
   }
 
   // deserialized user (passport calls)
-  async deserializer(id: string): Promise<SerivcesResponse<companyType>> {
-    let user: companyType | undefined;
+  async deserializer(id: string): Promise<SerivcesResponse<TCompany>> {
+    let user: TCompany | undefined;
     // getting user
     try {
       user = await companyModels.instance().getById(id);

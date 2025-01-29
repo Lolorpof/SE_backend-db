@@ -15,9 +15,9 @@ passport.serializeUser(async (user, done) => {
 });
 
 // Deserializer (get user's data from session to 'req.user')
-passport.deserializeUser(async (userSession: userSessionType, done) => {
+passport.deserializeUser(async (userSession: TUserSession, done) => {
   let responseUser:
-    | SerivcesResponse<jobSeekerType | companyType | employerType>
+    | SerivcesResponse<TJobSeeker | TCompany | TEmployer>
     | undefined;
   if (
     userSession.type === "JOBSEEKER" ||

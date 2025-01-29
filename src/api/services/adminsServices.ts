@@ -1,9 +1,19 @@
+import "dotenv/config";
 import { nanoid } from "nanoid";
-import { randomNumberRange } from "../utilities/utilFunctions";
+import { catchError, randomNumberRange } from "../utilities/utilFunctions";
 import { adminModels } from "../models/adminsModels";
 import { adminServiceInterfaces } from "../interfaces/userServiceInterfaces";
 import bcrypt from "bcrypt";
+import bcryptjs from "bcryptjs";
 import { IVerifyOptions } from "passport-local";
+import {
+  approvedRequestSchema,
+  TApprovedRequest,
+} from "../validators/usersValidator";
+import { registrationApprovalModels } from "../models/registrationApprovalModels";
+import { jobSeekerModels } from "../models/jobSeekerModels";
+import { employerModels } from "../models/employerModels";
+import { companyModels } from "../models/companyModels";
 
 export class adminServices implements adminServiceInterfaces {
   static adminService: adminServices | undefined;
@@ -17,14 +27,14 @@ export class adminServices implements adminServiceInterfaces {
   // logged in admin
   async getCurrent(
     user: Express.User | undefined
-  ): Promise<SerivcesResponse<adminSessionType>> {
+  ): Promise<SerivcesResponse<TAdminSession>> {
     if (!user) {
       return { success: false, status: 403, msg: "Something went wrong" };
     }
 
-    let userObj: adminSessionType;
+    let userObj: TAdminSession;
     try {
-      userObj = user as adminSessionType;
+      userObj = user as TAdminSession;
       if (userObj.type !== "ADMIN") {
         throw Error();
       }
@@ -36,7 +46,7 @@ export class adminServices implements adminServiceInterfaces {
       success: true,
       status: 200,
       msg: "Successfully retrieve user",
-      data: userObj as adminSessionType,
+      data: userObj as TAdminSession,
     };
   }
 
@@ -49,9 +59,9 @@ export class adminServices implements adminServiceInterfaces {
       return { success: false, status: 403, msg: "Something went wrong" };
     }
 
-    let userObj: adminSessionType;
+    let userObj: TAdminSession;
     try {
-      userObj = user as adminSessionType;
+      userObj = user as TAdminSession;
     } catch (error) {
       console.log(error);
       return { success: false, status: 403, msg: "Something went wrong" };
@@ -69,6 +79,93 @@ export class adminServices implements adminServiceInterfaces {
     };
   }
 
+  // approve or unapprove 'user'
+  async approvingUser(
+    approvalRequest: any,
+    adminId: string
+  ): Promise<SerivcesResponse<TApproveResponse>> {
+    // validation
+    try {
+      approvedRequestSchema.parse(approvalRequest);
+    } catch (error) {
+      console.log(error);
+      return { success: false, status: 403, msg: "Invalid data" };
+    }
+
+    const validatedApprovalRequest = approvalRequest as TApprovedRequest;
+
+    // updating registration approval
+    const [error, result] = await catchError<TApproveReturn>(
+      registrationApprovalModels
+        .instance()
+        .approveUser(validatedApprovalRequest, adminId)
+    );
+
+    if (error) {
+      console.log(error);
+      return { success: false, status: 403, msg: "Something went wrong" };
+    }
+
+    const approvingUser: TApprovingUser = {
+      id: result.userId,
+      status: validatedApprovalRequest.status,
+    };
+
+    // updating user status to approved or unapproved(delete)
+    let err2: any, res2: TApproveUser | undefined;
+    if (result.userType === "JOBSEEKER") {
+      const [error2, result2] = await catchError<TApproveUser>(
+        jobSeekerModels.instance().approved(approvingUser, result.isOauth)
+      );
+      err2 = error2;
+      res2 = result2;
+    } else if (result.userType === "EMPLOYER") {
+      const [error2, result2] = await catchError<TApproveUser>(
+        employerModels.instance().approved(approvingUser, result.isOauth)
+      );
+      err2 = error2;
+      res2 = result2;
+    } else {
+      const [error2, result2] = await catchError<TApproveUser>(
+        companyModels.instance().approved(approvingUser)
+      );
+      err2 = error2;
+      res2 = result2;
+    }
+
+    if (err2 || !res2) {
+      console.log(err2);
+      return { success: false, status: 403, msg: "Something went wrong" };
+    }
+
+    const data: TApproveResponse = { approvedId: res2.id, adminId: adminId };
+
+    return {
+      success: true,
+      status: 200,
+      msg: "Successfully approved user",
+      data: data,
+    };
+  }
+
+  async getAllApproveRequest(): Promise<SerivcesResponse<any>> {
+    const [error, users] = await catchError<TRegistrationApproval[]>(
+      registrationApprovalModels.instance().getAllApproveRequest()
+    );
+
+    if (error) {
+      console.log(error);
+      return { success: false, status: 403, msg: "Something went wrong" };
+    }
+
+    return {
+      success: true,
+      status: 200,
+      msg: "Successfully retrieve all approve request",
+      data: users,
+    };
+  }
+
   async login(
     username: string,
     password: string,
@@ -78,12 +175,11 @@ export class adminServices implements adminServiceInterfaces {
       options?: IVerifyOptions
     ) => void
   ): Promise<void> {
-    let users: matchNameEmailType[];
-
     // get users with same name or email
-    try {
-      users = await adminModels.instance().matchNameEmail(username);
-    } catch (error) {
+    const [error, users] = await catchError<TMatchNameEmail[]>(
+      adminModels.instance().matchNameEmail(username)
+    );
+    if (error) {
       console.log(error);
       return done(error, false, { message: "Something went wrong" });
     }
@@ -92,14 +188,17 @@ export class adminServices implements adminServiceInterfaces {
       return done(null, false, { message: "User doesn't existed" });
     }
 
-    let exactUser: matchNameEmailType | undefined;
+    let exactUser: TMatchNameEmail | undefined;
     let approvedExisted = false;
     try {
       for (const user of users) {
         if (user.approvalStatus === "APPROVED") {
           approvedExisted = true;
         }
-        const matched = await bcrypt.compare(password, user.password);
+        const matched =
+          (process.env.BCRYPT_LIBRARY as string) === "bcryptjs"
+            ? await bcryptjs.compare(password, user.password)
+            : await bcrypt.compare(password, user.password);
 
         if (matched) {
           exactUser = user;
@@ -128,7 +227,7 @@ export class adminServices implements adminServiceInterfaces {
     }
 
     // format user
-    const formattedUser: userSessionType = { id: exactUser.id, type: "ADMIN" };
+    const formattedUser: TUserSession = { id: exactUser.id, type: "ADMIN" };
 
     done(null, formattedUser, { message: "Successfully login" });
   }
@@ -141,17 +240,23 @@ export class adminServices implements adminServiceInterfaces {
     // hash password
     let hashedPassword: string | undefined;
     try {
-      hashedPassword = await bcrypt.hash(
-        password,
-        Number(process.env.BCRYPT_SALTROUNDS as string)
-      );
+      hashedPassword =
+        (process.env.BCRYPT_LIBRARY as string) === "bcryptjs"
+          ? await bcryptjs.hash(
+              password,
+              Number(process.env.BCRYPT_SALTROUNDS as string)
+            )
+          : await bcrypt.hash(
+              password,
+              Number(process.env.BCRYPT_SALTROUNDS as string)
+            );
     } catch (error) {
       console.log(error);
       return { success: false, status: 403, msg: "Something went wrong" };
     }
 
     // insert into database
-    let result: adminType;
+    let result: TAdmin;
     try {
       result = await adminModels.instance().create(username, hashedPassword);
     } catch (error) {
@@ -168,7 +273,7 @@ export class adminServices implements adminServiceInterfaces {
   }
 
   async deserializer(id: string): Promise<SerivcesResponse<any>> {
-    let user: adminType | undefined;
+    let user: TAdmin | undefined;
     // getting user
     try {
       user = await adminModels.instance().getById(id);

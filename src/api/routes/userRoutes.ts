@@ -9,7 +9,7 @@ import {
 } from "../middlewares/auth";
 import "../types/usersTypes";
 import "../validators/usersValidator";
-import { singleUserRegisterType } from "../validators/usersValidator";
+import { TSingleUserRegister } from "../validators/usersValidator";
 import { companyControllers } from "../controllers/companyControllers";
 
 const userRouter = express.Router();
@@ -51,6 +51,23 @@ const userRouter = express.Router();
  *     responses:
  *       201:
  *         description: Return the job seeker id.
+ *         content:
+ *          application/json:
+ *            schema:
+ *              type: object
+ *              properties:
+ *                success:
+ *                  type: boolean
+ *                  description: is fetch successful
+ *                  example: true
+ *                msg:
+ *                  type: string
+ *                  description: response message
+ *                  example: Successfully fetch api
+ *                data:
+ *                  type: object
+ *                  description: response data
+ *                  example: {id: 69}
  */
 userRouter
   .route("/job-seeker")
@@ -81,18 +98,69 @@ userRouter
  *     responses:
  *       200:
  *         description: Return the user's id, type, and oauthStats.
+ *         content:
+ *          application/json:
+ *            schema:
+ *              type: object
+ *              properties:
+ *                success:
+ *                  type: boolean
+ *                  description: is fetch successful
+ *                  example: true
+ *                msg:
+ *                  type: string
+ *                  description: response message
+ *                  example: Successfully fetch api
+ *                data:
+ *                  type: object
+ *                  description: response data
+ *                  example: {id: 69, type: JOBSEEKER, isOauth: false}
  *   get:
  *     summary: get logged-in job seeker info
  *     tags: [Job Seeker]
  *     responses:
  *       200:
  *         description: Return the job seeker's infos.
+ *         content:
+ *          application/json:
+ *            schema:
+ *              type: object
+ *              properties:
+ *                success:
+ *                  type: boolean
+ *                  description: is fetch successful
+ *                  example: true
+ *                msg:
+ *                  type: string
+ *                  description: response message
+ *                  example: Successfully fetch api
+ *                data:
+ *                  type: object
+ *                  description: response data
+ *                  example: {id: 123, username: THENAME}
  *   delete:
  *     summary: logout job seeker if logged in
  *     tags: [Job Seeker]
  *     responses:
  *       200:
  *         description: Return the job seeker's id, username.
+ *         content:
+ *          application/json:
+ *            schema:
+ *              type: object
+ *              properties:
+ *                success:
+ *                  type: boolean
+ *                  description: is fetch successful
+ *                  example: true
+ *                msg:
+ *                  type: string
+ *                  description: response message
+ *                  example: Successfully fetch api
+ *                data:
+ *                  type: object
+ *                  description: response data
+ *                  example: {id: 69, username: Duangjun}
  */
 userRouter
   .route("/job-seeker/auth")
@@ -158,6 +226,23 @@ userRouter.route("/job-seeker/auth/:id");
  *     responses:
  *       201:
  *         description: Return the employer id.
+ *         content:
+ *          application/json:
+ *            schema:
+ *              type: object
+ *              properties:
+ *                success:
+ *                  type: boolean
+ *                  description: is fetch successful
+ *                  example: true
+ *                msg:
+ *                  type: string
+ *                  description: response message
+ *                  example: Successfully fetch api
+ *                data:
+ *                  type: object
+ *                  description: response data
+ *                  example: {id: 69}
  */
 userRouter
   .route("/employer")
@@ -188,18 +273,70 @@ userRouter
  *     responses:
  *       200:
  *         description: Return the user's id, type, and oauthStats.
+ *         content:
+ *          application/json:
+ *            schema:
+ *              type: object
+ *              properties:
+ *                success:
+ *                  type: boolean
+ *                  description: is fetch successful
+ *                  example: true
+ *                msg:
+ *                  type: string
+ *                  description: response message
+ *                  example: Successfully fetch api
+ *                data:
+ *                  type: object
+ *                  description: response data
+ *                  example: {id: 69, type: EMPLOYER, isOauth: false}
  *   get:
  *     summary: get logged-in employer info
  *     tags: [Employer]
  *     responses:
  *       200:
  *         description: Return the employer's infos.
+ *
+ *         content:
+ *          application/json:
+ *            schema:
+ *              type: object
+ *              properties:
+ *                success:
+ *                  type: boolean
+ *                  description: is fetch successful
+ *                  example: true
+ *                msg:
+ *                  type: string
+ *                  description: response message
+ *                  example: Successfully fetch api
+ *                data:
+ *                  type: object
+ *                  description: response data
+ *                  example: {id: 876, username: hello}
  *   delete:
  *     summary: logout employer if logged in
  *     tags: [Employer]
  *     responses:
  *       200:
  *         description: Return the employer's id, username.
+ *         content:
+ *          application/json:
+ *            schema:
+ *              type: object
+ *              properties:
+ *                success:
+ *                  type: boolean
+ *                  description: is fetch successful
+ *                  example: true
+ *                msg:
+ *                  type: string
+ *                  description: response message
+ *                  example: Successfully fetch api
+ *                data:
+ *                  type: object
+ *                  description: response data
+ *                  example: {id: 69, username: duangjun}
  */
 userRouter
   .route("/employer/auth")
@@ -262,6 +399,23 @@ userRouter.get(
  *     responses:
  *       201:
  *         description: Return the company id.
+ *         content:
+ *          application/json:
+ *            schema:
+ *              type: object
+ *              properties:
+ *                success:
+ *                  type: boolean
+ *                  description: is fetch successful
+ *                  example: true
+ *                msg:
+ *                  type: string
+ *                  description: response message
+ *                  example: Successfully fetch api
+ *                data:
+ *                  type: object
+ *                  description: response data
+ *                  example: {id: 69}
  */
 userRouter
   .route("/company")
@@ -292,18 +446,71 @@ userRouter
  *     responses:
  *       200:
  *         description: Return the user's id, type, and oauthStats.
+ *
+ *         content:
+ *          application/json:
+ *            schema:
+ *              type: object
+ *              properties:
+ *                success:
+ *                  type: boolean
+ *                  description: is fetch successful
+ *                  example: true
+ *                msg:
+ *                  type: string
+ *                  description: response message
+ *                  example: Successfully fetch api
+ *                data:
+ *                  type: object
+ *                  description: response data
+ *                  example: {id: 69, type: COMPANY, isOauth: false}
  *   get:
  *     summary: get logged-in company info
  *     tags: [Company]
  *     responses:
  *       200:
  *         description: Return the company's infos.
+ *
+ *         content:
+ *          application/json:
+ *            schema:
+ *              type: object
+ *              properties:
+ *                success:
+ *                  type: boolean
+ *                  description: is fetch successful
+ *                  example: true
+ *                msg:
+ *                  type: string
+ *                  description: response message
+ *                  example: Successfully fetch api
+ *                data:
+ *                  type: object
+ *                  description: response data
+ *                  example: {id: 69, username: duangjun}
  *   delete:
  *     summary: logout company if logged in
  *     tags: [Company]
  *     responses:
  *       200:
  *         description: Return the company's id, username.
+ *         content:
+ *          application/json:
+ *            schema:
+ *              type: object
+ *              properties:
+ *                success:
+ *                  type: boolean
+ *                  description: is fetch successful
+ *                  example: true
+ *                msg:
+ *                  type: string
+ *                  description: response message
+ *                  example: Successfully fetch api
+ *                data:
+ *                  type: object
+ *                  description: response data
+ *                  example: {id: 69, username: duangjun}
  */
 userRouter
   .route("/company/auth")

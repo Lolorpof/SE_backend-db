@@ -11,6 +11,7 @@ import {
   userOauthModelInterfaces,
 } from "../interfaces/userModelInterfaces";
 import { Profile } from "passport-google-oauth20";
+import { TApprovedRequest } from "../validators/usersValidator";
 
 export class employerModels implements userOauthModelInterfaces {
   // singleton design
@@ -46,7 +47,7 @@ export class employerModels implements userOauthModelInterfaces {
   }
 
   // {login}
-  async matchNameEmail(nameEmail: string): Promise<matchNameEmailType[]> {
+  async matchNameEmail(nameEmail: string): Promise<TMatchNameEmail[]> {
     const users = await drizzlePool.query.employerTable.findMany({
       columns: { id: true, approvalStatus: true, password: true },
       where: or(
@@ -62,8 +63,8 @@ export class employerModels implements userOauthModelInterfaces {
   async oauthUserInsert(
     profile: Profile,
     provider: "GOOGLE" | "LINE"
-  ): Promise<registerUserType> {
-    let user: registerUserType[];
+  ): Promise<TRegisterUser> {
+    let user: TRegisterUser[];
     // ***remove true***
     if (provider === "GOOGLE" || true) {
       user = await drizzlePool
@@ -91,9 +92,9 @@ export class employerModels implements userOauthModelInterfaces {
   // update oauth employer, if profile is changed
   async oauthUserUpdate(
     profile: Profile,
-    currentUser: employerType,
+    currentUser: TEmployer,
     provider: "GOOGLE" | "LINE"
-  ): Promise<employerType> {
+  ): Promise<TEmployer> {
     // remove true if done
     let updateUser;
     if (provider === "GOOGLE" || true) {
@@ -121,12 +122,12 @@ export class employerModels implements userOauthModelInterfaces {
       return currentUser;
     }
 
-    const user: employerType = updateUser[0] as employerType;
+    const user: TEmployer = updateUser[0] as TEmployer;
     return user;
   }
 
   // register employer
-  async register(user: formattedSingleUserRegisterType) {
+  async register(user: TFormattedSingleUserRegister) {
     const registeredUser = await drizzlePool
       .insert(employerTable)
       .values({
@@ -152,7 +153,7 @@ export class employerModels implements userOauthModelInterfaces {
     getByProviderId?: boolean,
     provider?: "GOOGLE" | "LINE"
   ) {
-    let user: employerType | undefined;
+    let user: TEmployer | undefined;
     if (!provider) {
       user = await drizzlePool.query.employerTable.findFirst({
         columns: { password: false, createdAt: false, updatedAt: false },
@@ -174,5 +175,41 @@ export class employerModels implements userOauthModelInterfaces {
     }
 
     return user;
+  }
+
+  async approved(
+    user: TApprovingUser,
+    isOauth: boolean
+  ): Promise<TApproveUser> {
+    let result: TApproveUser[];
+    if (user.status === "APPROVED") {
+      if (isOauth) {
+        result = await drizzlePool
+          .update(oauthEmployerTable)
+          .set({ approvalStatus: user.status })
+          .where(eq(oauthEmployerTable.id, user.id))
+          .returning({ id: oauthEmployerTable.id });
+      } else {
+        result = await drizzlePool
+          .update(employerTable)
+          .set({ approvalStatus: user.status })
+          .where(eq(employerTable.id, user.id))
+          .returning({ id: employerTable.id });
+      }
+    } else {
+      if (isOauth) {
+        result = await drizzlePool
+          .delete(oauthEmployerTable)
+          .where(eq(oauthEmployerTable.id, user.id))
+          .returning({ id: oauthEmployerTable.id });
+      } else {
+        result = await drizzlePool
+          .delete(employerTable)
+          .where(eq(employerTable.id, user.id))
+          .returning({ id: employerTable.id });
+      }
+    }
+
+    return result[0];
   }
 }

@@ -90,3 +90,18 @@ export const checkPermissionHeader = async (
 
   next();
 };
+
+export const checkAdmin = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  if ((req.user as TUserSession).type !== "ADMIN") {
+    res
+      .status(401)
+      .json({ success: false, msg: "User doesn't have permission" });
+    return;
+  }
+
+  next();
+};

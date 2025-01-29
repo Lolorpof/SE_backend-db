@@ -12,6 +12,7 @@ import {
   userOauthModelInterfaces,
 } from "../interfaces/userModelInterfaces";
 import { Profile as GoogleProfile } from "passport-google-oauth20";
+import { TApprovedRequest } from "../validators/usersValidator";
 
 export class jobSeekerModels implements userOauthModelInterfaces {
   // singleton design
@@ -48,9 +49,7 @@ export class jobSeekerModels implements userOauthModelInterfaces {
   }
 
   // register
-  async register(
-    user: formattedSingleUserRegisterType
-  ): Promise<registerUserType> {
+  async register(user: TFormattedSingleUserRegister): Promise<TRegisterUser> {
     // job seeker
     const registeredUser = await drizzlePool
       .insert(jobSeekerTable)
@@ -75,8 +74,8 @@ export class jobSeekerModels implements userOauthModelInterfaces {
   async oauthUserInsert(
     profile: GoogleProfile,
     provider: "GOOGLE" | "LINE"
-  ): Promise<registerUserType> {
-    let user: registerUserType[];
+  ): Promise<TRegisterUser> {
+    let user: TRegisterUser[];
     // ***remove true***
     if (provider === "GOOGLE" || true) {
       user = await drizzlePool
@@ -104,9 +103,9 @@ export class jobSeekerModels implements userOauthModelInterfaces {
   // update oauth profile
   async oauthUserUpdate(
     profile: GoogleProfile,
-    currentUser: jobSeekerType,
+    currentUser: TJobSeeker,
     provider: "GOOGLE" | "LINE"
-  ): Promise<jobSeekerType> {
+  ): Promise<TJobSeeker> {
     // remove true if done
     let updateUser;
     if (provider === "GOOGLE" || true) {
@@ -134,7 +133,7 @@ export class jobSeekerModels implements userOauthModelInterfaces {
       return currentUser;
     }
 
-    const user: jobSeekerType = updateUser[0] as jobSeekerType;
+    const user: TJobSeeker = updateUser[0] as TJobSeeker;
     return user;
   }
 
@@ -180,7 +179,7 @@ export class jobSeekerModels implements userOauthModelInterfaces {
     getByProviderId?: boolean,
     provider?: "GOOGLE" | "LINE"
   ) {
-    let user: jobSeekerType | undefined;
+    let user: TJobSeeker | undefined;
     if (!provider) {
       user = await drizzlePool.query.jobSeekerTable.findFirst({
         columns: {
@@ -242,5 +241,41 @@ export class jobSeekerModels implements userOauthModelInterfaces {
     }
 
     return user;
+  }
+
+  async approved(
+    user: TApprovingUser,
+    isOauth: boolean
+  ): Promise<TApproveUser> {
+    let result: TApproveUser[];
+    if (user.status === "APPROVED") {
+      if (isOauth) {
+        result = await drizzlePool
+          .update(oauthJobSeekerTable)
+          .set({ approvalStatus: user.status })
+          .where(eq(oauthJobSeekerTable.id, user.id))
+          .returning({ id: oauthJobSeekerTable.id });
+      } else {
+        result = await drizzlePool
+          .update(jobSeekerTable)
+          .set({ approvalStatus: user.status })
+          .where(eq(jobSeekerTable.id, user.id))
+          .returning({ id: jobSeekerTable.id });
+      }
+    } else {
+      if (isOauth) {
+        result = await drizzlePool
+          .delete(oauthJobSeekerTable)
+          .where(eq(oauthJobSeekerTable.id, user.id))
+          .returning({ id: oauthJobSeekerTable.id });
+      } else {
+        result = await drizzlePool
+          .delete(jobSeekerTable)
+          .where(eq(jobSeekerTable.id, user.id))
+          .returning({ id: jobSeekerTable.id });
+      }
+    }
+
+    return result[0];
   }
 }

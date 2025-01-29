@@ -1,21 +1,22 @@
 import { Profile as GoogleProfile } from "passport-google-oauth20";
 import "../types/usersTypes";
+import { TApprovedRequest } from "../validators/usersValidator";
 
-export interface adminModelInterfaces {
+export interface baseUserModelInterfaces {
   // login
-  matchNameEmail(nameEmail: string): Promise<matchNameEmailType[]>;
+  matchNameEmail(nameEmail: string): Promise<TMatchNameEmail[]>;
 
   getById(
     id: string
-  ): Promise<
-    jobSeekerType | employerType | adminType | companyType | undefined
-  >;
+  ): Promise<TJobSeeker | TEmployer | TAdmin | TCompany | undefined>;
 }
 
-export interface userModelInterfaces extends adminModelInterfaces {
+export interface adminModelInterfaces extends baseUserModelInterfaces {}
+
+export interface userModelInterfaces extends baseUserModelInterfaces {
   register(
-    user: formattedSingleUserRegisterType | formattedCompanyRegisterType
-  ): Promise<registerUserType>;
+    user: TFormattedSingleUserRegister | TFormattedCompanyRegister
+  ): Promise<TRegisterUser>;
 
   // for register
   duplicateNameEmail(
@@ -23,24 +24,26 @@ export interface userModelInterfaces extends adminModelInterfaces {
     firstName?: string,
     lastName?: string,
     officialName?: string
-  ): Promise<duplicateNameEmailType1 | duplicateNameEmailType2 | undefined>;
+  ): Promise<TDuplicateNameEmail1 | TDuplicateNameEmail2 | undefined>;
+
+  approved(user: TApprovingUser, isOauth?: boolean): Promise<TApproveUser>;
 }
 
 export interface userOauthModelInterfaces extends userModelInterfaces {
   oauthUserInsert(
     profile: GoogleProfile,
     provider: "GOOGLE" | "LINE"
-  ): Promise<registerUserType>;
+  ): Promise<TRegisterUser>;
 
   oauthUserUpdate(
     profile: GoogleProfile,
-    currentUser: jobSeekerType,
+    currentUser: TJobSeeker,
     provider: "GOOGLE" | "LINE"
-  ): Promise<jobSeekerType>;
+  ): Promise<TJobSeeker>;
 
   getById(
     providerId: string,
     getByProviderId?: boolean,
     provider?: "GOOGLE" | "LINE"
-  ): Promise<jobSeekerType | employerType | companyType | undefined>;
+  ): Promise<TJobSeeker | TEmployer | TCompany | undefined>;
 }
