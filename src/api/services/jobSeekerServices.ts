@@ -3,7 +3,6 @@ import { jobSeekerModels } from "../models/jobSeekerModels";
 import * as usersSchemas from "../validators/usersValidator";
 import { fromError } from "zod-validation-error";
 import "../types/usersTypes";
-import bcrypt from "bcrypt";
 import bcryptjs from "bcryptjs";
 import { IVerifyOptions } from "passport-local";
 import "../types/usersTypes";
@@ -89,16 +88,10 @@ export class jobSeekerServices implements userOauthServiceInterfaces {
     // hash password
     let hashedPassword: string | undefined;
     try {
-      hashedPassword =
-        (process.env.BCRYPT_LIBRARY as string) === "bcryptjs"
-          ? await bcryptjs.hash(
-              validatedUserForm.password,
-              Number(process.env.BCRYPT_SALTROUNDS)
-            )
-          : await bcrypt.hash(
-              validatedUserForm.password,
-              Number(process.env.BCRYPT_SALTROUNDS)
-            );
+      hashedPassword = await bcryptjs.hash(
+        validatedUserForm.password,
+        Number(process.env.BCRYPT_SALTROUNDS)
+      );
     } catch (error) {
       console.log(error);
       return { success: false, msg: "Something went wrong", status: 403 };
@@ -160,10 +153,7 @@ export class jobSeekerServices implements userOauthServiceInterfaces {
         if (user.approvalStatus === "APPROVED") {
           approvedExisted = true;
         }
-        const matched =
-          (process.env.BCRYPT_LIBRARY as string) === "bcryptjs"
-            ? await bcryptjs.compare(password, user.password)
-            : await bcrypt.compare(password, user.password);
+        const matched = await bcryptjs.compare(password, user.password);
 
         if (matched) {
           exactUser = user;
