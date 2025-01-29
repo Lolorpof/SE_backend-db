@@ -1,4 +1,4 @@
-import { approvedRequestType } from "../validators/usersValidator";
+import { TApprovedRequest } from "../validators/usersValidator";
 import { registrationApprovalTable } from "../../db/schema";
 import { drizzlePool } from "../../db/conn";
 import { and, eq } from "drizzle-orm";
@@ -16,9 +16,9 @@ export class registrationApprovalModels {
 
   // for admin to approve user
   async approveUser(
-    approvedRequest: approvedRequestType,
+    approvedRequest: TApprovedRequest,
     adminId: string
-  ): Promise<approveReturn> {
+  ): Promise<TApproveReturn> {
     // update user status to approved
     const checkExisted =
       await drizzlePool.query.registrationApprovalTable.findFirst({
@@ -48,7 +48,7 @@ export class registrationApprovalModels {
       throw new Error("User not found");
     }
 
-    let finalUser: approveReturn;
+    let finalUser: TApproveReturn;
     if (updatedUser.jobSeekerId) {
       finalUser = {
         userId: updatedUser.jobSeekerId,
@@ -84,7 +84,7 @@ export class registrationApprovalModels {
     return finalUser;
   }
 
-  async getAllApproveRequest(): Promise<registrationApprovalType[]> {
+  async getAllApproveRequest(): Promise<TRegistrationApproval[]> {
     const response = await drizzlePool.query.registrationApprovalTable.findMany(
       { columns: { createdAt: false, updatedAt: false } }
     );
@@ -93,7 +93,7 @@ export class registrationApprovalModels {
       return [];
     }
 
-    const formattedResponse: registrationApprovalType[] = [];
+    const formattedResponse: TRegistrationApproval[] = [];
     for (const r of response) {
       if (r.oauthJobSeekerId) {
         formattedResponse.push({
@@ -142,7 +142,7 @@ export class registrationApprovalModels {
   }
 
   // for admin to reject user
-  async rejectUser(user: approvedRequestType, adminId: string) {}
+  async rejectUser(user: TApprovedRequest, adminId: string) {}
 
   async getById(id: string) {
     const response =

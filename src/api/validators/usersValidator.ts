@@ -42,8 +42,8 @@ export const approvedRequestSchema = z.object({
 });
 
 // Infer Type
-export type singleUserRegisterType = z.infer<typeof singleUserRegisterSchema>;
+export type TSingleUserRegister = z.infer<typeof singleUserRegisterSchema>;
 
-export type companyRegisterType = z.infer<typeof companyRegisterSchema>;
+export type TCompanyRegister = z.infer<typeof companyRegisterSchema>;
 
-export type approvedRequestType = z.infer<typeof approvedRequestSchema>;
+export type TApprovedRequest = z.infer<typeof approvedRequestSchema>;

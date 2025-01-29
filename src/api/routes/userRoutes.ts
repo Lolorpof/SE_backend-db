@@ -9,7 +9,7 @@ import {
 } from "../middlewares/auth";
 import "../types/usersTypes";
 import "../validators/usersValidator";
-import { singleUserRegisterType } from "../validators/usersValidator";
+import { TSingleUserRegister } from "../validators/usersValidator";
 import { companyControllers } from "../controllers/companyControllers";
 
 const userRouter = express.Router();

@@ -96,7 +96,7 @@ export class adminControllers implements adminControllerInterfaces {
   async approvingUser(req: Request, res: Response): Promise<void> {
     const result = await adminServices
       .instance()
-      .approvingUser(req.body, (req.user as adminSessionType).id);
+      .approvingUser(req.body, (req.user as TAdminSession).id);
 
     if (!result.success || !result.data) {
       res.status(result.status).json({

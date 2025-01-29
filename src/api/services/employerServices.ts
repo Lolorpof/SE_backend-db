@@ -1,7 +1,7 @@
 import { fromError } from "zod-validation-error";
 import { employerModels } from "../models/employerModels";
 import {
-  singleUserRegisterType,
+  TSingleUserRegister,
   singleUserRegisterSchema,
 } from "../validators/usersValidator";
 import bcrypt from "bcrypt";
@@ -35,7 +35,7 @@ export class employerServices implements userOauthServiceInterfaces {
       return { success: false, msg: formattedError, status: 403 };
     }
 
-    const validatedUserForm: singleUserRegisterType = userForm;
+    const validatedUserForm: TSingleUserRegister = userForm;
     // split to first name and last name
     const [firstName, lastName] = validatedUserForm.name.split(" ");
 
@@ -132,7 +132,7 @@ export class employerServices implements userOauthServiceInterfaces {
       options?: IVerifyOptions
     ) => void
   ): Promise<void> {
-    let users: matchNameEmailType[] | undefined;
+    let users: TMatchNameEmail[] | undefined;
     try {
       // find user with same name or email
       users = await employerModels.instance().matchNameEmail(username);
@@ -145,7 +145,7 @@ export class employerServices implements userOauthServiceInterfaces {
       return done(null, false, { message: "User doesn't existed" });
     }
 
-    let exactUser: matchNameEmailType | undefined;
+    let exactUser: TMatchNameEmail | undefined;
     let approvedExisted = false;
     try {
       for (const user of users) {
@@ -202,7 +202,7 @@ export class employerServices implements userOauthServiceInterfaces {
     done: VerifyCallback
   ): Promise<void> {
     // check if user existed
-    let user: employerType | undefined;
+    let user: TEmployer | undefined;
     try {
       user = await employerModels
         .instance()
@@ -213,7 +213,7 @@ export class employerServices implements userOauthServiceInterfaces {
     }
 
     // first time oauth login
-    let insertUser: registerUserType;
+    let insertUser: TRegisterUser;
     if (!user) {
       try {
         insertUser = await employerModels
@@ -252,7 +252,7 @@ export class employerServices implements userOauthServiceInterfaces {
       }
 
       // format user
-      const formattedUser: userSessionType = {
+      const formattedUser: TUserSession = {
         id: user.id,
         type: "EMPLOYER",
         provider: "GOOGLE",
@@ -272,9 +272,9 @@ export class employerServices implements userOauthServiceInterfaces {
     if (!user) {
       return { success: false, status: 403, msg: "Something went wrong" };
     }
-    let userObj: employerSessionType;
+    let userObj: TEmployerSession;
     try {
-      userObj = user as employerSessionType;
+      userObj = user as TEmployerSession;
     } catch (error) {
       console.log(error);
       return { success: false, status: 403, msg: "Something went wrong" };
@@ -295,13 +295,13 @@ export class employerServices implements userOauthServiceInterfaces {
   // get current user (passport calls)
   async getCurrent(
     user: Express.User | undefined
-  ): Promise<SerivcesResponse<employerSessionType>> {
+  ): Promise<SerivcesResponse<TEmployerSession>> {
     if (!user) {
       return { status: 403, success: false, msg: "Something went wrong" };
     }
-    let userObj: employerSessionType;
+    let userObj: TEmployerSession;
     try {
-      userObj = user as employerSessionType;
+      userObj = user as TEmployerSession;
       if (userObj.type !== "EMPLOYER") {
         throw Error();
       }
@@ -313,7 +313,7 @@ export class employerServices implements userOauthServiceInterfaces {
       status: 200,
       success: true,
       msg: "Successfully retrieve user",
-      data: user as employerSessionType,
+      data: user as TEmployerSession,
     };
   }
 
@@ -322,7 +322,7 @@ export class employerServices implements userOauthServiceInterfaces {
     id: string,
     provider?: "GOOGLE" | "LINE"
   ): Promise<SerivcesResponse<any>> {
-    let user: employerType | undefined;
+    let user: TEmployer | undefined;
     // getting user
     try {
       if (!provider) {

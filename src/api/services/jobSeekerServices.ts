@@ -34,7 +34,7 @@ export class jobSeekerServices implements userOauthServiceInterfaces {
       return { success: false, msg: formattedError, status: 403 };
     }
 
-    const validatedUserForm: usersSchemas.singleUserRegisterType = userForm;
+    const validatedUserForm: usersSchemas.TSingleUserRegister = userForm;
     // split to first name and last name
     const [firstName, lastName] = validatedUserForm.name.split(" ");
 
@@ -132,7 +132,7 @@ export class jobSeekerServices implements userOauthServiceInterfaces {
     ) => void
   ): Promise<void> {
     // match name or email, and approved
-    let users: matchNameEmailType[];
+    let users: TMatchNameEmail[];
     try {
       users = await jobSeekerModels.instance().matchNameEmail(username);
     } catch (error) {
@@ -145,7 +145,7 @@ export class jobSeekerServices implements userOauthServiceInterfaces {
     }
 
     // match password
-    let exactUser: matchNameEmailType | undefined;
+    let exactUser: TMatchNameEmail | undefined;
     let approvedExisted = false;
     try {
       for (const user of users) {
@@ -197,7 +197,7 @@ export class jobSeekerServices implements userOauthServiceInterfaces {
     done: VerifyCallback
   ): Promise<void> {
     // check if user existed
-    let user: jobSeekerType | undefined;
+    let user: TJobSeeker | undefined;
     try {
       user = await jobSeekerModels
         .instance()
@@ -208,7 +208,7 @@ export class jobSeekerServices implements userOauthServiceInterfaces {
     }
 
     // first time oauth login
-    let insertUser: registerUserType;
+    let insertUser: TRegisterUser;
     if (!user) {
       try {
         insertUser = await jobSeekerModels
@@ -247,7 +247,7 @@ export class jobSeekerServices implements userOauthServiceInterfaces {
       }
 
       // format user
-      const formattedUser: userSessionType = {
+      const formattedUser: TUserSession = {
         id: user.id,
         type: "JOBSEEKER",
         provider: "GOOGLE",
@@ -263,13 +263,13 @@ export class jobSeekerServices implements userOauthServiceInterfaces {
     user: Express.User | undefined,
     type: string,
     isOauth: boolean
-  ): Promise<SerivcesResponse<checkUserType>> {
+  ): Promise<SerivcesResponse<TCheckUser>> {
     if (!user) {
       return { success: false, status: 403, msg: "Something went wrong" };
     }
-    let userObj: jobSeekerSessionType;
+    let userObj: TJobSeekerSession;
     try {
-      userObj = user as jobSeekerSessionType;
+      userObj = user as TJobSeekerSession;
     } catch (error) {
       console.log(error);
       return { success: false, status: 403, msg: "Something went wrong" };
@@ -313,8 +313,8 @@ export class jobSeekerServices implements userOauthServiceInterfaces {
   async deserializer(
     id: string,
     provider?: "GOOGLE" | "LINE"
-  ): Promise<SerivcesResponse<jobSeekerType>> {
-    let user: jobSeekerType | undefined;
+  ): Promise<SerivcesResponse<TJobSeeker>> {
+    let user: TJobSeeker | undefined;
     // getting user
     try {
       if (!provider) {
@@ -342,13 +342,13 @@ export class jobSeekerServices implements userOauthServiceInterfaces {
   // get current
   async getCurrent(
     user: Express.User | undefined
-  ): Promise<SerivcesResponse<jobSeekerSessionType>> {
+  ): Promise<SerivcesResponse<TJobSeekerSession>> {
     if (!user) {
       return { success: false, msg: "Something went wrong", status: 403 };
     }
-    let userObj: jobSeekerSessionType;
+    let userObj: TJobSeekerSession;
     try {
-      userObj = user as jobSeekerSessionType;
+      userObj = user as TJobSeekerSession;
       if (userObj.type !== "JOBSEEKER") {
         throw Error();
       }
@@ -359,7 +359,7 @@ export class jobSeekerServices implements userOauthServiceInterfaces {
     return {
       success: true,
       msg: "Successfully retrieve current user",
-      data: user as jobSeekerSessionType,
+      data: user as TJobSeekerSession,
       status: 200,
     };
   }

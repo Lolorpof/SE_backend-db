@@ -1,5 +1,5 @@
 // model types
-interface jobSeekerType {
+type TJobSeeker = {
   id: string;
   username: string;
   password?: string; // normal exclusive
@@ -14,14 +14,14 @@ interface jobSeekerType {
   createdAt?: string;
   updatedAt?: string;
   approvalStatus?: string;
-  toSkill?: nameDescType[];
-  toVulnerabilityType?: nameDescType[];
+  toSkill?: TNameDesc[];
+  toVulnerabilityType?: TNameDesc[];
 
   providerId?: string;
   provider?: string; // oauth exclusive
-}
+};
 
-interface employerType {
+type TEmployer = {
   id: string;
   username: string;
   password?: string;
@@ -38,9 +38,9 @@ interface employerType {
 
   providerId?: string;
   provider?: string;
-}
+};
 
-interface companyType {
+type TCompany = {
   id: string;
   officialName: string;
   password?: string;
@@ -52,9 +52,9 @@ interface companyType {
   createdAt?: string;
   updatedAt?: string;
   approvalStatus?: string;
-}
+};
 
-interface adminType {
+type TAdmin = {
   id: string;
   username?: string;
   email?: string;
@@ -63,47 +63,53 @@ interface adminType {
   contact?: string | null;
   createdAt?: string;
   updatedAt?: string;
-}
+};
 
-// middleware types
-
-interface userSessionType {
+// serializer types
+type TUserSession = {
   id: string;
   type: string;
   provider?: "GOOGLE" | "LINE";
-}
+};
 
-interface jobSeekerSessionType extends jobSeekerType {
+// deserializer types (req.user)
+type TJobSeekerSession = TJobSeeker & {
   isOauth: boolean;
   type: string;
-}
+};
 
-interface employerSessionType extends employerType {
+type TEmployerSession = TEmployer & {
   isOauth: boolean;
   type: string;
-}
+};
 
-interface companySessionType extends companyType {
+type TCompanySession = TCompany & {
   type: string;
-}
+};
 
-interface adminSessionType extends adminType {
+type TAdminSession = TAdmin & {
   type: string;
-}
+};
 
-interface registerUserType {
+// register return
+type TRegisterUser = {
   id: string;
-}
+};
 
-type approveReturn = { userId: string; userType: string; isOauth: boolean };
+// registration approval database fetch
+type TApproveReturn = { userId: string; userType: string; isOauth: boolean };
 
-type approveUser = { id: string };
+// user approved by admin
+type TApproveUser = { id: string };
 
-type approvingUser = approveUser & { status: "APPROVED" | "UNAPPROVED" };
+// admin approving user
+type TApprovingUser = TApproveUser & { status: "APPROVED" | "UNAPPROVED" };
 
-type approveResponse = { approvedId: string; adminId: string };
+// response after approving
+type TApproveResponse = { approvedId: string; adminId: string };
 
-type registrationApprovalType = {
+// registration approval return
+type TRegistrationApproval = {
   id: string;
   userId: string;
   userType: string;
@@ -111,42 +117,50 @@ type registrationApprovalType = {
   adminId?: string | null;
 };
 
-interface checkUserType {
+// check current user return
+type TCheckUser = {
   id: string;
   username?: string;
   officialName?: string;
-}
+};
 
-interface matchNameEmailType {
+// name or email matched return
+type TMatchNameEmail = {
   id: string;
   password: string;
   approvalStatus?: "UNAPPROVED" | "APPROVED";
-}
+};
 
-interface duplicateNameEmailType1 {
+// duplicate single user
+type TDuplicateNameEmail1 = {
   email: string;
   firstName: string;
   lastName: string;
-}
-interface duplicateNameEmailType2 {
+};
+
+// duplicate company
+type TDuplicateNameEmail2 = {
   email: string;
   officialName: string;
-}
+};
 
-interface nameDescType {
+// data with description
+type TNameDesc = {
   name: string;
   description: string | null;
-}
+};
 
-interface formattedSingleUserRegisterType {
+// single user registration form
+type TFormattedSingleUserRegister = {
   firstName: string;
   lastName: string;
   email: string;
   hashedPassword: string;
-}
+};
 
-interface formattedCompanyRegisterType {
+// company registration form
+type TFormattedCompanyRegister = {
   officialName: string;
   email: string;
   hashedPassword: string;
-}
+};
