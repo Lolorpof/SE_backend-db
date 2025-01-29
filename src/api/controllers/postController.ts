@@ -8,7 +8,7 @@ import {
 } from "../../db/schema"; // Import the relevant tables
 import { drizzlePool } from "../../db/conn";
 import { and, eq, lte, gte, ilike, SQL, inArray, sql } from "drizzle-orm";
-import { createJobHiringPostSchema } from "../schemas/api-schema";
+import { jobPostSchema } from "../schemas/api-schema";
 
 // Remove or comment out the "Initialize the database connection" comment since we're importing drizzlePool
 
@@ -202,12 +202,20 @@ export async function handleGetJobSeeker(req: Request, res: Response) {
     });
   }
 }
+//ensure schema -> fix controller -> update api-doc
 // Need review
-export async function createJobHiringPost(req: Request, res: Response) {
+export async function handleCreateJobPost(req: Request, res: Response) {
   try {
     // Validate request body against schema
-    const validatedData = createJobHiringPostSchema.parse(req.body);
-
+    const validatedData = jobPostSchema.parse(req.body);
+    const user = req.user;
+    if(!user) {
+      res.status(401).json({
+        success: false,
+        message: "Unauthorized",
+      });
+      return;
+    }
     // Start a transaction since we need to insert into multiple tables
     const result = await drizzlePool.transaction(async (tx) => {
       // Create the job hiring post
@@ -215,37 +223,21 @@ export async function createJobHiringPost(req: Request, res: Response) {
         .insert(jobHiringPostTable)
         .values({
           title: validatedData.title,
-          description: validatedData.description,
+          description: validatedData.description ?? null,
           jobLocation: validatedData.jobLocation,
           salary: validatedData.salary,
           workDates: validatedData.workDates,
           workHoursRange: validatedData.workHoursRange,
           hiredAmount: validatedData.hiredAmount,
-          // Note: jobHirerType and employer/company IDs would come from auth
-          // TODO: Add auth middleware to get the user type and IDs
-          jobHirerType: "EMPLOYER", // Temporary default, should come from auth
+          // Fields waiting for implementation:
+          status: "UNMATCHED", // Default value from schema
+          jobHirerType: undefined, // Required field waiting for implementation
+          employerId: undefined, // Optional field waiting for implementation
+          oauthEmployerId: undefined, // Optional field waiting for implementation  
+          companyId: undefined, // Optional field waiting for implementation
+          oauthCompanyId: undefined // Optional field waiting for implementation
         })
         .returning();
-
-      // Insert skills for the job post
-      if (validatedData.skills.length > 0) {
-        await tx.insert(jobHiringPostSkillTable).values(
-          validatedData.skills.map((skillId) => ({
-            jobHiringPostId: jobPost.id,
-            skillId: skillId,
-          }))
-        );
-      }
-
-      // Insert job categories for the job post
-      if (validatedData.jobCategories.length > 0) {
-        await tx.insert(jobHireCategoryTable).values(
-          validatedData.jobCategories.map((categoryId) => ({
-            jobHiringPostId: jobPost.id,
-            jobCategoryId: categoryId,
-          }))
-        );
-      }
 
       return jobPost;
     });
@@ -261,7 +253,7 @@ export async function createJobHiringPost(req: Request, res: Response) {
     if (error.name === "ZodError") {
       res.status(400).json({
         success: false,
-        message: "Invalid request data",
+        message: "Invalid request data", 
         errors: error.errors,
       });
       return;
@@ -272,4 +264,12 @@ export async function createJobHiringPost(req: Request, res: Response) {
       message: "Failed to create job hiring post",
     });
   }
+}
+
+// Empty handlers for job posts
+export async function dummyHandler(req: Request, res: Response) {
+  res.json({
+    success: true,
+    message: "Dummy handler",
+  });
 }

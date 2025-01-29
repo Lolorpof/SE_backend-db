@@ -1,5 +1,5 @@
 import "dotenv/config";
-import { connStringSchema } from "../schemas/schemas";
+import { connStringSchema } from "../api/schemas/schemas";
 import { fromError } from "zod-validation-error";
 
 const pg_superuser = process.env.POSTGRES_SUPERUSER;
