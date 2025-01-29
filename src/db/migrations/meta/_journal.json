@@ -5,29 +5,8 @@
     {
       "idx": 0,
       "version": "7",
-      "when": 1737882474474,
-      "tag": "0000_robust_stephen_strange",
-      "breakpoints": true
-    },
-    {
-      "idx": 1,
-      "version": "7",
-      "when": 1737898831309,
-      "tag": "0001_careful_changeling",
-      "breakpoints": true
-    },
-    {
-      "idx": 2,
-      "version": "7",
-      "when": 1737898897543,
-      "tag": "0002_hesitant_valkyrie",
-      "breakpoints": true
-    },
-    {
-      "idx": 3,
-      "version": "7",
-      "when": 1737908838924,
-      "tag": "0003_useful_moondragon",
+      "when": 1738143711804,
+      "tag": "0000_wandering_salo",
       "breakpoints": true
     }
   ]

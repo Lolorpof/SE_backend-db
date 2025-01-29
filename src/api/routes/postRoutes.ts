@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { validateData } from "../middleware/validationMiddleware";
+import { validateData } from "../middlewares/validationMiddleware";
 import {
   getFindEmpSchema,
   getJobSeekerSchema,

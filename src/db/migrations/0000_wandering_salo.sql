@@ -1,22 +1,22 @@
-CREATE TYPE "public"."adminType" AS ENUM('NORMAL', 'OAUTH');--> statement-breakpoint
 CREATE TYPE "public"."approvalStatus" AS ENUM('ACCEPTED', 'DENIED', 'UNAPPROVED');--> statement-breakpoint
-CREATE TYPE "public"."jobHirerType" AS ENUM('EMPLOYER', 'OAUTHEMPLOYER', 'COMPANY', 'OAUTHCOMPANY');--> statement-breakpoint
+CREATE TYPE "public"."jobHirerType" AS ENUM('EMPLOYER', 'OAUTHEMPLOYER', 'COMPANY');--> statement-breakpoint
 CREATE TYPE "public"."jobMatchedStatus" AS ENUM('INPROGRESS', 'ACCEPTED', 'DENIED');--> statement-breakpoint
 CREATE TYPE "public"."jobSeekerType" AS ENUM('NORMAL', 'OAUTH');--> statement-breakpoint
-CREATE TYPE "public"."normalUserType" AS ENUM('JOBSEEKER', 'OAUTHJOBSEEKER', 'EMPLOYER', 'OAUTHEMPLOYER', 'COMPANY', 'OAUTHCOMPANY');--> statement-breakpoint
+CREATE TYPE "public"."normalUserType" AS ENUM('JOBSEEKER', 'OAUTHJOBSEEKER', 'EMPLOYER', 'OAUTHEMPLOYER', 'COMPANY');--> statement-breakpoint
 CREATE TYPE "public"."notificationStatus" AS ENUM('READ', 'UNREAD');--> statement-breakpoint
-CREATE TYPE "public"."oauthType" AS ENUM('GOOGLE', 'LINE');--> statement-breakpoint
 CREATE TYPE "public"."postStatus" AS ENUM('MATCHED', 'UNMATCHED', 'MATCHED_INPROG');--> statement-breakpoint
+CREATE TYPE "public"."providerType" AS ENUM('GOOGLE', 'LINE');--> statement-breakpoint
 CREATE TYPE "public"."publicStatus" AS ENUM('SHOWN', 'HIDDEN');--> statement-breakpoint
 CREATE TYPE "public"."severityLvl" AS ENUM('LOW', 'MEDIUM', 'HIGH');--> statement-breakpoint
-CREATE TYPE "public"."userType" AS ENUM('JOBSEEKER', 'OAUTH_JOBSEEKER', 'EMPLOYER', 'OAUTH_EMPLOYER', 'COMPANY', 'OAUTH_COMPANY', 'ADMIN', 'OAUTH_ADMIN');--> statement-breakpoint
+CREATE TYPE "public"."userType" AS ENUM('JOBSEEKER', 'OAUTH_JOBSEEKER', 'EMPLOYER', 'OAUTH_EMPLOYER', 'COMPANY', 'ADMIN');--> statement-breakpoint
 CREATE TYPE "public"."userApprovalStatus" AS ENUM('APPROVED', 'UNAPPROVED');--> statement-breakpoint
 CREATE TABLE IF NOT EXISTS "admin" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"username" varchar(255) NOT NULL,
-	"varchar" varchar(255),
-	"email" varchar(255) NOT NULL,
+	"password" varchar(255) NOT NULL,
+	"email" varchar(255),
 	"profile_picture" varchar(255) DEFAULT 'UNDEFINED' NOT NULL,
+	"contact" varchar(255),
 	"created_at" timestamp DEFAULT now() NOT NULL,
 	"updated_at" timestamp DEFAULT now() NOT NULL,
 	CONSTRAINT "admin_email_unique" UNIQUE("email")
@@ -79,7 +79,6 @@ CREATE TABLE IF NOT EXISTS "job_finding_post_matched" (
 	"employer_id" uuid,
 	"oauth_employer_id" uuid,
 	"company_id" uuid,
-	"oauth_company_id" uuid,
 	"created_at" timestamp DEFAULT now() NOT NULL,
 	"approved_at" timestamp,
 	"updated_at" timestamp DEFAULT now() NOT NULL
@@ -150,7 +149,6 @@ CREATE TABLE IF NOT EXISTS "job_hiring_post" (
 	"employer_id" uuid,
 	"oauth_employer_id" uuid,
 	"company_id" uuid,
-	"oauth_company_id" uuid,
 	"created_at" timestamp DEFAULT now() NOT NULL,
 	"updated_at" timestamp DEFAULT now() NOT NULL
 );
@@ -200,41 +198,13 @@ CREATE TABLE IF NOT EXISTS "notification" (
 	"employer_id" uuid,
 	"oauth_employer_id" uuid,
 	"company_id" uuid,
-	"oauth_company_id" uuid,
 	"created_at" timestamp DEFAULT now() NOT NULL,
 	"updated_at" timestamp DEFAULT now() NOT NULL
 );
 --> statement-breakpoint
-CREATE TABLE IF NOT EXISTS "oauth_admin" (
-	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
-	"username" varchar(255) NOT NULL,
-	"email" varchar(255) NOT NULL,
-	"profile_picture" varchar(255) DEFAULT 'UNDEFINED' NOT NULL,
-	"varchar" varchar(255),
-	"oauth_type" "oauthType" NOT NULL,
-	"created_at" timestamp DEFAULT now() NOT NULL,
-	"updated_at" timestamp DEFAULT now() NOT NULL,
-	CONSTRAINT "oauth_admin_email_unique" UNIQUE("email")
-);
---> statement-breakpoint
-CREATE TABLE IF NOT EXISTS "oauth_company" (
-	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
-	"official_name" varchar(255) NOT NULL,
-	"email" varchar(255) NOT NULL,
-	"profile_picture" varchar(255) DEFAULT 'UNDEFINED' NOT NULL,
-	"about_us" varchar(2050),
-	"contact" varchar(255),
-	"oauth_type" "oauthType" NOT NULL,
-	"address" varchar(255),
-	"approval_status" "userApprovalStatus" DEFAULT 'UNAPPROVED' NOT NULL,
-	"created_at" timestamp DEFAULT now() NOT NULL,
-	"updated_at" timestamp DEFAULT now() NOT NULL,
-	CONSTRAINT "oauth_company_official_name_unique" UNIQUE("official_name"),
-	CONSTRAINT "oauth_company_email_unique" UNIQUE("email")
-);
---> statement-breakpoint
 CREATE TABLE IF NOT EXISTS "oauth_employer" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+	"provider_id" varchar(255) NOT NULL,
 	"username" varchar(255) NOT NULL,
 	"first_name" varchar(255) NOT NULL,
 	"last_name" varchar(255) NOT NULL,
@@ -242,7 +212,7 @@ CREATE TABLE IF NOT EXISTS "oauth_employer" (
 	"profile_picture" varchar(255) DEFAULT 'UNDEFINED' NOT NULL,
 	"about_me" varchar(2050),
 	"contact" varchar(255),
-	"oauth_type" "oauthType" NOT NULL,
+	"provider" "providerType" NOT NULL,
 	"address" varchar(255),
 	"approval_status" "userApprovalStatus" DEFAULT 'UNAPPROVED' NOT NULL,
 	"created_at" timestamp DEFAULT now() NOT NULL,
@@ -259,6 +229,7 @@ CREATE TABLE IF NOT EXISTS "oauth_job_seeker_skill" (
 --> statement-breakpoint
 CREATE TABLE IF NOT EXISTS "oauth_job_seeker" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+	"provider_id" varchar(255) NOT NULL,
 	"username" varchar(255) NOT NULL,
 	"first_name" varchar(255) NOT NULL,
 	"last_name" varchar(255) NOT NULL,
@@ -267,7 +238,7 @@ CREATE TABLE IF NOT EXISTS "oauth_job_seeker" (
 	"about_me" varchar(2050),
 	"contact" varchar(255),
 	"resume" varchar(255) DEFAULT 'UNDEFINED' NOT NULL,
-	"oauth_type" "oauthType" NOT NULL,
+	"provider" "providerType" NOT NULL,
 	"address" varchar(255),
 	"approval_status" "userApprovalStatus" DEFAULT 'UNAPPROVED' NOT NULL,
 	"created_at" timestamp DEFAULT now() NOT NULL,
@@ -293,10 +264,7 @@ CREATE TABLE IF NOT EXISTS "registration_approval" (
 	"employer_id" uuid,
 	"oauth_employer_id" uuid,
 	"company_id" uuid,
-	"oauth_company_id" uuid,
-	"admin_type" "adminType",
 	"admin_id" uuid,
-	"oauth_admin_id" uuid,
 	"created_at" timestamp DEFAULT now() NOT NULL,
 	"approved_at" timestamp,
 	"updated_at" timestamp DEFAULT now() NOT NULL
@@ -358,12 +326,6 @@ END $$;
 --> statement-breakpoint
 DO $$ BEGIN
  ALTER TABLE "job_finding_post_matched" ADD CONSTRAINT "job_finding_post_matched_company_id_company_id_fk" FOREIGN KEY ("company_id") REFERENCES "public"."company"("id") ON DELETE cascade ON UPDATE cascade;
-EXCEPTION
- WHEN duplicate_object THEN null;
-END $$;
---> statement-breakpoint
-DO $$ BEGIN
- ALTER TABLE "job_finding_post_matched" ADD CONSTRAINT "job_finding_post_matched_oauth_company_id_oauth_company_id_fk" FOREIGN KEY ("oauth_company_id") REFERENCES "public"."oauth_company"("id") ON DELETE cascade ON UPDATE cascade;
 EXCEPTION
  WHEN duplicate_object THEN null;
 END $$;
@@ -459,12 +421,6 @@ EXCEPTION
 END $$;
 --> statement-breakpoint
 DO $$ BEGIN
- ALTER TABLE "job_hiring_post" ADD CONSTRAINT "job_hiring_post_oauth_company_id_oauth_company_id_fk" FOREIGN KEY ("oauth_company_id") REFERENCES "public"."oauth_company"("id") ON DELETE cascade ON UPDATE cascade;
-EXCEPTION
- WHEN duplicate_object THEN null;
-END $$;
---> statement-breakpoint
-DO $$ BEGIN
  ALTER TABLE "job_seeker_skill" ADD CONSTRAINT "job_seeker_skill_job_seeker_id_job_seeker_id_fk" FOREIGN KEY ("job_seeker_id") REFERENCES "public"."job_seeker"("id") ON DELETE cascade ON UPDATE cascade;
 EXCEPTION
  WHEN duplicate_object THEN null;
@@ -514,12 +470,6 @@ END $$;
 --> statement-breakpoint
 DO $$ BEGIN
  ALTER TABLE "notification" ADD CONSTRAINT "notification_company_id_company_id_fk" FOREIGN KEY ("company_id") REFERENCES "public"."company"("id") ON DELETE cascade ON UPDATE cascade;
-EXCEPTION
- WHEN duplicate_object THEN null;
-END $$;
---> statement-breakpoint
-DO $$ BEGIN
- ALTER TABLE "notification" ADD CONSTRAINT "notification_oauth_company_id_oauth_company_id_fk" FOREIGN KEY ("oauth_company_id") REFERENCES "public"."oauth_company"("id") ON DELETE cascade ON UPDATE cascade;
 EXCEPTION
  WHEN duplicate_object THEN null;
 END $$;
@@ -579,19 +529,7 @@ EXCEPTION
 END $$;
 --> statement-breakpoint
 DO $$ BEGIN
- ALTER TABLE "registration_approval" ADD CONSTRAINT "registration_approval_oauth_company_id_oauth_company_id_fk" FOREIGN KEY ("oauth_company_id") REFERENCES "public"."oauth_company"("id") ON DELETE cascade ON UPDATE cascade;
-EXCEPTION
- WHEN duplicate_object THEN null;
-END $$;
---> statement-breakpoint
-DO $$ BEGIN
  ALTER TABLE "registration_approval" ADD CONSTRAINT "registration_approval_admin_id_admin_id_fk" FOREIGN KEY ("admin_id") REFERENCES "public"."admin"("id") ON DELETE set null ON UPDATE cascade;
-EXCEPTION
- WHEN duplicate_object THEN null;
-END $$;
---> statement-breakpoint
-DO $$ BEGIN
- ALTER TABLE "registration_approval" ADD CONSTRAINT "registration_approval_oauth_admin_id_oauth_admin_id_fk" FOREIGN KEY ("oauth_admin_id") REFERENCES "public"."oauth_admin"("id") ON DELETE set null ON UPDATE cascade;
 EXCEPTION
  WHEN duplicate_object THEN null;
 END $$;

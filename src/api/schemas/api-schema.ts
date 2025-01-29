@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { provinces } from "../utils/province";
+import { provinces } from "../utilities/province";
 
 // Empty schemas for job posts
 export const dummySchema = z.object({});

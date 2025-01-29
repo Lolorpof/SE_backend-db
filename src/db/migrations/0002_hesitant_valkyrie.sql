@@ -1,1 +1,0 @@
-ALTER TABLE "admin" RENAME COLUMN "varchar" TO "contact";
