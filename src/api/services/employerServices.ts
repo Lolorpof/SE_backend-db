@@ -1,3 +1,4 @@
+import "dotenv/config";
 import { fromError } from "zod-validation-error";
 import { employerModels } from "../models/employerModels";
 import {
@@ -5,6 +6,7 @@ import {
   singleUserRegisterSchema,
 } from "../validators/usersValidator";
 import bcrypt from "bcrypt";
+import bcryptjs from "bcryptjs";
 import {
   userOauthServiceInterfaces,
   userServiceInterfaces,
@@ -88,10 +90,16 @@ export class employerServices implements userOauthServiceInterfaces {
     // hash password
     let hashedPassword: string | undefined;
     try {
-      hashedPassword = await bcrypt.hash(
-        validatedUserForm.password,
-        Number(process.env.BCRYPT_SALTROUNDS)
-      );
+      hashedPassword =
+        (process.env.BCRYPT_LIBRARY as string) === "bcryptjs"
+          ? await bcryptjs.hash(
+              validatedUserForm.password,
+              Number(process.env.BCRYPT_SALTROUNDS)
+            )
+          : await bcrypt.hash(
+              validatedUserForm.password,
+              Number(process.env.BCRYPT_SALTROUNDS)
+            );
     } catch (error) {
       console.log(error);
       return { success: false, msg: "Something went wrong", status: 403 };
@@ -152,7 +160,10 @@ export class employerServices implements userOauthServiceInterfaces {
         if (user.approvalStatus === "APPROVED") {
           approvedExisted = true;
         }
-        const matched = await bcrypt.compare(password, user.password);
+        const matched =
+          (process.env.BCRYPT_LIBRARY as string) === "bcryptjs"
+            ? await bcryptjs.compare(password, user.password)
+            : await bcrypt.compare(password, user.password);
 
         // exact user found
         if (matched) {
