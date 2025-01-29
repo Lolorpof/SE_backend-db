@@ -3,8 +3,7 @@ import { nanoid } from "nanoid";
 import { catchError, randomNumberRange } from "../utilities/utilFunctions";
 import { adminModels } from "../models/adminsModels";
 import { adminServiceInterfaces } from "../interfaces/userServiceInterfaces";
-import bcrypt from "bcrypt";
-import bcryptjs from "bcryptjs";
+import bcrypt from "bcryptjs";
 import { IVerifyOptions } from "passport-local";
 import {
   approvedRequestSchema,
@@ -195,10 +194,7 @@ export class adminServices implements adminServiceInterfaces {
         if (user.approvalStatus === "APPROVED") {
           approvedExisted = true;
         }
-        const matched =
-          (process.env.BCRYPT_LIBRARY as string) === "bcryptjs"
-            ? await bcryptjs.compare(password, user.password)
-            : await bcrypt.compare(password, user.password);
+        const matched = await bcrypt.compare(password, user.password);
 
         if (matched) {
           exactUser = user;
@@ -240,13 +236,7 @@ export class adminServices implements adminServiceInterfaces {
     // hash password
     let hashedPassword: string | undefined;
     try {
-      hashedPassword =
-        (process.env.BCRYPT_LIBRARY as string) === "bcryptjs"
-          ? await bcryptjs.hash(
-              password,
-              Number(process.env.BCRYPT_SALTROUNDS as string)
-            )
-          : await bcrypt.hash(
+      hashedPassword = await bcrypt.hash(
               password,
               Number(process.env.BCRYPT_SALTROUNDS as string)
             );

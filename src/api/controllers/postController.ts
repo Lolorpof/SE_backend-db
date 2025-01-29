@@ -209,7 +209,7 @@ export async function handleCreateJobPostFromEmp(req: Request, res: Response) {
   try {
     // Validate request body against schema
     const validatedData : jobPostType = jobPostSchema.parse(req.body) ;
-    const user : employerSessionType = req.user as employerSessionType;
+    const user : TEmployerSession = req.user as TEmployerSession;
     if(!user) {
       res.status(401).json({
         success: false,

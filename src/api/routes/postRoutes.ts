@@ -181,6 +181,46 @@ postRoutes.route('/job-posts/employer')
 
 /**
  * @openapi
+ * /api/post/job-posts:
+ *   post:
+ *     tags:
+ *       - Job Post from Employer
+ *     summary: Create a new job post
+ *     security:
+ *       - sessionAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/JobPostRequest'
+ *     responses:
+ *       201:
+ *         description: Job post created successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/JobPostResponse'
+ *   get:
+ *     tags:
+ *       - Job Post from Employer
+ *     summary: Get all job posts
+ *     security:
+ *       - sessionAuth: []
+ *     responses:
+ *       200:
+ *         description: Successfully retrieved job posts
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/JobPost'
  */
 postRoutes.route('/job-posts')
   .post(validateData(jobPostSchema),checkAuthenticated, handleCreateJobPostFromEmp)

@@ -5,8 +5,7 @@ import {
   TCompanyRegister,
 } from "../validators/usersValidator";
 import { fromError } from "zod-validation-error";
-import bcrypt from "bcrypt";
-import bcryptjs from "bcryptjs";
+import bcrypt from "bcryptjs";
 import { userServiceInterfaces } from "../interfaces/userServiceInterfaces";
 import { IVerifyOptions } from "passport-local";
 import "../types/usersTypes";
@@ -87,13 +86,7 @@ export class companyServices implements userServiceInterfaces {
     // hash password
     let hashedPassword: string | undefined;
     try {
-      hashedPassword =
-        (process.env.BCRYPT_LIBRARY as string) === "bcryptjs"
-          ? await bcryptjs.hash(
-              validatedUserForm.password,
-              Number(process.env.BCRYPT_SALTROUNDS)
-            )
-          : await bcrypt.hash(
+      hashedPassword = await bcrypt.hash(
               validatedUserForm.password,
               Number(process.env.BCRYPT_SALTROUNDS)
             );
@@ -155,10 +148,7 @@ export class companyServices implements userServiceInterfaces {
       if (user.approvalStatus === "APPROVED") {
         approvedExisted = true;
       }
-      const matched =
-        (process.env.BCRYPT_LIBRARY as string) === "bcryptjs"
-          ? await bcryptjs.compare(password, user.password)
-          : await bcrypt.compare(password, user.password);
+      const matched = await bcrypt.compare(password, user.password);
 
       if (matched) {
         exactUser = user;

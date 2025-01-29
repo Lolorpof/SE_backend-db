@@ -17,8 +17,6 @@ const app = express();
 
 app.use(express.json());
 
-app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerOption));
-
 app.use([
   cors({
     origin: `http://localhost:${process.env.FRONTEND_PORT}`,
