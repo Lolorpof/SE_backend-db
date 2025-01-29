@@ -1,6 +1,6 @@
 {
-  "id": "d1bfaff9-cfb9-4a40-a4f1-2e2ef183a9aa",
-  "prevId": "00000000-0000-0000-0000-000000000000",
+  "id": "9da09c3c-8697-4d88-8c44-d26d4ecca2ad",
+  "prevId": "d1bb9760-392b-4dd8-9113-f7a0bef742a1",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
@@ -21,17 +21,17 @@
           "primaryKey": false,
           "notNull": true
         },
-        "varchar": {
-          "name": "varchar",
+        "password": {
+          "name": "password",
           "type": "varchar(255)",
           "primaryKey": false,
-          "notNull": false
+          "notNull": true
         },
         "email": {
           "name": "email",
           "type": "varchar(255)",
           "primaryKey": false,
-          "notNull": true
+          "notNull": false
         },
         "profile_picture": {
           "name": "profile_picture",
@@ -39,6 +39,12 @@
           "primaryKey": false,
           "notNull": true,
           "default": "'UNDEFINED'"
+        },
+        "contact": {
+          "name": "contact",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": false
         },
         "created_at": {
           "name": "created_at",

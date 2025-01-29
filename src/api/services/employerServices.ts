@@ -1,0 +1,349 @@
+import { fromError } from "zod-validation-error";
+import { employerModels } from "../models/employerModels";
+import {
+  singleUserRegisterType,
+  singleUserRegisterSchema,
+} from "../validators/usersValidator";
+import bcrypt from "bcrypt";
+import {
+  userOauthServiceInterfaces,
+  userServiceInterfaces,
+} from "../interfaces/userServiceInterfaces";
+import { IVerifyOptions } from "passport-local";
+import "../types/usersTypes";
+import { Profile, VerifyCallback } from "passport-google-oauth20";
+
+export class employerServices implements userOauthServiceInterfaces {
+  // singleton design
+  private static employerService: employerServices | undefined;
+  static instance() {
+    if (!this.employerService) {
+      this.employerService = new employerServices();
+    }
+    return this.employerService;
+  }
+
+  // register employer
+  async register(userForm: any): Promise<SerivcesResponse<any>> {
+    // {Business Logic}
+    // user form validation
+    try {
+      singleUserRegisterSchema.parse(userForm);
+    } catch (error) {
+      const formattedError = fromError(error).toString();
+      console.log(formattedError);
+      return { success: false, msg: formattedError, status: 403 };
+    }
+
+    const validatedUserForm: singleUserRegisterType = userForm;
+    // split to first name and last name
+    const [firstName, lastName] = validatedUserForm.name.split(" ");
+
+    // Duplicated name or email check
+    let duplicatedUserCheck;
+    try {
+      duplicatedUserCheck = await employerModels
+        .instance()
+        .duplicateNameEmail(firstName, lastName, validatedUserForm.email);
+    } catch (error) {
+      console.log(error);
+      return { success: false, msg: "Something went wrong", status: 403 };
+    }
+    // there's duped user of some kind
+    if (duplicatedUserCheck) {
+      // duped name
+      if (
+        firstName === (duplicatedUserCheck.firstName as string) &&
+        lastName === (duplicatedUserCheck.lastName as string) &&
+        validatedUserForm.email !== (duplicatedUserCheck.email as string)
+      ) {
+        return {
+          success: false,
+          msg: "Name was already used",
+          status: 400,
+        };
+      }
+      // duped email
+      else if (
+        validatedUserForm.email === (duplicatedUserCheck.email as string)
+      ) {
+        return {
+          success: false,
+          msg: "Email was already used",
+          status: 400,
+        };
+      }
+    }
+
+    // password  & confirmPassword should be the same
+    if (validatedUserForm.password !== validatedUserForm.confirmPassword) {
+      return {
+        success: false,
+        msg: "Password does not match",
+        status: 400,
+      };
+    }
+
+    // {Done with Business Logic}
+    // hash password
+    let hashedPassword: string | undefined;
+    try {
+      hashedPassword = await bcrypt.hash(
+        validatedUserForm.password,
+        Number(process.env.BCRYPT_SALTROUNDS)
+      );
+    } catch (error) {
+      console.log(error);
+      return { success: false, msg: "Something went wrong", status: 403 };
+    }
+
+    // format user
+    const { name, password, confirmPassword, ...formattedUser } = {
+      firstName,
+      lastName,
+      hashedPassword,
+      ...validatedUserForm,
+    };
+
+    // insert into database
+    let registeredUser;
+    try {
+      registeredUser = await employerModels.instance().register(formattedUser);
+    } catch (error) {
+      console.log(error);
+      return { success: false, msg: "Something went wrong", status: 403 };
+    }
+
+    return {
+      success: true,
+      msg: "Successfully registered",
+      data: registeredUser,
+      status: 201,
+    };
+  }
+
+  // login employer (passport form)
+  async login(
+    username: string,
+    password: string,
+    done: (
+      error: any,
+      user?: Express.User | false,
+      options?: IVerifyOptions
+    ) => void
+  ): Promise<void> {
+    let users: matchNameEmailType[] | undefined;
+    try {
+      // find user with same name or email
+      users = await employerModels.instance().matchNameEmail(username);
+    } catch (error) {
+      console.log(error);
+      return done(error, false, { message: "Something went wrong" });
+    }
+
+    if (users.length === 0) {
+      return done(null, false, { message: "User doesn't existed" });
+    }
+
+    let exactUser: matchNameEmailType | undefined;
+    let approvedExisted = false;
+    try {
+      for (const user of users) {
+        if (user.approvalStatus === "APPROVED") {
+          approvedExisted = true;
+        }
+        const matched = await bcrypt.compare(password, user.password);
+
+        // exact user found
+        if (matched) {
+          exactUser = user;
+          break;
+        }
+      }
+    } catch (error) {
+      console.log(error);
+      return done(error, false, { message: "Something went wrong" });
+    }
+
+    if (!exactUser) {
+      // wrong password
+      if (approvedExisted) {
+        return done(null, false, { message: "Wrong password" });
+      }
+      // none of the username is approved
+      else {
+        return done(null, false, { message: "User doesn't existed" });
+      }
+    }
+
+    // user isn't approved yet
+    if (exactUser.approvalStatus === "UNAPPROVED") {
+      return done(null, false, {
+        message: "User isn't approved yet",
+      });
+    }
+
+    // format user
+    const formattedUser = {
+      id: exactUser.id,
+      isOauth: false,
+      type: "EMPLOYER",
+    };
+
+    console.log("pre done");
+    return done(null, formattedUser, { message: "Successfully logged in" });
+  }
+
+  // google oauth login (passport form)
+  async googleLogin(
+    accessToken: string,
+    refreshToken: string,
+    profile: Profile,
+    done: VerifyCallback
+  ): Promise<void> {
+    // check if user existed
+    let user: employerType | undefined;
+    try {
+      user = await employerModels
+        .instance()
+        .getById(profile.id, true, "GOOGLE");
+    } catch (error) {
+      console.log(error);
+      done(error, false, { message: "Something went wrong" });
+    }
+
+    // first time oauth login
+    let insertUser: registerUserType;
+    if (!user) {
+      try {
+        insertUser = await employerModels
+          .instance()
+          .oauthUserInsert(profile, "GOOGLE");
+      } catch (error) {
+        console.log(error);
+        return done(error, false, {
+          message: "Something went wrong",
+        });
+      }
+
+      return done(null, false, {
+        message:
+          "Detecting that you have logged in for the first time, please wait until your account is approved",
+      });
+    }
+
+    // user already existed
+    else {
+      // update user info, if there's any change made
+      try {
+        user = await employerModels
+          .instance()
+          .oauthUserUpdate(profile, user, "GOOGLE");
+      } catch (error) {
+        console.log(error);
+        return done(error, false, {
+          message: "Something went wrong",
+        });
+      }
+
+      // user isn't approved yet
+      if (user.approvalStatus === "UNAPPROVED") {
+        return done(null, false, { message: "User isn't approved yet" });
+      }
+
+      // format user
+      const formattedUser: userSessionType = {
+        id: user.id,
+        type: "EMPLOYER",
+        provider: "GOOGLE",
+      };
+
+      // user is approved
+      done(null, formattedUser, { message: "Successfully login" });
+    }
+  }
+
+  // check current user, for logout
+  async checkCurrent(
+    user: Express.User | undefined,
+    type: string,
+    isOauth: boolean
+  ): Promise<SerivcesResponse<any>> {
+    if (!user) {
+      return { success: false, status: 403, msg: "Something went wrong" };
+    }
+    let userObj: employerSessionType;
+    try {
+      userObj = user as employerSessionType;
+    } catch (error) {
+      console.log(error);
+      return { success: false, status: 403, msg: "Something went wrong" };
+    }
+
+    if (userObj.isOauth !== isOauth || userObj.type !== type) {
+      return { success: false, status: 401, msg: "User isn't logged in" };
+    }
+
+    return {
+      success: true,
+      status: 200,
+      msg: "Successfully retrieve checked user",
+      data: { id: userObj.id, username: userObj.username },
+    };
+  }
+
+  // get current user (passport calls)
+  async getCurrent(
+    user: Express.User | undefined
+  ): Promise<SerivcesResponse<employerSessionType>> {
+    if (!user) {
+      return { status: 403, success: false, msg: "Something went wrong" };
+    }
+    let userObj: employerSessionType;
+    try {
+      userObj = user as employerSessionType;
+      if (userObj.type !== "EMPLOYER") {
+        throw Error();
+      }
+    } catch (error) {
+      return { success: false, status: 400, msg: "User isn't logged in" };
+    }
+
+    return {
+      status: 200,
+      success: true,
+      msg: "Successfully retrieve user",
+      data: user as employerSessionType,
+    };
+  }
+
+  // deserialize user (passport calls)
+  async deserializer(
+    id: string,
+    provider?: "GOOGLE" | "LINE"
+  ): Promise<SerivcesResponse<any>> {
+    let user: employerType | undefined;
+    // getting user
+    try {
+      if (!provider) {
+        user = await employerModels.instance().getById(id);
+      } else {
+        user = await employerModels.instance().getById(id, false, provider);
+      }
+    } catch (error) {
+      console.log(error);
+      return { success: false, msg: "Something went wrong", status: 403 };
+    }
+
+    if (!user) {
+      return { success: false, msg: "Something went wrong", status: 403 };
+    }
+
+    return {
+      success: true,
+      msg: "Retrieve user successfully",
+      data: user,
+      status: 200,
+    };
+  }
+}
