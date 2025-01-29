@@ -59,6 +59,7 @@ export const jobPostSchema = z.object({
     .min(1, "Must hire at least 1 person")
     .default(1),
 });
+export type jobPostType = z.infer<typeof jobPostSchema>;
 
 export const getJobSeekerSchema = z.object({
   officialName: z.string().optional(),

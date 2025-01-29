@@ -10,19 +10,22 @@ import {
   handleGetEmp,
   handleGetJobSeeker,
   dummyHandler,
-  handleCreateJobPost,
+  handleCreateJobPostFromEmp,
 } from "../controllers/postController";
+import { checkAuthenticated } from "../middlewares/auth";
 
 const postRoutes = Router();
 
 // Job hiring routes
 /**
  * @openapi
- * /api/post/job-posts:
+ * /api/post/job-posts/employer:
  *   post:
  *     tags:
- *       - Job Post from Company/Employer
- *     summary: Create a new job hiring post
+ *       - Job Post from Employer
+ *     summary: Create a new job post as an employer
+ *     security:
+ *       - sessionAuth: []
  *     requestBody:
  *       required: true
  *       content:
@@ -35,67 +38,36 @@ const postRoutes = Router();
  *               - salary
  *               - workDates
  *               - workHoursRange
- *               - status
- *               - hiredAmount
- *               - jobHireType
  *             properties:
  *               title:
  *                 type: string
  *                 maxLength: 255
  *                 example: "Senior Software Engineer"
- *                 description: Title of the job post
  *               description:
  *                 type: string
  *                 maxLength: 540
  *                 example: "Looking for an experienced developer"
- *                 description: Detailed description of the job
  *               jobLocation:
  *                 type: string
  *                 maxLength: 255
  *                 example: "Bangkok"
- *                 description: Location of the job
  *               salary:
  *                 type: integer
- *                 minimum: 0
+ *                 minimum: 1
  *                 example: 50000
- *                 description: Monthly salary offered for the job
  *               workDates:
  *                 type: string
  *                 maxLength: 1024
  *                 example: "Monday-Friday"
- *                 description: Working days schedule
  *               workHoursRange:
  *                 type: string
  *                 maxLength: 255
  *                 example: "9:00-18:00"
- *                 description: Working hours range
- *               status:
- *                 type: string
- *                 enum: ["OPEN", "CLOSED", "PENDING"]
- *                 example: "OPEN"
- *                 description: Current status of the job post
  *               hiredAmount:
  *                 type: integer
  *                 minimum: 1
+ *                 default: 1
  *                 example: 2
- *                 description: Number of people to be hired
- *               jobHireType:
- *                 type: string
- *                 enum: ["EMPLOYER", "COMPANY"]
- *                 example: "EMPLOYER"
- *                 description: Type of job hire
- *               skills:
- *                 type: array
- *                 items:
- *                   type: string
- *                   format: uuid
- *                 description: List of required skill IDs
- *               jobCategories:
- *                 type: array
- *                 items:
- *                   type: string
- *                   format: uuid
- *                 description: List of job category IDs
  *     responses:
  *       201:
  *         description: Job post created successfully
@@ -106,38 +78,34 @@ const postRoutes = Router();
  *               properties:
  *                 success:
  *                   type: boolean
+ *                   example: true
  *                 data:
  *                   type: object
  *                   properties:
  *                     id:
  *                       type: string
  *                       format: uuid
- *                       description: Unique identifier for the job post
  *                     title:
  *                       type: string
- *                       maxLength: 255
  *                     description:
  *                       type: string
- *                       maxLength: 540
+ *                       nullable: true
  *                     jobLocation:
  *                       type: string
- *                       maxLength: 255
  *                     salary:
  *                       type: integer
  *                     workDates:
  *                       type: string
- *                       maxLength: 1024
  *                     workHoursRange:
  *                       type: string
- *                       maxLength: 255
  *                     status:
  *                       type: string
- *                       enum: ["OPEN", "CLOSED", "PENDING"]
+ *                       enum: ["UNMATCHED", "MATCHED", "MATCHED_INPROG"]
  *                     hiredAmount:
  *                       type: integer
- *                     jobHireType:
+ *                     jobHirerType:
  *                       type: string
- *                       enum: ["EMPLOYER", "COMPANY"]
+ *                       enum: ["EMPLOYER", "OAUTHEMPLOYER", "COMPANY"]
  *                     employerId:
  *                       type: string
  *                       format: uuid
@@ -158,6 +126,7 @@ const postRoutes = Router();
  *                       format: date-time
  *                 message:
  *                   type: string
+ *                   example: "Job hiring post created successfully"
  *       400:
  *         description: Invalid request data
  *         content:
@@ -167,8 +136,10 @@ const postRoutes = Router();
  *               properties:
  *                 success:
  *                   type: boolean
+ *                   example: false
  *                 message:
  *                   type: string
+ *                   example: "Invalid request data"
  *                 errors:
  *                   type: array
  *                   items:
@@ -178,8 +149,8 @@ const postRoutes = Router();
  *                         type: string
  *                       message:
  *                         type: string
- *       500:
- *         description: Server error
+ *       401:
+ *         description: Unauthorized - User not logged in
  *         content:
  *           application/json:
  *             schema:
@@ -187,52 +158,12 @@ const postRoutes = Router();
  *               properties:
  *                 success:
  *                   type: boolean
+ *                   example: false
  *                 message:
  *                   type: string
- *   get:
- *     tags:
- *       - Job Post from Company/Employer
- *     summary: Get job hiring posts for job seekers with filters
- *     parameters:
- *       - in: query
- *         name: officialName
- *         schema:
- *           type: string
- *         description: Filter by company name
- *       - in: query
- *         name: jobCategories
- *         schema:
- *           type: string
- *         description: Comma-separated list of job category IDs
- *       - in: query
- *         name: skills
- *         schema:
- *           type: string
- *         description: Comma-separated list of skill IDs
- *       - in: query
- *         name: province
- *         schema:
- *           type: string
- *         description: Filter by province
- *       - in: query
- *         name: jobLocation
- *         schema:
- *           type: string
- *         description: Filter by job location
- *       - in: query
- *         name: salaryRange
- *         schema:
- *           type: string
- *         description: Filter by salary range (JSON string with min and max)
- *         example: '{"min": 30000, "max": 50000}'
- *       - in: query
- *         name: workHoursRange
- *         schema:
- *           type: string
- *         description: Filter by work hours range
- *     responses:
- *       200:
- *         description: Successfully retrieved job hiring posts
+ *                   example: "Unauthorized"
+ *       500:
+ *         description: Server error
  *         content:
  *           application/json:
  *             schema:
@@ -240,39 +171,20 @@ const postRoutes = Router();
  *               properties:
  *                 success:
  *                   type: boolean
- *                 data:
- *                   type: array
- *                   items:
- *                     type: object
- *                     properties:
- *                       id:
- *                         type: string
- *                         format: uuid
- *                       title:
- *                         type: string
- *                       description:
- *                         type: string
- *                       jobLocation:
- *                         type: string
- *                       salary:
- *                         type: number
- *                       workDates:
- *                         type: string
- *                       workHoursRange:
- *                         type: string
- *                       hiredAmount:
- *                         type: number
- *                       companyName:
- *                         type: string
- *                 count:
- *                   type: number
- *       500:
- *         description: Server error
+ *                   example: false
+ *                 message:
+ *                   type: string
+ *                   example: "Failed to create job hiring post"
  */
-postRoutes
-  .route('/job-posts')
-  .post(validateData(jobPostSchema), handleCreateJobPost)
-  .get(validateData(getJobSeekerSchema), handleGetJobSeeker);
+postRoutes.route('/job-posts/employer')
+  .post(validateData(jobPostSchema), checkAuthenticated, handleCreateJobPostFromEmp);
+
+/**
+ * @openapi
+ */
+postRoutes.route('/job-posts')
+  .post(validateData(jobPostSchema),checkAuthenticated, handleCreateJobPostFromEmp)
+  .get(validateData(getJobSeekerSchema), checkAuthenticated, handleGetJobSeeker);
 
 /**
  * @openapi

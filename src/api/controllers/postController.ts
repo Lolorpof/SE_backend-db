@@ -5,13 +5,14 @@ import {
   jobHireCategoryTable,
   companyTable,
   jobFindingPostTable,
+  jobHirerTypeEnum,
+  postStatusEnum,
 } from "../../db/schema"; // Import the relevant tables
 import { drizzlePool } from "../../db/conn";
 import { and, eq, lte, gte, ilike, SQL, inArray, sql } from "drizzle-orm";
-import { jobPostSchema } from "../schemas/api-schema";
+import { jobPostSchema, jobPostType } from "../schemas/api-schema";
 
-// Remove or comment out the "Initialize the database connection" comment since we're importing drizzlePool
-
+//need fix
 export async function handleGetEmp(req: Request, res: Response) {
   try {
     const { title, province, jobLocation, salaryRange, workHoursRange } =
@@ -94,7 +95,7 @@ export async function handleGetEmp(req: Request, res: Response) {
     });
   }
 }
-
+//need fix
 export async function handleGetJobSeeker(req: Request, res: Response) {
   try {
     const {
@@ -204,11 +205,11 @@ export async function handleGetJobSeeker(req: Request, res: Response) {
 }
 //ensure schema -> fix controller -> update api-doc
 // Need review
-export async function handleCreateJobPost(req: Request, res: Response) {
+export async function handleCreateJobPostFromEmp(req: Request, res: Response) {
   try {
     // Validate request body against schema
-    const validatedData = jobPostSchema.parse(req.body);
-    const user = req.user;
+    const validatedData : jobPostType = jobPostSchema.parse(req.body) ;
+    const user : employerSessionType = req.user as employerSessionType;
     if(!user) {
       res.status(401).json({
         success: false,
@@ -229,13 +230,11 @@ export async function handleCreateJobPost(req: Request, res: Response) {
           workDates: validatedData.workDates,
           workHoursRange: validatedData.workHoursRange,
           hiredAmount: validatedData.hiredAmount,
-          // Fields waiting for implementation:
-          status: "UNMATCHED", // Default value from schema
-          jobHirerType: undefined, // Required field waiting for implementation
-          employerId: undefined, // Optional field waiting for implementation
-          oauthEmployerId: undefined, // Optional field waiting for implementation  
-          companyId: undefined, // Optional field waiting for implementation
-          oauthCompanyId: undefined // Optional field waiting for implementation
+          status: postStatusEnum.enumValues[1], // UNMATCHED
+          jobHirerType: user.isOauth ? jobHirerTypeEnum.enumValues[1] : jobHirerTypeEnum.enumValues[0], // OAUTH_EMPLOYER or EMPLOYER
+          employerId: user.isOauth ? null : user.id,
+          oauthEmployerId: user.isOauth ? user.id : null,
+          companyId: null
         })
         .returning();
 
