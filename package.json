@@ -7,7 +7,7 @@
   "scripts": {
     "build": "tsc && tsc-alias",
     "start": "node",
-    "dev": "tsx ./src/api/index.ts",
+    "dev": "tsx watch ./src/api/index.ts",
     "db:gen": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate"
   },
