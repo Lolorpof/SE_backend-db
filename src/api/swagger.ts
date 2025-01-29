@@ -29,6 +29,54 @@ const options = {
         }
       },
       schemas: {
+        Error: {
+          type: "object",
+          properties: {
+            success: {
+              type: "boolean",
+              example: false
+            },
+            msg: {
+              type: "string",
+              example: "Error message"
+            },
+            status: {
+              type: "integer",
+              example: 400
+            }
+          }
+        },
+        ValidationError: {
+          type: "object",
+          properties: {
+            success: {
+              type: "boolean",
+              example: false
+            },
+            msg: {
+              type: "string",
+              example: "Validation failed"
+            },
+            errors: {
+              type: "array",
+              items: {
+                type: "object",
+                properties: {
+                  field: {
+                    type: "string"
+                  },
+                  message: {
+                    type: "string"
+                  }
+                }
+              }
+            },
+            status: {
+              type: "integer",
+              example: 400
+            }
+          }
+        },
         JobPostRequest: {
           type: "object",
           required: [
@@ -74,6 +122,22 @@ const options = {
               minimum: 1,
               default: 1,
               example: 2
+            },
+            skills: {
+              type: "array",
+              items: {
+                type: "string",
+                format: "uuid"
+              },
+              description: "List of skill IDs required for the job"
+            },
+            jobCategories: {
+              type: "array",
+              items: {
+                type: "string",
+                format: "uuid"
+              },
+              description: "List of job category IDs"
             }
           }
         },
@@ -129,6 +193,36 @@ const options = {
               format: "uuid",
               nullable: true
             },
+            skills: {
+              type: "array",
+              items: {
+                type: "object",
+                properties: {
+                  id: {
+                    type: "string",
+                    format: "uuid"
+                  },
+                  name: {
+                    type: "string"
+                  }
+                }
+              }
+            },
+            jobCategories: {
+              type: "array",
+              items: {
+                type: "object",
+                properties: {
+                  id: {
+                    type: "string",
+                    format: "uuid"
+                  },
+                  name: {
+                    type: "string"
+                  }
+                }
+              }
+            },
             createdAt: {
               type: "string",
               format: "date-time"
@@ -146,12 +240,71 @@ const options = {
               type: "boolean",
               example: true
             },
+            msg: {
+              type: "string",
+              example: "Job hiring post created successfully"
+            },
             data: {
               $ref: "#/components/schemas/JobPost"
             },
-            message: {
+            status: {
+              type: "integer",
+              example: 201
+            }
+          }
+        },
+        JobPostsResponse: {
+          type: "object",
+          properties: {
+            success: {
+              type: "boolean",
+              example: true
+            },
+            msg: {
               type: "string",
-              example: "Job hiring post created successfully"
+              example: "Successfully retrieved job posts"
+            },
+            data: {
+              type: "array",
+              items: {
+                $ref: "#/components/schemas/JobPost"
+              }
+            },
+            status: {
+              type: "integer",
+              example: 200
+            }
+          }
+        }
+      },
+      responses: {
+        UnauthorizedError: {
+          description: "Access token is missing or invalid",
+          content: {
+            "application/json": {
+              schema: {
+                $ref: "#/components/schemas/Error"
+              }
+            }
+          }
+        },
+        ValidationError: {
+          description: "Invalid input data",
+          content: {
+            "application/json": {
+              schema: {
+                $ref: "#/components/schemas/ValidationError"
+              }
+            }
+          }
+        },
+        ServerError: {
+          description: "Internal server error",
+          content: {
+            "application/json": {
+              schema: {
+                $ref: "#/components/schemas/Error"
+              }
             }
           }
         }

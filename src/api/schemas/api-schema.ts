@@ -81,3 +81,14 @@ export const getJobSeekerSchema = z.object({
     .max(255, "Work hours range must be less than 255 characters")
     .optional(),
 });
+
+export const getAllJobPostsSchema = z.object({
+  title: z.string().optional(),
+  provinces: z.array(z.enum(provinces)).optional(),
+  jobCategories: z.array(z.string().uuid("Invalid category ID")).optional(),
+  salaryRange: z.number().int().positive().optional(),
+  sortBy: z.enum(['asc', 'desc']).optional(),
+  salarySort: z.enum(['high-low', 'low-high']).optional(),
+  page: z.number().int().positive().default(1)
+})
+export type getAllJobPostsType = z.infer<typeof getAllJobPostsSchema>;

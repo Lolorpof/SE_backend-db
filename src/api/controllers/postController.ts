@@ -9,7 +9,7 @@ import {
   postStatusEnum,
 } from "../../db/schema"; // Import the relevant tables
 import { drizzlePool } from "../../db/conn";
-import { and, eq, lte, gte, ilike, SQL, inArray, sql } from "drizzle-orm";
+import { and, eq, lte, gte, ilike, SQL, inArray, sql, desc } from "drizzle-orm";
 import { jobPostSchema, jobPostType } from "../schemas/api-schema";
 
 //need fix
@@ -96,103 +96,191 @@ export async function handleGetEmp(req: Request, res: Response) {
   }
 }
 //need fix
-export async function handleGetJobSeeker(req: Request, res: Response) {
+export async function handleGetAllJobPosts(req: Request, res: Response) {
   try {
     const {
-      officialName,
+      title,
+      provinces,
       jobCategories,
-      skills,
-      province,
-      jobLocation,
       salaryRange,
-      workHoursRange,
+      sortBy = 'desc',
+      salarySort,
+      page = 1
     } = req.query;
 
-    const filters: SQL[] = [];
+    const ITEMS_PER_PAGE = 10;
+    const offset = (Number(page) - 1) * ITEMS_PER_PAGE;
 
-    // Company name filter
-    if (officialName) {
-      filters.push(
-        ilike(companyTable.officialName, `%${officialName as string}%`)
-      );
+    // Check if any filters are applied
+    const hasFilters = !!(title || provinces || jobCategories || salaryRange);
+
+    if (!hasFilters) {
+      // Use simple Drizzle query for no filters case
+      const [jobPosts, countResult] = await Promise.all([
+        drizzlePool
+          .select({
+            id: jobHiringPostTable.id,
+            title: jobHiringPostTable.title,
+            description: jobHiringPostTable.description,
+            jobLocation: jobHiringPostTable.jobLocation,
+            salary: jobHiringPostTable.salary,
+            workDates: jobHiringPostTable.workDates,
+            workHoursRange: jobHiringPostTable.workHoursRange,
+            hiredAmount: jobHiringPostTable.hiredAmount,
+            status: jobHiringPostTable.status,
+            jobHirerType: jobHiringPostTable.jobHirerType,
+            companyId: jobHiringPostTable.companyId,
+            employerId: jobHiringPostTable.employerId,
+            oauthEmployerId: jobHiringPostTable.oauthEmployerId,
+            createdAt: jobHiringPostTable.createdAt,
+            updatedAt: jobHiringPostTable.updatedAt,
+            companyName: companyTable.officialName,
+          })
+          .from(jobHiringPostTable)
+          .leftJoin(companyTable, eq(jobHiringPostTable.companyId, companyTable.id))
+          .orderBy(
+            salarySort === 'high-low' 
+              ? desc(jobHiringPostTable.salary)
+              : salarySort === 'low-high'
+              ? jobHiringPostTable.salary
+              : sortBy === 'desc'
+              ? desc(jobHiringPostTable.createdAt)
+              : jobHiringPostTable.createdAt
+          )
+          .limit(ITEMS_PER_PAGE)
+          .offset(offset),
+        drizzlePool
+          .select({ count: sql<number>`count(*)` })
+          .from(jobHiringPostTable)
+      ]);
+
+       res.json({
+        success: true,
+        data: jobPosts,
+        pagination: {
+          currentPage: Number(page),
+          totalPages: Math.ceil(countResult[0].count / ITEMS_PER_PAGE),
+          totalItems: countResult[0].count,
+          itemsPerPage: ITEMS_PER_PAGE
+        }
+      });
+      return;
     }
 
-    // Location filters
-    if (province) {
-      filters.push(eq(jobHiringPostTable.jobLocation, province as string));
+    // Build the WHERE clause conditions for filtered case
+    const conditions: SQL[] = [];
+
+    // Title filter
+    if (title) {
+      conditions.push(sql`${jobHiringPostTable.title} ILIKE ${`%${title as string}%`}`);
     }
-    if (jobLocation) {
-      filters.push(
-        ilike(jobHiringPostTable.jobLocation, `%${jobLocation as string}%`)
-      );
+
+    // Provinces filter (multiple provinces support)
+    if (provinces) {
+      const provinceList = Array.isArray(provinces) 
+        ? provinces.map(p => p.toString()) 
+        : [provinces.toString()];
+      conditions.push(sql`${jobHiringPostTable.jobLocation} = ANY(${provinceList})`);
     }
 
     // Salary range filter
     if (salaryRange) {
-      const range = JSON.parse(salaryRange as string);
-      if (range.min) {
-        filters.push(gte(jobHiringPostTable.salary, range.min));
-      }
-      if (range.max) {
-        filters.push(lte(jobHiringPostTable.salary, range.max));
+      const salary = Number(salaryRange);
+      if (!isNaN(salary)) {
+        conditions.push(sql`${jobHiringPostTable.salary} <= ${salary}`);
       }
     }
 
-    // Work hours filter
-    if (workHoursRange) {
-      filters.push(
-        eq(jobHiringPostTable.workHoursRange, workHoursRange as string)
-      );
-    }
+    // Build the base query
+    const baseQuery = sql`
+      SELECT 
+        jp.id,
+        jp.title,
+        jp.description,
+        jp.job_location as "jobLocation",
+        jp.salary,
+        jp.work_dates as "workDates",
+        jp.work_hours_range as "workHoursRange",
+        jp.hired_amount as "hiredAmount",
+        jp.status,
+        jp.job_hirer_type as "jobHirerType",
+        jp.company_id as "companyId",
+        jp.employer_id as "employerId",
+        jp.oauth_employer_id as "oauthEmployerId",
+        jp.created_at as "createdAt",
+        jp.updated_at as "updatedAt",
+        c.official_name as "companyName"
+      FROM job_hiring_post jp
+      LEFT JOIN company c ON jp.company_id = c.id
+      ${jobCategories ? sql`
+        LEFT JOIN job_hire_category jhc ON jp.id = jhc.job_hiring_post_id
+        WHERE jhc.job_category_id = ANY(${Array.isArray(jobCategories) 
+          ? jobCategories.map(id => id.toString()) 
+          : [jobCategories.toString()]})
+        ${conditions.length ? sql`AND ${and(...conditions)}` : sql``}
+      ` : conditions.length ? sql`WHERE ${and(...conditions)}` : sql``}
+      ${salarySort === 'high-low' 
+        ? sql`ORDER BY jp.salary DESC` 
+        : salarySort === 'low-high'
+        ? sql`ORDER BY jp.salary ASC`
+        : sortBy === 'desc'
+        ? sql`ORDER BY jp.created_at DESC`
+        : sql`ORDER BY jp.created_at ASC`}
+      LIMIT ${ITEMS_PER_PAGE}
+      OFFSET ${offset}
+    `;
 
-    // Build base query with joins
-    const baseQuery = drizzlePool
-      .select({
-        id: jobHiringPostTable.id,
-        title: jobHiringPostTable.title,
-        description: jobHiringPostTable.description,
-        jobLocation: jobHiringPostTable.jobLocation,
-        salary: jobHiringPostTable.salary,
-        workDates: jobHiringPostTable.workDates,
-        workHoursRange: jobHiringPostTable.workHoursRange,
-        hiredAmount: jobHiringPostTable.hiredAmount,
-        companyName: companyTable.officialName,
-      })
-      .from(jobHiringPostTable)
-      .leftJoin(
-        companyTable,
-        eq(jobHiringPostTable.companyId, companyTable.id)
-      );
+    // Get total count
+    const countQuery = sql`
+      SELECT COUNT(*) as count
+      FROM job_hiring_post jp
+      ${jobCategories ? sql`
+        LEFT JOIN job_hire_category jhc ON jp.id = jhc.job_hiring_post_id
+        WHERE jhc.job_category_id = ANY(${Array.isArray(jobCategories) 
+          ? jobCategories.map(id => id.toString()) 
+          : [jobCategories.toString()]})
+        ${conditions.length ? sql`AND ${and(...conditions)}` : sql``}
+      ` : conditions.length ? sql`WHERE ${and(...conditions)}` : sql``}
+    `;
 
-    // Add category join if needed
-    if (jobCategories) {
-      const categoryIds = (jobCategories as string).split(",");
-      filters.push(inArray(jobHireCategoryTable.jobCategoryId, categoryIds));
-      baseQuery.leftJoin(
-        jobHireCategoryTable,
-        eq(jobHiringPostTable.id, jobHireCategoryTable.jobHiringPostId)
-      );
-    }
+    type JobPost = {
+      id: string;
+      title: string;
+      description: string | null;
+      jobLocation: string;
+      salary: number;
+      workDates: string;
+      workHoursRange: string;
+      hiredAmount: number;
+      status: string;
+      jobHirerType: string;
+      companyId: string | null;
+      employerId: string | null;
+      oauthEmployerId: string | null;
+      createdAt: Date;
+      updatedAt: Date;
+      companyName: string | null;
+    };
 
-    // Add skills join if needed
-    if (skills) {
-      const skillIds = (skills as string).split(",");
-      filters.push(inArray(jobHiringPostSkillTable.skillId, skillIds));
-      baseQuery.leftJoin(
-        jobHiringPostSkillTable,
-        eq(jobHiringPostTable.id, jobHiringPostSkillTable.jobHiringPostId)
-      );
-    }
+    // Execute both queries concurrently
+    const [jobPostsResult, countResult] = await Promise.all([
+      drizzlePool.execute(baseQuery),
+      drizzlePool.execute(countQuery)
+    ]);
 
-    // Execute query with all filters
-    const results = await (filters.length > 0
-      ? baseQuery.where(and(...filters))
-      : baseQuery);
+    // Type cast with intermediate unknown type
+    const jobPosts = (jobPostsResult as unknown) as JobPost[];
+    const count = ((countResult as unknown) as [{ count: number }])[0].count;
 
     res.json({
       success: true,
-      data: results,
-      count: results.length,
+      data: jobPosts,
+      pagination: {
+        currentPage: Number(page),
+        totalPages: Math.ceil(Number(count) / ITEMS_PER_PAGE),
+        totalItems: Number(count),
+        itemsPerPage: ITEMS_PER_PAGE
+      }
     });
   } catch (error) {
     console.error("Error fetching job posts:", error);
@@ -203,8 +291,6 @@ export async function handleGetJobSeeker(req: Request, res: Response) {
     });
   }
 }
-//ensure schema -> fix controller -> update api-doc
-// Need review
 export async function handleCreateJobPostFromEmp(req: Request, res: Response) {
   try {
     // Validate request body against schema
@@ -263,6 +349,13 @@ export async function handleCreateJobPostFromEmp(req: Request, res: Response) {
       message: "Failed to create job hiring post",
     });
   }
+}
+
+export async function handleUpdateJobPostFromEmp(req: Request, res: Response) {
+  res.json({
+      success: true,
+    message: "Dummy handler",
+    });
 }
 
 // Empty handlers for job posts

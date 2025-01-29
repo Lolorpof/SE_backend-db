@@ -5,12 +5,13 @@ import {
   getJobSeekerSchema,
   jobPostSchema,
   dummySchema,
+  getAllJobPostsSchema,
 } from "../schemas/api-schema";
 import {
   handleGetEmp,
-  handleGetJobSeeker,
   dummyHandler,
   handleCreateJobPostFromEmp,
+  handleGetAllJobPosts,
 } from "../controllers/postController";
 import { checkAuthenticated } from "../middlewares/auth";
 
@@ -178,10 +179,145 @@ const postRoutes = Router();
  */
 postRoutes.route('/job-posts/employer')
   .post(validateData(jobPostSchema), checkAuthenticated, handleCreateJobPostFromEmp);
-
 /**
  * @openapi
  * /api/post/job-posts:
+ *   get:
+ *     tags:
+ *       - Job Post from Employer
+ *     summary: Get all job posts with filtering, sorting, and pagination
+ *     security:
+ *       - sessionAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: title
+ *         schema:
+ *           type: string
+ *         description: Filter by job title (case-insensitive partial match)
+ *       - in: query
+ *         name: provinces
+ *         schema:
+ *           type: array
+ *           items:
+ *             type: string
+ *         style: form
+ *         explode: true
+ *         description: Filter by multiple provinces
+ *       - in: query
+ *         name: jobCategories
+ *         schema:
+ *           type: array
+ *           items:
+ *             type: string
+ *             format: uuid
+ *         style: form
+ *         explode: true
+ *         description: Filter by job category IDs
+ *       - in: query
+ *         name: salaryRange
+ *         schema:
+ *           type: number
+ *         description: Filter jobs with salary less than or equal to this value
+ *       - in: query
+ *         name: sortBy
+ *         schema:
+ *           type: string
+ *           enum: [asc, desc]
+ *         default: desc
+ *         description: Sort by creation date
+ *       - in: query
+ *         name: salarySort
+ *         schema:
+ *           type: string
+ *           enum: [high-low, low-high]
+ *         description: Sort by salary
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *           minimum: 1
+ *         default: 1
+ *         description: Page number for pagination
+ *     responses:
+ *       200:
+ *         description: Successfully retrieved job posts
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       id:
+ *                         type: string
+ *                         format: uuid
+ *                       title:
+ *                         type: string
+ *                       description:
+ *                         type: string
+ *                         nullable: true
+ *                       jobLocation:
+ *                         type: string
+ *                       salary:
+ *                         type: number
+ *                       workDates:
+ *                         type: string
+ *                       workHoursRange:
+ *                         type: string
+ *                       hiredAmount:
+ *                         type: number
+ *                       status:
+ *                         type: string
+ *                         enum: [UNMATCHED, MATCHED, MATCHED_INPROG]
+ *                       jobHirerType:
+ *                         type: string
+ *                         enum: [EMPLOYER, OAUTHEMPLOYER, COMPANY]
+ *                       companyId:
+ *                         type: string
+ *                         format: uuid
+ *                         nullable: true
+ *                       employerId:
+ *                         type: string
+ *                         format: uuid
+ *                         nullable: true
+ *                       oauthEmployerId:
+ *                         type: string
+ *                         format: uuid
+ *                         nullable: true
+ *                       createdAt:
+ *                         type: string
+ *                         format: date-time
+ *                       updatedAt:
+ *                         type: string
+ *                         format: date-time
+ *                       companyName:
+ *                         type: string
+ *                         nullable: true
+ *                 pagination:
+ *                   type: object
+ *                   properties:
+ *                     currentPage:
+ *                       type: integer
+ *                       example: 1
+ *                     totalPages:
+ *                       type: integer
+ *                       example: 5
+ *                     totalItems:
+ *                       type: integer
+ *                       example: 48
+ *                     itemsPerPage:
+ *                       type: integer
+ *                       example: 10
+ *       401:
+ *         $ref: '#/components/responses/UnauthorizedError'
+ *       500:
+ *         $ref: '#/components/responses/ServerError'
  *   post:
  *     tags:
  *       - Job Post from Employer
@@ -201,30 +337,16 @@ postRoutes.route('/job-posts/employer')
  *           application/json:
  *             schema:
  *               $ref: '#/components/schemas/JobPostResponse'
- *   get:
- *     tags:
- *       - Job Post from Employer
- *     summary: Get all job posts
- *     security:
- *       - sessionAuth: []
- *     responses:
- *       200:
- *         description: Successfully retrieved job posts
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 success:
- *                   type: boolean
- *                 data:
- *                   type: array
- *                   items:
- *                     $ref: '#/components/schemas/JobPost'
+ *       400:
+ *         $ref: '#/components/responses/ValidationError'
+ *       401:
+ *         $ref: '#/components/responses/UnauthorizedError'
+ *       500:
+ *         $ref: '#/components/responses/ServerError'
  */
 postRoutes.route('/job-posts')
-  .post(validateData(jobPostSchema),checkAuthenticated, handleCreateJobPostFromEmp)
-  .get(validateData(getJobSeekerSchema), checkAuthenticated, handleGetJobSeeker);
+  .post(validateData(jobPostSchema), checkAuthenticated, handleCreateJobPostFromEmp)
+  .get(validateData(getAllJobPostsSchema), checkAuthenticated, handleGetAllJobPosts);
 
 /**
  * @openapi
