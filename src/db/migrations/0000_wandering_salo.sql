@@ -1,16 +1,3 @@
-DROP TYPE IF EXISTS "approvalStatus";
-DROP TYPE IF EXISTS "jobHirerType";
-DROP TYPE IF EXISTS "jobMatchedStatus";
-DROP TYPE IF EXISTS "jobSeekerType";
-DROP TYPE IF EXISTS "normalUserType";
-DROP TYPE IF EXISTS "notificationStatus";
-DROP TYPE IF EXISTS "postStatus";
-DROP TYPE IF EXISTS "providerType";
-DROP TYPE IF EXISTS "publicStatus";
-DROP TYPE IF EXISTS "severityLvl";
-DROP TYPE IF EXISTS "userType";
-DROP TYPE IF EXISTS "userApprovalStatus";
-
 CREATE TYPE "public"."approvalStatus" AS ENUM('ACCEPTED', 'DENIED', 'UNAPPROVED');--> statement-breakpoint
 CREATE TYPE "public"."jobHirerType" AS ENUM('EMPLOYER', 'OAUTHEMPLOYER', 'COMPANY');--> statement-breakpoint
 CREATE TYPE "public"."jobMatchedStatus" AS ENUM('INPROGRESS', 'ACCEPTED', 'DENIED');--> statement-breakpoint
@@ -26,9 +13,10 @@ CREATE TYPE "public"."userApprovalStatus" AS ENUM('APPROVED', 'UNAPPROVED');--> 
 CREATE TABLE IF NOT EXISTS "admin" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"username" varchar(255) NOT NULL,
-	"varchar" varchar(255),
-	"email" varchar(255) NOT NULL,
+	"password" varchar(255) NOT NULL,
+	"email" varchar(255),
 	"profile_picture" varchar(255) DEFAULT 'UNDEFINED' NOT NULL,
+	"contact" varchar(255),
 	"created_at" timestamp DEFAULT now() NOT NULL,
 	"updated_at" timestamp DEFAULT now() NOT NULL,
 	CONSTRAINT "admin_email_unique" UNIQUE("email")

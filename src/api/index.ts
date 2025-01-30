@@ -9,11 +9,14 @@ import { userRouter } from "./routes/userRoutes";
 import swaggerUi from "swagger-ui-express";
 import swaggerOption from "./swagger";
 import { adminRouter } from "./routes/adminRoutes";
-
+import postRoutes from "./routes/postRoutes";
 const port = process.env.BACKEND_PORT; //6977
 const cookieExpireTime = { real: 1000 * 60 * 60 * 4, dev: 1000 * 60 * 5 };
 
 const app = express();
+
+app.use(express.json());
+
 app.use([
   cors({
     origin: `http://localhost:${process.env.FRONTEND_PORT}`,
@@ -33,6 +36,8 @@ app.use([
 ]);
 
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerOption));
+
+app.use("/api/post", postRoutes);
 
 app.get("/", async (req, res) => {
   res.json({ success: true, msg: "hello world" });
