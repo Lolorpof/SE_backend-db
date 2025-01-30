@@ -7,10 +7,11 @@ import {
 } from "../schemas/api-schema";
 import {
   dummyHandler,
+  handleCreateJobPostFromCompany,
   handleCreateJobPostFromEmp,
   handleGetAllJobPosts,
   handleGetJobPost,
-  handleUpdateJobPostFromEmp,
+  handleUpdateJobPost,
 } from "../controllers/postController";
 import { checkAuthenticated } from "../middlewares/auth";
 
@@ -180,7 +181,7 @@ postRoutes.route('/job-posts/employer')
   .post(validateData(jobPostSchema), checkAuthenticated, handleCreateJobPostFromEmp);
 
 postRoutes.route('/job-posts/company')
-  .post(validateData(jobPostSchema), checkAuthenticated, dummyHandler);
+  .post(validateData(jobPostSchema), checkAuthenticated, handleCreateJobPostFromCompany);
 /**
  * @openapi
  * /api/post/job-posts:
@@ -475,7 +476,7 @@ postRoutes.route('/job-posts')
 postRoutes
   .route('/job-posts/:id')
   .get(checkAuthenticated, handleGetJobPost)
-  .put(validateData(jobPostSchema),checkAuthenticated, handleUpdateJobPostFromEmp)
+  .put(validateData(jobPostSchema),checkAuthenticated, handleUpdateJobPost)
   .delete(validateData(dummySchema),checkAuthenticated, dummyHandler);
 
 /**

@@ -266,7 +266,68 @@ export async function handleCreateJobPostFromEmp(req: Request, res: Response) {
     });
   }
 }
-export async function handleUpdateJobPostFromEmp(req: Request, res: Response) {
+export async function handleCreateJobPostFromCompany(req: Request, res: Response) {
+  try {
+    // Validate request body against schema
+    const validatedData : jobPostType = jobPostSchema.parse(req.body);
+    const user : TCompanySession = req.user as TCompanySession;
+    
+    if(!user) {
+      res.status(401).json({
+        success: false,
+        message: "Unauthorized",
+      });
+      return;
+    }
+
+    // Start a transaction since we need to insert into multiple tables
+    const result = await drizzlePool.transaction(async (tx) => {
+      // Create the job hiring post
+      const [jobPost] = await tx
+        .insert(jobHiringPostTable)
+        .values({
+          title: validatedData.title,
+          description: validatedData.description ?? null,
+          jobLocation: validatedData.jobLocation,
+          salary: validatedData.salary,
+          workDates: validatedData.workDates,
+          workHoursRange: validatedData.workHoursRange,
+          hiredAmount: validatedData.hiredAmount,
+          status: postStatusEnum.enumValues[1], // UNMATCHED
+          jobHirerType: jobHirerTypeEnum.enumValues[2], // COMPANY
+          employerId: null,
+          oauthEmployerId: null,
+          companyId: user.id
+        })
+        .returning();
+
+      return jobPost;
+    });
+
+    res.status(201).json({
+      success: true,
+      data: result,
+      message: "Job hiring post created successfully",
+    });
+  } catch (error) {
+    console.error("Error creating job hiring post:", error);
+
+    if (error.name === "ZodError") {
+      res.status(400).json({
+        success: false,
+        message: "Invalid request data", 
+        errors: error.errors,
+      });
+      return;
+    }
+
+    res.status(500).json({
+      success: false,
+      message: "Failed to create job hiring post",
+    });
+  }
+}
+export async function handleUpdateJobPost(req: Request, res: Response) {
   const user : TEmployerSession = req.user as TEmployerSession;
   
   if(!user) {
