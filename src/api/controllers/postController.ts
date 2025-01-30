@@ -10,8 +10,14 @@ import {
 } from "../../db/schema"; // Import the relevant tables
 import { drizzlePool } from "../../db/conn";
 import { and, eq, lte, gte, ilike, SQL, inArray, sql, desc } from "drizzle-orm";
-import { jobPostSchema, jobPostType, validUidSchema, validUidType } from "../schemas/api-schema";
+import {
+  jobPostSchema,
+  jobPostType,
+  validUidSchema,
+  validUidType,
+} from "../schemas/api-schema";
 //need fix
+//TODO: title, companyName time, location ,salary, description
 export async function handleGetAllJobPosts(req: Request, res: Response) {
   try {
     const {
@@ -19,9 +25,9 @@ export async function handleGetAllJobPosts(req: Request, res: Response) {
       provinces,
       jobCategories,
       salaryRange,
-      sortBy = 'desc',
+      sortBy = "desc",
       salarySort,
-      page = 1
+      page = 1,
     } = req.query;
 
     const ITEMS_PER_PAGE = 10;
@@ -53,13 +59,16 @@ export async function handleGetAllJobPosts(req: Request, res: Response) {
             companyName: companyTable.officialName,
           })
           .from(jobHiringPostTable)
-          .leftJoin(companyTable, eq(jobHiringPostTable.companyId, companyTable.id))
+          .leftJoin(
+            companyTable,
+            eq(jobHiringPostTable.companyId, companyTable.id)
+          )
           .orderBy(
-            salarySort === 'high-low' 
+            salarySort === "high-low"
               ? desc(jobHiringPostTable.salary)
-              : salarySort === 'low-high'
+              : salarySort === "low-high"
               ? jobHiringPostTable.salary
-              : sortBy === 'desc'
+              : sortBy === "desc"
               ? desc(jobHiringPostTable.createdAt)
               : jobHiringPostTable.createdAt
           )
@@ -67,18 +76,18 @@ export async function handleGetAllJobPosts(req: Request, res: Response) {
           .offset(offset),
         drizzlePool
           .select({ count: sql<number>`count(*)` })
-          .from(jobHiringPostTable)
+          .from(jobHiringPostTable),
       ]);
 
-       res.json({
+      res.json({
         success: true,
         data: jobPosts,
         pagination: {
           currentPage: Number(page),
           totalPages: Math.ceil(countResult[0].count / ITEMS_PER_PAGE),
           totalItems: countResult[0].count,
-          itemsPerPage: ITEMS_PER_PAGE
-        }
+          itemsPerPage: ITEMS_PER_PAGE,
+        },
       });
       return;
     }
@@ -88,15 +97,19 @@ export async function handleGetAllJobPosts(req: Request, res: Response) {
 
     // Title filter
     if (title) {
-      conditions.push(sql`${jobHiringPostTable.title} ILIKE ${`%${title as string}%`}`);
+      conditions.push(
+        sql`${jobHiringPostTable.title} ILIKE ${`%${title as string}%`}`
+      );
     }
 
     // Provinces filter (multiple provinces support)
     if (provinces) {
-      const provinceList = Array.isArray(provinces) 
-        ? provinces.map(p => p.toString()) 
+      const provinceList = Array.isArray(provinces)
+        ? provinces.map((p) => p.toString())
         : [provinces.toString()];
-      conditions.push(sql`${jobHiringPostTable.jobLocation} = ANY(${provinceList})`);
+      conditions.push(
+        sql`${jobHiringPostTable.jobLocation} = ANY(${provinceList})`
+      );
     }
 
     // Salary range filter
@@ -128,20 +141,30 @@ export async function handleGetAllJobPosts(req: Request, res: Response) {
         c.official_name as "companyName"
       FROM job_hiring_post jp
       LEFT JOIN company c ON jp.company_id = c.id
-      ${jobCategories ? sql`
+      ${
+        jobCategories
+          ? sql`
         LEFT JOIN job_hire_category jhc ON jp.id = jhc.job_hiring_post_id
-        WHERE jhc.job_category_id = ANY(${Array.isArray(jobCategories) 
-          ? jobCategories.map(id => id.toString()) 
-          : [jobCategories.toString()]})
+        WHERE jhc.job_category_id = ANY(${
+          Array.isArray(jobCategories)
+            ? jobCategories.map((id) => id.toString())
+            : [jobCategories.toString()]
+        })
         ${conditions.length ? sql`AND ${and(...conditions)}` : sql``}
-      ` : conditions.length ? sql`WHERE ${and(...conditions)}` : sql``}
-      ${salarySort === 'high-low' 
-        ? sql`ORDER BY jp.salary DESC` 
-        : salarySort === 'low-high'
-        ? sql`ORDER BY jp.salary ASC`
-        : sortBy === 'desc'
-        ? sql`ORDER BY jp.created_at DESC`
-        : sql`ORDER BY jp.created_at ASC`}
+      `
+          : conditions.length
+          ? sql`WHERE ${and(...conditions)}`
+          : sql``
+      }
+      ${
+        salarySort === "high-low"
+          ? sql`ORDER BY jp.salary DESC`
+          : salarySort === "low-high"
+          ? sql`ORDER BY jp.salary ASC`
+          : sortBy === "desc"
+          ? sql`ORDER BY jp.created_at DESC`
+          : sql`ORDER BY jp.created_at ASC`
+      }
       LIMIT ${ITEMS_PER_PAGE}
       OFFSET ${offset}
     `;
@@ -150,13 +173,21 @@ export async function handleGetAllJobPosts(req: Request, res: Response) {
     const countQuery = sql`
       SELECT COUNT(*) as count
       FROM job_hiring_post jp
-      ${jobCategories ? sql`
+      ${
+        jobCategories
+          ? sql`
         LEFT JOIN job_hire_category jhc ON jp.id = jhc.job_hiring_post_id
-        WHERE jhc.job_category_id = ANY(${Array.isArray(jobCategories) 
-          ? jobCategories.map(id => id.toString()) 
-          : [jobCategories.toString()]})
+        WHERE jhc.job_category_id = ANY(${
+          Array.isArray(jobCategories)
+            ? jobCategories.map((id) => id.toString())
+            : [jobCategories.toString()]
+        })
         ${conditions.length ? sql`AND ${and(...conditions)}` : sql``}
-      ` : conditions.length ? sql`WHERE ${and(...conditions)}` : sql``}
+      `
+          : conditions.length
+          ? sql`WHERE ${and(...conditions)}`
+          : sql``
+      }
     `;
 
     type JobPost = {
@@ -181,12 +212,12 @@ export async function handleGetAllJobPosts(req: Request, res: Response) {
     // Execute both queries concurrently
     const [jobPostsResult, countResult] = await Promise.all([
       drizzlePool.execute(baseQuery),
-      drizzlePool.execute(countQuery)
+      drizzlePool.execute(countQuery),
     ]);
 
     // Type cast with intermediate unknown type
-    const jobPosts = (jobPostsResult as unknown) as JobPost[];
-    const count = ((countResult as unknown) as [{ count: number }])[0].count;
+    const jobPosts = jobPostsResult as unknown as JobPost[];
+    const count = (countResult as unknown as [{ count: number }])[0].count;
 
     res.json({
       success: true,
@@ -195,8 +226,8 @@ export async function handleGetAllJobPosts(req: Request, res: Response) {
         currentPage: Number(page),
         totalPages: Math.ceil(Number(count) / ITEMS_PER_PAGE),
         totalItems: Number(count),
-        itemsPerPage: ITEMS_PER_PAGE
-      }
+        itemsPerPage: ITEMS_PER_PAGE,
+      },
     });
   } catch (error) {
     console.error("Error fetching job posts:", error);
@@ -210,9 +241,9 @@ export async function handleGetAllJobPosts(req: Request, res: Response) {
 export async function handleCreateJobPostFromEmp(req: Request, res: Response) {
   try {
     // Validate request body against schema
-    const validatedData : jobPostType = jobPostSchema.parse(req.body) ;
-    const user : TEmployerSession = req.user as TEmployerSession;
-    if(!user) {
+    const validatedData: jobPostType = jobPostSchema.parse(req.body);
+    const user: TEmployerSession = req.user as TEmployerSession;
+    if (!user) {
       res.status(401).json({
         success: false,
         message: "Unauthorized",
@@ -233,10 +264,12 @@ export async function handleCreateJobPostFromEmp(req: Request, res: Response) {
           workHoursRange: validatedData.workHoursRange,
           hiredAmount: validatedData.hiredAmount,
           status: postStatusEnum.enumValues[1], // UNMATCHED
-          jobHirerType: user.isOauth ? jobHirerTypeEnum.enumValues[1] : jobHirerTypeEnum.enumValues[0], // OAUTH_EMPLOYER or EMPLOYER
+          jobHirerType: user.isOauth
+            ? jobHirerTypeEnum.enumValues[1]
+            : jobHirerTypeEnum.enumValues[0], // OAUTH_EMPLOYER or EMPLOYER
           employerId: user.isOauth ? null : user.id,
           oauthEmployerId: user.isOauth ? user.id : null,
-          companyId: null
+          companyId: null,
         })
         .returning();
 
@@ -254,7 +287,7 @@ export async function handleCreateJobPostFromEmp(req: Request, res: Response) {
     if (error.name === "ZodError") {
       res.status(400).json({
         success: false,
-        message: "Invalid request data", 
+        message: "Invalid request data",
         errors: error.errors,
       });
       return;
@@ -266,13 +299,16 @@ export async function handleCreateJobPostFromEmp(req: Request, res: Response) {
     });
   }
 }
-export async function handleCreateJobPostFromCompany(req: Request, res: Response) {
+export async function handleCreateJobPostFromCompany(
+  req: Request,
+  res: Response
+) {
   try {
     // Validate request body against schema
-    const validatedData : jobPostType = jobPostSchema.parse(req.body);
-    const user : TCompanySession = req.user as TCompanySession;
-    
-    if(!user) {
+    const validatedData: jobPostType = jobPostSchema.parse(req.body);
+    const user: TCompanySession = req.user as TCompanySession;
+
+    if (!user) {
       res.status(401).json({
         success: false,
         message: "Unauthorized",
@@ -297,7 +333,7 @@ export async function handleCreateJobPostFromCompany(req: Request, res: Response
           jobHirerType: jobHirerTypeEnum.enumValues[2], // COMPANY
           employerId: null,
           oauthEmployerId: null,
-          companyId: user.id
+          companyId: user.id,
         })
         .returning();
 
@@ -315,7 +351,7 @@ export async function handleCreateJobPostFromCompany(req: Request, res: Response
     if (error.name === "ZodError") {
       res.status(400).json({
         success: false,
-        message: "Invalid request data", 
+        message: "Invalid request data",
         errors: error.errors,
       });
       return;
@@ -329,8 +365,8 @@ export async function handleCreateJobPostFromCompany(req: Request, res: Response
 }
 export async function handleUpdateJobPost(req: Request, res: Response) {
   const user = req.user as TEmployerSession | TCompanySession;
-  
-  if(!user) {
+
+  if (!user) {
     res.status(401).json({
       success: false,
       message: "Unauthorized",
@@ -340,10 +376,10 @@ export async function handleUpdateJobPost(req: Request, res: Response) {
 
   try {
     // Validate request params (job post ID)
-    const validatedId : validUidType = validUidSchema.parse(req.params);
-    
+    const validatedId: validUidType = validUidSchema.parse(req.params);
+
     // Validate request body against schema
-    const validatedData : jobPostType = jobPostSchema.parse(req.body);
+    const validatedData: jobPostType = jobPostSchema.parse(req.body);
 
     // Get the job post and check if it exists
     const [jobPost] = await drizzlePool
@@ -361,11 +397,13 @@ export async function handleUpdateJobPost(req: Request, res: Response) {
 
     // Check if the user is the owner of the post
     let isOwner = false;
-    if ('isOauth' in user) { // TEmployerSession
-      isOwner = user.isOauth 
-        ? jobPost.oauthEmployerId === user.id 
+    if ("isOauth" in user) {
+      // TEmployerSession
+      isOwner = user.isOauth
+        ? jobPost.oauthEmployerId === user.id
         : jobPost.employerId === user.id;
-    } else { // TCompanySession
+    } else {
+      // TCompanySession
       isOwner = jobPost.companyId === user.id;
     }
 
@@ -398,14 +436,13 @@ export async function handleUpdateJobPost(req: Request, res: Response) {
       data: updatedPost,
       message: "Job post updated successfully",
     });
-
   } catch (error) {
     console.error("Error updating job hiring post:", error);
 
     if (error.name === "ZodError") {
       res.status(400).json({
         success: false,
-        message: "Invalid request data", 
+        message: "Invalid request data",
         errors: error.errors,
       });
       return;
@@ -419,8 +456,8 @@ export async function handleUpdateJobPost(req: Request, res: Response) {
   }
 }
 export async function handleGetJobPost(req: Request, res: Response) {
-  const user : TEmployerSession = req.user as TEmployerSession;
-  if(!user) {
+  const user: TEmployerSession = req.user as TEmployerSession;
+  if (!user) {
     res.status(401).json({
       success: false,
       message: "Unauthorized",
@@ -428,8 +465,11 @@ export async function handleGetJobPost(req: Request, res: Response) {
     return;
   }
   try {
-    const validatedId : validUidType = validUidSchema.parse(req.params);
-    const jobPost = await drizzlePool.select().from(jobHiringPostTable).where(eq(jobHiringPostTable.id, validatedId.id));
+    const validatedId: validUidType = validUidSchema.parse(req.params);
+    const jobPost = await drizzlePool
+      .select()
+      .from(jobHiringPostTable)
+      .where(eq(jobHiringPostTable.id, validatedId.id));
     res.json({
       success: true,
       data: jobPost,
@@ -441,7 +481,7 @@ export async function handleGetJobPost(req: Request, res: Response) {
     if (error.name === "ZodError") {
       res.status(400).json({
         success: false,
-        message: "Invalid request data", 
+        message: "Invalid request data",
         errors: error.errors,
       });
       return;
@@ -456,8 +496,8 @@ export async function handleGetJobPost(req: Request, res: Response) {
 }
 export async function handleDeleteJobPost(req: Request, res: Response) {
   const user = req.user as TEmployerSession | TCompanySession;
-  
-  if(!user) {
+
+  if (!user) {
     res.status(401).json({
       success: false,
       message: "Unauthorized",
@@ -467,8 +507,8 @@ export async function handleDeleteJobPost(req: Request, res: Response) {
 
   try {
     // Validate request params (job post ID)
-    const validatedId : validUidType = validUidSchema.parse(req.params);
-    
+    const validatedId: validUidType = validUidSchema.parse(req.params);
+
     // Get the job post and check if it exists
     const [jobPost] = await drizzlePool
       .select()
@@ -485,11 +525,13 @@ export async function handleDeleteJobPost(req: Request, res: Response) {
 
     // Check if the user is the owner of the post
     let isOwner = false;
-    if ('isOauth' in user) { // TEmployerSession
-      isOwner = user.isOauth 
-        ? jobPost.oauthEmployerId === user.id 
+    if ("isOauth" in user) {
+      // TEmployerSession
+      isOwner = user.isOauth
+        ? jobPost.oauthEmployerId === user.id
         : jobPost.employerId === user.id;
-    } else { // TCompanySession
+    } else {
+      // TCompanySession
       isOwner = jobPost.companyId === user.id;
     }
 
@@ -512,14 +554,13 @@ export async function handleDeleteJobPost(req: Request, res: Response) {
       data: deletedPost,
       message: "Job post deleted successfully",
     });
-
   } catch (error) {
     console.error("Error deleting job hiring post:", error);
 
     if (error.name === "ZodError") {
       res.status(400).json({
         success: false,
-        message: "Invalid request data", 
+        message: "Invalid request data",
         errors: error.errors,
       });
       return;
