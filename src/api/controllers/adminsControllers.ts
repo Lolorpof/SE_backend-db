@@ -111,7 +111,21 @@ export class adminControllers implements adminControllerInterfaces {
       .json({ success: result.success, msg: result.msg, data: result.data });
   }
 
-  async getAllApproveRequest(req: Request, res: Response): Promise<void> {}
+  async getAllApproveRequest(req: Request, res: Response): Promise<void> {
+    const result = await adminServices.instance().getAllApproveRequest();
+
+    if (!result.success || !result.data) {
+      res.status(result.status).json({
+        success: result.success,
+        msg: result.msg,
+      });
+      return;
+    }
+
+    res
+      .status(result.status)
+      .json({ success: result.success, msg: result.msg, data: result.data });
+  }
 
   // handle create new admin (backend only)
   async create(req: Request, res: Response): Promise<void> {

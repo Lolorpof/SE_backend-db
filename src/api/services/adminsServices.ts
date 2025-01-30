@@ -147,7 +147,9 @@ export class adminServices implements adminServiceInterfaces {
     };
   }
 
-  async getAllApproveRequest(): Promise<SerivcesResponse<any>> {
+  async getAllApproveRequest(): Promise<
+    SerivcesResponse<TRegistrationApproval[]>
+  > {
     const [error, users] = await catchError<TRegistrationApproval[]>(
       registrationApprovalModels.instance().getAllApproveRequest()
     );
@@ -237,9 +239,9 @@ export class adminServices implements adminServiceInterfaces {
     let hashedPassword: string | undefined;
     try {
       hashedPassword = await bcrypt.hash(
-              password,
-              Number(process.env.BCRYPT_SALTROUNDS as string)
-            );
+        password,
+        Number(process.env.BCRYPT_SALTROUNDS as string)
+      );
     } catch (error) {
       console.log(error);
       return { success: false, status: 403, msg: "Something went wrong" };
