@@ -328,7 +328,7 @@ export async function handleCreateJobPostFromCompany(req: Request, res: Response
   }
 }
 export async function handleUpdateJobPost(req: Request, res: Response) {
-  const user : TEmployerSession = req.user as TEmployerSession;
+  const user = req.user as TEmployerSession | TCompanySession;
   
   if(!user) {
     res.status(401).json({
@@ -360,9 +360,14 @@ export async function handleUpdateJobPost(req: Request, res: Response) {
     }
 
     // Check if the user is the owner of the post
-    const isOwner = user.isOauth 
-      ? jobPost.oauthEmployerId === user.id 
-      : jobPost.employerId === user.id;
+    let isOwner = false;
+    if ('isOauth' in user) { // TEmployerSession
+      isOwner = user.isOauth 
+        ? jobPost.oauthEmployerId === user.id 
+        : jobPost.employerId === user.id;
+    } else { // TCompanySession
+      isOwner = jobPost.companyId === user.id;
+    }
 
     if (!isOwner) {
       res.status(403).json({
@@ -449,7 +454,84 @@ export async function handleGetJobPost(req: Request, res: Response) {
     });
   }
 }
+export async function handleDeleteJobPost(req: Request, res: Response) {
+  const user = req.user as TEmployerSession | TCompanySession;
+  
+  if(!user) {
+    res.status(401).json({
+      success: false,
+      message: "Unauthorized",
+    });
+    return;
+  }
 
+  try {
+    // Validate request params (job post ID)
+    const validatedId : validUidType = validUidSchema.parse(req.params);
+    
+    // Get the job post and check if it exists
+    const [jobPost] = await drizzlePool
+      .select()
+      .from(jobHiringPostTable)
+      .where(eq(jobHiringPostTable.id, validatedId.id));
+
+    if (!jobPost) {
+      res.status(404).json({
+        success: false,
+        message: "Job post not found",
+      });
+      return;
+    }
+
+    // Check if the user is the owner of the post
+    let isOwner = false;
+    if ('isOauth' in user) { // TEmployerSession
+      isOwner = user.isOauth 
+        ? jobPost.oauthEmployerId === user.id 
+        : jobPost.employerId === user.id;
+    } else { // TCompanySession
+      isOwner = jobPost.companyId === user.id;
+    }
+
+    if (!isOwner) {
+      res.status(403).json({
+        success: false,
+        message: "You are not authorized to delete this job post",
+      });
+      return;
+    }
+
+    // Delete the job post
+    const [deletedPost] = await drizzlePool
+      .delete(jobHiringPostTable)
+      .where(eq(jobHiringPostTable.id, validatedId.id))
+      .returning();
+
+    res.json({
+      success: true,
+      data: deletedPost,
+      message: "Job post deleted successfully",
+    });
+
+  } catch (error) {
+    console.error("Error deleting job hiring post:", error);
+
+    if (error.name === "ZodError") {
+      res.status(400).json({
+        success: false,
+        message: "Invalid request data", 
+        errors: error.errors,
+      });
+      return;
+    }
+
+    res.status(500).json({
+      success: false,
+      message: "Failed to delete job hiring post",
+      error: error.message,
+    });
+  }
+}
 // Empty handlers for job posts
 export async function dummyHandler(req: Request, res: Response) {
   res.json({

@@ -9,6 +9,7 @@ import {
   dummyHandler,
   handleCreateJobPostFromCompany,
   handleCreateJobPostFromEmp,
+  handleDeleteJobPost,
   handleGetAllJobPosts,
   handleGetJobPost,
   handleUpdateJobPost,
@@ -477,7 +478,7 @@ postRoutes
   .route('/job-posts/:id')
   .get(checkAuthenticated, handleGetJobPost)
   .put(validateData(jobPostSchema),checkAuthenticated, handleUpdateJobPost)
-  .delete(validateData(dummySchema),checkAuthenticated, dummyHandler);
+  .delete(validateData(dummySchema),checkAuthenticated, handleDeleteJobPost);
 
 /**
  * @openapi
