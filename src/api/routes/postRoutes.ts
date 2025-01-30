@@ -116,10 +116,12 @@ const postRoutes = Router();
  *                       type: string
  *                       format: uuid
  *                       nullable: true
+ *                       example: null
  *                     companyId:
  *                       type: string
  *                       format: uuid
  *                       nullable: true
+ *                       example: null
  *                     createdAt:
  *                       type: string
  *                       format: date-time
@@ -181,14 +183,44 @@ const postRoutes = Router();
 postRoutes.route('/job-posts/employer')
   .post(validateData(jobPostSchema), checkAuthenticated, handleCreateJobPostFromEmp);
 
+/**
+ * @openapi
+ * /api/post/job-posts/company:
+ *   post:
+ *     tags:
+ *       - Job Post from Company
+ *     summary: Create a new job post as a company
+ *     security:
+ *       - sessionAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/JobPostRequest'
+ *     responses:
+ *       201:
+ *         description: Job post created successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/JobPostResponse'
+ *       400:
+ *         $ref: '#/components/responses/ValidationError'
+ *       401:
+ *         $ref: '#/components/responses/UnauthorizedError'
+ *       500:
+ *         $ref: '#/components/responses/ServerError'
+ */
 postRoutes.route('/job-posts/company')
   .post(validateData(jobPostSchema), checkAuthenticated, handleCreateJobPostFromCompany);
+
 /**
  * @openapi
  * /api/post/job-posts:
  *   get:
  *     tags:
- *       - Job Post from Employer
+ *       - Job Post from Company/Employer
  *     summary: Get all job posts with filtering, sorting, and pagination
  *     security:
  *       - sessionAuth: []
@@ -322,31 +354,6 @@ postRoutes.route('/job-posts/company')
  *         $ref: '#/components/responses/UnauthorizedError'
  *       500:
  *         $ref: '#/components/responses/ServerError'
- *   post:
- *     tags:
- *       - Job Post from Employer
- *     summary: Create a new job post
- *     security:
- *       - sessionAuth: []
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             $ref: '#/components/schemas/JobPostRequest'
- *     responses:
- *       201:
- *         description: Job post created successfully
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/JobPostResponse'
- *       400:
- *         $ref: '#/components/responses/ValidationError'
- *       401:
- *         $ref: '#/components/responses/UnauthorizedError'
- *       500:
- *         $ref: '#/components/responses/ServerError'
  */
 postRoutes.route('/job-posts')
   .get(validateData(getAllJobPostsSchema), checkAuthenticated, handleGetAllJobPosts);
@@ -406,6 +413,8 @@ postRoutes.route('/job-posts')
  *     tags:
  *       - Job Post from Company/Employer
  *     summary: Update a specific job post
+ *     security:
+ *       - sessionAuth: []
  *     parameters:
  *       - in: path
  *         name: id
@@ -419,45 +428,52 @@ postRoutes.route('/job-posts')
  *       content:
  *         application/json:
  *           schema:
- *             type: object
- *             properties:
- *               title:
- *                 type: string
- *               description:
- *                 type: string
- *               jobLocation:
- *                 type: string
- *               salary:
- *                 type: number
- *               workDates:
- *                 type: string
- *               workHoursRange:
- *                 type: string
- *               hiredAmount:
- *                 type: number
- *               skills:
- *                 type: array
- *                 items:
- *                   type: string
- *                   format: uuid
- *               jobCategories:
- *                 type: array
- *                 items:
- *                   type: string
- *                   format: uuid
+ *             $ref: '#/components/schemas/JobPostRequest'
  *     responses:
  *       200:
  *         description: Job post updated successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/JobPostResponse'
  *       400:
- *         description: Invalid request data
+ *         $ref: '#/components/responses/ValidationError'
+ *       401:
+ *         $ref: '#/components/responses/UnauthorizedError'
+ *       403:
+ *         description: Not authorized to update this job post
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 message:
+ *                   type: string
+ *                   example: "You are not authorized to update this job post"
  *       404:
  *         description: Job post not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 message:
+ *                   type: string
+ *                   example: "Job post not found"
  *       500:
- *         description: Server error
+ *         $ref: '#/components/responses/ServerError'
  *   delete:
  *     tags:
  *       - Job Post from Company/Employer
  *     summary: Delete a specific job post
+ *     security:
+ *       - sessionAuth: []
  *     parameters:
  *       - in: path
  *         name: id
@@ -469,10 +485,49 @@ postRoutes.route('/job-posts')
  *     responses:
  *       200:
  *         description: Job post deleted successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 data:
+ *                   $ref: '#/components/schemas/JobPostResponse/properties/data'
+ *                 message:
+ *                   type: string
+ *                   example: "Job post deleted successfully"
+ *       401:
+ *         $ref: '#/components/responses/UnauthorizedError'
+ *       403:
+ *         description: Not authorized to delete this job post
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 message:
+ *                   type: string
+ *                   example: "You are not authorized to delete this job post"
  *       404:
  *         description: Job post not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 message:
+ *                   type: string
+ *                   example: "Job post not found"
  *       500:
- *         description: Server error
+ *         $ref: '#/components/responses/ServerError'
  */
 postRoutes
   .route('/job-posts/:id')
