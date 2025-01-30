@@ -10,91 +10,7 @@ import {
 } from "../../db/schema"; // Import the relevant tables
 import { drizzlePool } from "../../db/conn";
 import { and, eq, lte, gte, ilike, SQL, inArray, sql, desc } from "drizzle-orm";
-import { jobPostSchema, jobPostType } from "../schemas/api-schema";
-
-//need fix
-export async function handleGetEmp(req: Request, res: Response) {
-  try {
-    const { title, province, jobLocation, salaryRange, workHoursRange } =
-      req.query;
-
-    const filters: SQL[] = [];
-
-    // Title filter
-    if (title) {
-      filters.push(ilike(jobFindingPostTable.title, `%${title as string}%`));
-    }
-
-    // Location filters
-    if (province) {
-      filters.push(eq(jobFindingPostTable.jobLocation, province as string));
-    }
-    if (jobLocation) {
-      filters.push(
-        ilike(jobFindingPostTable.jobLocation, `%${jobLocation as string}%`)
-      );
-    }
-
-    // Salary range filter
-    if (salaryRange) {
-      const range = JSON.parse(salaryRange as string);
-      if (range.min) {
-        filters.push(gte(jobFindingPostTable.expectedSalary, range.min));
-      }
-      if (range.max) {
-        filters.push(lte(jobFindingPostTable.expectedSalary, range.max));
-      }
-    }
-
-    // Work hours filter
-    if (workHoursRange) {
-      filters.push(
-        eq(jobFindingPostTable.workHoursRange, workHoursRange as string)
-      );
-    }
-
-    // Build base query with job seeker information
-    const baseQuery = drizzlePool
-      .select({
-        id: jobFindingPostTable.id,
-        title: jobFindingPostTable.title,
-        description: jobFindingPostTable.description,
-        jobLocation: jobFindingPostTable.jobLocation,
-        expectedSalary: jobFindingPostTable.expectedSalary,
-        workDates: jobFindingPostTable.workDates,
-        workHoursRange: jobFindingPostTable.workHoursRange,
-        status: jobFindingPostTable.status,
-        jobSeekerType: jobFindingPostTable.jobSeekerType,
-        jobSeekerName: sql<string>`
-          CASE 
-            WHEN ${jobFindingPostTable.jobSeekerType} = 'NORMAL' THEN 
-              (SELECT concat(first_name, ' ', last_name) FROM job_seeker WHERE id = ${jobFindingPostTable.jobSeekerId})
-            ELSE 
-              (SELECT concat(first_name, ' ', last_name) FROM oauth_job_seeker WHERE id = ${jobFindingPostTable.oauthJobSeekerId})
-          END
-        `,
-      })
-      .from(jobFindingPostTable);
-
-    // Execute query with all filters
-    const results = await (filters.length > 0
-      ? baseQuery.where(and(...filters))
-      : baseQuery);
-
-    res.json({
-      success: true,
-      data: results,
-      count: results.length,
-    });
-  } catch (error) {
-    console.error("Error fetching job finding posts:", error);
-    res.status(500).json({
-      success: false,
-      message: "Failed to fetch job finding posts",
-      error: error.message,
-    });
-  }
-}
+import { jobPostSchema, jobPostType, validUidSchema, validUidType } from "../schemas/api-schema";
 //need fix
 export async function handleGetAllJobPosts(req: Request, res: Response) {
   try {
@@ -350,12 +266,127 @@ export async function handleCreateJobPostFromEmp(req: Request, res: Response) {
     });
   }
 }
-
 export async function handleUpdateJobPostFromEmp(req: Request, res: Response) {
-  res.json({
-      success: true,
-    message: "Dummy handler",
+  const user : TEmployerSession = req.user as TEmployerSession;
+  
+  if(!user) {
+    res.status(401).json({
+      success: false,
+      message: "Unauthorized",
     });
+    return;
+  }
+
+  try {
+    // Validate request params (job post ID)
+    const validatedId : validUidType = validUidSchema.parse(req.params);
+    
+    // Validate request body against schema
+    const validatedData : jobPostType = jobPostSchema.parse(req.body);
+
+    // Get the job post and check if it exists
+    const [jobPost] = await drizzlePool
+      .select()
+      .from(jobHiringPostTable)
+      .where(eq(jobHiringPostTable.id, validatedId.id));
+
+    if (!jobPost) {
+      res.status(404).json({
+        success: false,
+        message: "Job post not found",
+      });
+      return;
+    }
+
+    // Check if the user is the owner of the post
+    const isOwner = user.isOauth 
+      ? jobPost.oauthEmployerId === user.id 
+      : jobPost.employerId === user.id;
+
+    if (!isOwner) {
+      res.status(403).json({
+        success: false,
+        message: "You are not authorized to update this job post",
+      });
+      return;
+    }
+
+    // Update the job post
+    const [updatedPost] = await drizzlePool
+      .update(jobHiringPostTable)
+      .set({
+        title: validatedData.title,
+        description: validatedData.description ?? null,
+        jobLocation: validatedData.jobLocation,
+        salary: validatedData.salary,
+        workDates: validatedData.workDates,
+        workHoursRange: validatedData.workHoursRange,
+        hiredAmount: validatedData.hiredAmount,
+        updatedAt: new Date(),
+      })
+      .where(eq(jobHiringPostTable.id, validatedId.id))
+      .returning();
+
+    res.json({
+      success: true,
+      data: updatedPost,
+      message: "Job post updated successfully",
+    });
+
+  } catch (error) {
+    console.error("Error updating job hiring post:", error);
+
+    if (error.name === "ZodError") {
+      res.status(400).json({
+        success: false,
+        message: "Invalid request data", 
+        errors: error.errors,
+      });
+      return;
+    }
+
+    res.status(500).json({
+      success: false,
+      message: "Failed to update job hiring post",
+      error: error.message,
+    });
+  }
+}
+export async function handleGetJobPost(req: Request, res: Response) {
+  const user : TEmployerSession = req.user as TEmployerSession;
+  if(!user) {
+    res.status(401).json({
+      success: false,
+      message: "Unauthorized",
+    });
+    return;
+  }
+  try {
+    const validatedId : validUidType = validUidSchema.parse(req.params);
+    const jobPost = await drizzlePool.select().from(jobHiringPostTable).where(eq(jobHiringPostTable.id, validatedId.id));
+    res.json({
+      success: true,
+      data: jobPost,
+      message: "Job post fetched successfully",
+    });
+  } catch (error) {
+    console.error("Error fetching job post:", error);
+
+    if (error.name === "ZodError") {
+      res.status(400).json({
+        success: false,
+        message: "Invalid request data", 
+        errors: error.errors,
+      });
+      return;
+    }
+
+    res.status(500).json({
+      success: false,
+      message: "Failed to fetch job post",
+      error: error.message,
+    });
+  }
 }
 
 // Empty handlers for job posts

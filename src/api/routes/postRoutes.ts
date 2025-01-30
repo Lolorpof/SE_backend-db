@@ -1,17 +1,16 @@
 import { Router } from "express";
 import { validateData } from "../middlewares/validationMiddleware";
 import {
-  getFindEmpSchema,
-  getJobSeekerSchema,
   jobPostSchema,
   dummySchema,
   getAllJobPostsSchema,
 } from "../schemas/api-schema";
 import {
-  handleGetEmp,
   dummyHandler,
   handleCreateJobPostFromEmp,
   handleGetAllJobPosts,
+  handleGetJobPost,
+  handleUpdateJobPostFromEmp,
 } from "../controllers/postController";
 import { checkAuthenticated } from "../middlewares/auth";
 
@@ -179,6 +178,9 @@ const postRoutes = Router();
  */
 postRoutes.route('/job-posts/employer')
   .post(validateData(jobPostSchema), checkAuthenticated, handleCreateJobPostFromEmp);
+
+postRoutes.route('/job-posts/company')
+  .post(validateData(jobPostSchema), checkAuthenticated, dummyHandler);
 /**
  * @openapi
  * /api/post/job-posts:
@@ -345,7 +347,6 @@ postRoutes.route('/job-posts/employer')
  *         $ref: '#/components/responses/ServerError'
  */
 postRoutes.route('/job-posts')
-  .post(validateData(jobPostSchema), checkAuthenticated, handleCreateJobPostFromEmp)
   .get(validateData(getAllJobPostsSchema), checkAuthenticated, handleGetAllJobPosts);
 
 /**
@@ -473,9 +474,9 @@ postRoutes.route('/job-posts')
  */
 postRoutes
   .route('/job-posts/:id')
-  .get(validateData(dummySchema), dummyHandler)
-  .put(validateData(dummySchema), dummyHandler)
-  .delete(validateData(dummySchema), dummyHandler);
+  .get(checkAuthenticated, handleGetJobPost)
+  .put(validateData(jobPostSchema),checkAuthenticated, handleUpdateJobPostFromEmp)
+  .delete(validateData(dummySchema),checkAuthenticated, dummyHandler);
 
 /**
  * @openapi
@@ -678,7 +679,7 @@ postRoutes
 postRoutes
   .route('/finding-post')
   .post(validateData(dummySchema), dummyHandler)
-  .get(validateData(getFindEmpSchema), handleGetEmp);  
+  .get(validateData(dummySchema), dummyHandler);  
 /**
  * @openapi
  * /api/post/finding-post/{id}:

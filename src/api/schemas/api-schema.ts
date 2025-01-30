@@ -4,28 +4,6 @@ import { provinces } from "../utilities/province";
 // Empty schemas for job posts
 export const dummySchema = z.object({});
 
-export const getFindEmpSchema = z.object({
-  title: z
-    .string()
-    .max(255, "Title must be less than 255 characters")
-    .optional(),
-  province: z.enum(provinces).optional(),
-  jobLocation: z
-    .string()
-    .max(255, "Job location must be less than 255 characters")
-    .optional(),
-  salaryRange: z
-    .object({
-      min: z.number().int().positive().optional(),
-      max: z.number().int().positive().optional(),
-    })
-    .optional(),
-  workHoursRange: z
-    .string()
-    .max(255, "Work hours range must be less than 255 characters")
-    .optional(),
-});
-
 export const jobPostSchema = z.object({
   title: z
     .string()
@@ -92,3 +70,8 @@ export const getAllJobPostsSchema = z.object({
   page: z.number().int().positive().default(1)
 })
 export type getAllJobPostsType = z.infer<typeof getAllJobPostsSchema>;
+
+export const validUidSchema = z.object({
+  id: z.string().uuid("Invalid ID")
+})
+export type validUidType = z.infer<typeof validUidSchema>;
