@@ -18,6 +18,10 @@ import {
   jobHiringPostSkillTable,
   registrationApprovalTable,
   notificationTable,
+  oauthJobSeekerTable,
+  oauthEmployerTable,
+  oauthJobSeekerSkillTable,
+  oauthJobSeekerVulnerabilityTable,
 } from "./schema";
 
 const SALT_ROUNDS = 10;
@@ -110,6 +114,68 @@ async function seed() {
           contact: "+66987654324",
           aboutMe: "Startup Founder",
           address: "321 Start St, Bangkok",
+          approvalStatus: "UNAPPROVED",
+        },
+      ])
+      .returning();
+
+    // Seed OAuth Job Seekers
+    const [oauthJobSeeker1, oauthJobSeeker2] = await db
+      .insert(oauthJobSeekerTable)
+      .values([
+        {
+          providerId: "google_123456",
+          username: "oauth.jobseeker1",
+          firstName: "Michael",
+          lastName: "Brown",
+          email: "michael.brown@gmail.com",
+          contact: "+66987654327",
+          aboutMe: "Full-stack developer with Google experience",
+          address: "567 OAuth St, Bangkok",
+          provider: "GOOGLE",
+          approvalStatus: "APPROVED",
+        },
+        {
+          providerId: "line_123456",
+          username: "oauth.jobseeker2",
+          firstName: "Sarah",
+          lastName: "Wilson",
+          email: "sarah.wilson@line.me",
+          contact: "+66987654328",
+          aboutMe: "UX Designer with Line experience",
+          address: "890 Line St, Bangkok",
+          provider: "LINE",
+          approvalStatus: "UNAPPROVED",
+        },
+      ])
+      .returning();
+
+    // Seed OAuth Employers
+    const [oauthEmployer1, oauthEmployer2] = await db
+      .insert(oauthEmployerTable)
+      .values([
+        {
+          providerId: "google_789012",
+          username: "oauth.employer1",
+          firstName: "David",
+          lastName: "Lee",
+          email: "david.lee@gmail.com",
+          contact: "+66987654329",
+          aboutMe: "Tech Lead at Google Thailand",
+          address: "123 Google St, Bangkok",
+          provider: "GOOGLE",
+          approvalStatus: "APPROVED",
+        },
+        {
+          providerId: "line_789012",
+          username: "oauth.employer2",
+          firstName: "Emily",
+          lastName: "Chen",
+          email: "emily.chen@line.me",
+          contact: "+66987654330",
+          aboutMe: "HR Director at Line Thailand",
+          address: "456 Line St, Bangkok",
+          provider: "LINE",
           approvalStatus: "UNAPPROVED",
         },
       ])
@@ -388,6 +454,201 @@ async function seed() {
         description: "Your registration has been approved",
         userType: "EMPLOYER",
         employerId: employer1.id,
+      },
+    ]);
+
+    // Add OAuth Job Seeker Skills
+    await db.insert(oauthJobSeekerSkillTable).values([
+      {
+        oauthJobSeekerId: oauthJobSeeker1.id,
+        skillId: skill1.id,
+      },
+      {
+        oauthJobSeekerId: oauthJobSeeker1.id,
+        skillId: skill2.id,
+      },
+      {
+        oauthJobSeekerId: oauthJobSeeker2.id,
+        skillId: skill3.id,
+      },
+    ]);
+
+    // Add OAuth Job Seeker Vulnerabilities
+    await db.insert(oauthJobSeekerVulnerabilityTable).values([
+      {
+        oauthJobSeekerId: oauthJobSeeker1.id,
+        vulnerabilityTypeId: vulType1.id,
+        severity: "LOW",
+        publicStatus: "SHOWN",
+      },
+      {
+        oauthJobSeekerId: oauthJobSeeker2.id,
+        vulnerabilityTypeId: vulType2.id,
+        severity: "MEDIUM",
+        publicStatus: "HIDDEN",
+      },
+    ]);
+
+    // Add OAuth Job Finding Posts
+    const [oauthFindingPost1, oauthFindingPost2] = await db
+      .insert(jobFindingPostTable)
+      .values([
+        {
+          title: "Senior Full-stack Developer Position",
+          description: "Experienced in MERN stack and Python",
+          jobLocation: "Bangkok",
+          expectedSalary: 80000,
+          workDates: "Monday-Friday",
+          workHoursRange: "9:00-18:00",
+          status: "UNMATCHED",
+          jobSeekerType: "OAUTH",
+          oauthJobSeekerId: oauthJobSeeker1.id,
+        },
+        {
+          title: "UX Designer Position",
+          description: "Experienced in user research and prototyping",
+          jobLocation: "Bangkok",
+          expectedSalary: 60000,
+          workDates: "Monday-Friday",
+          workHoursRange: "9:00-18:00",
+          status: "UNMATCHED",
+          jobSeekerType: "OAUTH",
+          oauthJobSeekerId: oauthJobSeeker2.id,
+        },
+      ])
+      .returning();
+
+    // Add OAuth Job Hiring Posts
+    const [oauthHiringPost1, oauthHiringPost2] = await db
+      .insert(jobHiringPostTable)
+      .values([
+        {
+          title: "Full-stack Developer",
+          description: "Looking for experienced MERN stack developer",
+          jobLocation: "Bangkok",
+          salary: 85000,
+          workDates: "Monday-Friday",
+          workHoursRange: "9:00-18:00",
+          status: "UNMATCHED",
+          hiredAmount: 2,
+          jobHirerType: "OAUTHEMPLOYER",
+          oauthEmployerId: oauthEmployer1.id,
+        },
+        {
+          title: "Senior UX Designer",
+          description: "Looking for experienced UX designer",
+          jobLocation: "Bangkok",
+          salary: 75000,
+          workDates: "Monday-Friday",
+          workHoursRange: "9:00-18:00",
+          status: "UNMATCHED",
+          hiredAmount: 1,
+          jobHirerType: "OAUTHEMPLOYER",
+          oauthEmployerId: oauthEmployer2.id,
+        },
+      ])
+      .returning();
+
+    // Add Categories for OAuth Posts
+    await db.insert(jobFindCategoryTable).values([
+      {
+        jobFindingPostId: oauthFindingPost1.id,
+        jobCategoryId: category1.id,
+      },
+      {
+        jobFindingPostId: oauthFindingPost2.id,
+        jobCategoryId: category2.id,
+      },
+    ]);
+
+    await db.insert(jobHireCategoryTable).values([
+      {
+        jobHiringPostId: oauthHiringPost1.id,
+        jobCategoryId: category1.id,
+      },
+      {
+        jobHiringPostId: oauthHiringPost2.id,
+        jobCategoryId: category2.id,
+      },
+    ]);
+
+    // Add Skills for OAuth Posts
+    await db.insert(jobFindingPostSkillTable).values([
+      {
+        jobFindingPostId: oauthFindingPost1.id,
+        skillId: skill1.id,
+      },
+      {
+        jobFindingPostId: oauthFindingPost1.id,
+        skillId: skill2.id,
+      },
+      {
+        jobFindingPostId: oauthFindingPost2.id,
+        skillId: skill3.id,
+      },
+    ]);
+
+    await db.insert(jobHiringPostSkillTable).values([
+      {
+        jobHiringPostId: oauthHiringPost1.id,
+        skillId: skill1.id,
+      },
+      {
+        jobHiringPostId: oauthHiringPost2.id,
+        skillId: skill2.id,
+      },
+    ]);
+
+    // Add OAuth Registration Approvals
+    await db.insert(registrationApprovalTable).values([
+      {
+        status: "ACCEPTED",
+        userType: "OAUTHJOBSEEKER",
+        oauthJobSeekerId: oauthJobSeeker1.id,
+        adminId: admin.id,
+        approvedAt: new Date(),
+      },
+      {
+        status: "UNAPPROVED",
+        userType: "OAUTHJOBSEEKER",
+        oauthJobSeekerId: oauthJobSeeker2.id,
+      },
+      {
+        status: "ACCEPTED",
+        userType: "OAUTHEMPLOYER",
+        oauthEmployerId: oauthEmployer1.id,
+        adminId: admin.id,
+        approvedAt: new Date(),
+      },
+      {
+        status: "UNAPPROVED",
+        userType: "OAUTHEMPLOYER",
+        oauthEmployerId: oauthEmployer2.id,
+      },
+    ]);
+
+    // Add OAuth Notifications
+    await db.insert(notificationTable).values([
+      {
+        status: "UNREAD",
+        title: "OAuth Application Approved",
+        description: "Your OAuth registration has been approved",
+        userType: "OAUTHJOBSEEKER",
+        oauthJobSeekerId: oauthJobSeeker1.id,
+      },
+      {
+        status: "UNREAD",
+        title: "New Job Match for OAuth User",
+        description: "A new job matching your skills has been posted",
+        userType: "OAUTHJOBSEEKER",
+        oauthJobSeekerId: oauthJobSeeker1.id,
+      },
+      {
+        status: "UNREAD",
+        title: "OAuth Application Approved",
+        description: "Your OAuth registration has been approved",
+        userType: "OAUTHEMPLOYER",
+        oauthEmployerId: oauthEmployer1.id,
       },
     ]);
 
