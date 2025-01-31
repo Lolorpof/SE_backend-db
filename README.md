@@ -22,6 +22,8 @@ GRANT ALL ON SCHEMA drizzle TO appuser;
 GRANT ALL ON ALL TABLES IN SCHEMA public TO appuser;
 ```
 
+- run `pnpm db:seed` to seed the whole database
+
 # GitFlow
 
 - `main` is the production branch
