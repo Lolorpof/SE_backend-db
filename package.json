@@ -9,7 +9,8 @@
     "start": "node",
     "dev": "tsx watch ./src/api/index.ts",
     "db:gen": "drizzle-kit generate",
-    "db:migrate": "drizzle-kit migrate"
+    "db:migrate": "drizzle-kit migrate",
+    "db:seed": "tsx src/db/seed.ts"
   },
   "keywords": [],
   "author": "",
