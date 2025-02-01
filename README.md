@@ -1,11 +1,11 @@
 # Step to setup
 
-- run `pnpm i`
+- run `npm i` or `pnpm i`
 - create your own `.env` file and set it up
 
 # Database
 
-- run `npm db:migrate`
+- run `npm run db:migrate` or `pnpm run db:migrate`
 - run `docker exec -it t10-database bash`
 - run `psql -U postgres -d t10_db`
 
@@ -21,6 +21,8 @@ GRANT ALL ON SCHEMA public TO appuser;
 GRANT ALL ON SCHEMA drizzle TO appuser;
 GRANT ALL ON ALL TABLES IN SCHEMA public TO appuser;
 ```
+
+- run `pnpm db:seed` to seed the whole database
 
 # GitFlow
 

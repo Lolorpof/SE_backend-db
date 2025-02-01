@@ -87,9 +87,9 @@ export class companyServices implements userServiceInterfaces {
     let hashedPassword: string | undefined;
     try {
       hashedPassword = await bcrypt.hash(
-              validatedUserForm.password,
-              Number(process.env.BCRYPT_SALTROUNDS)
-            );
+        validatedUserForm.password,
+        Number(process.env.BCRYPT_SALTROUNDS)
+      );
     } catch (error) {
       console.log(error);
       return { success: false, msg: "Something went wrong", status: 403 };
@@ -156,15 +156,9 @@ export class companyServices implements userServiceInterfaces {
       }
     }
 
+    // wrong password
     if (!exactUser) {
-      // wrong password
-      if (approvedExisted) {
-        return done(null, false, { message: "Wrong password" });
-      }
-      // none of the username is approved
-      else {
-        return done(null, false, { message: "User doesn't existed" });
-      }
+      return done(null, false, { message: "Wrong password" });
     }
 
     // not approved
