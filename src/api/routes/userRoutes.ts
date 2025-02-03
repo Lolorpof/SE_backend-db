@@ -136,8 +136,89 @@ userRouter
  *                  example: Successfully fetch api
  *                data:
  *                  type: object
- *                  description: response data
- *                  example: {id: 123, username: THENAME}
+ *                  properties:
+ *                    id:
+ *                      type: string
+ *                      description: job seeker's id
+ *                      example: 123
+ *                    username:
+ *                      type: string
+ *                      description: job seeker's username
+ *                      example: Palm
+ *                    firstName:
+ *                      type: string
+ *                      description: job seeker's first name
+ *                      example: Palm
+ *                    lastName:
+ *                      type: string
+ *                      description: job seeker's last name
+ *                      example: Duangjun
+ *                    email:
+ *                      type: string
+ *                      description: job seeker's email
+ *                      example: duangjun@gmail.com
+ *                    profilePicture:
+ *                      type: string
+ *                      description: job seeker's profile picture link
+ *                      example: duangjun.img
+ *                    aboutMe:
+ *                      type: string
+ *                      description: job seeker's self description
+ *                      example: A very long about me
+ *                    contact:
+ *                      type: string
+ *                      description: job seeker's contact info
+ *                      example: 0123456789
+ *                    resume:
+ *                      type: string
+ *                      description: job seeker's resume link
+ *                      example: http://duangjun-resume.com
+ *                    address:
+ *                      type: string
+ *                      description: job seeker's address
+ *                      example: 69 Borwon rd. Gambler district, Duangjun province, NongPalm country, Uranus, 696969
+ *                    approvalStatus:
+ *                      type: string
+ *                      description: job seeker's approval status
+ *                      example: APPROVED
+ *                    skills:
+ *                      type: array
+ *                      items:
+ *                        type: object
+ *                        properties:
+ *                          name:
+ *                            type: string
+ *                            description: name of job seeker's vulnerability
+ *                            example: Documents
+ *                          description:
+ *                            type: string
+ *                            description: description of job seeker's vulnerability
+ *                            example: able to use document apps like word and excel
+ *                    vulnerabilities:
+ *                      type: array
+ *                      items:
+ *                        type: object
+ *                        properties:
+ *                          name:
+ *                            type: string
+ *                            description: name of job seeker's vulnerability
+ *                            example: Blindness
+ *                          description:
+ *                            type: string
+ *                            description: description of job seeker's vulnerability
+ *                            example: the person can't see very well
+ *                          severity:
+ *                            type: string
+ *                            description: job seeker's vulnerability severity
+ *                            example: LOW
+ *                    providerId:
+ *                      type: string
+ *                      description: job seeker's oauth provider id (only when auth with oauth)
+ *                      example: 987
+ *                    provider:
+ *                      type: string
+ *                      description: job seeker's oauth provider (only when auth with oauth)
+ *                      example: GOOGLE
  *   delete:
  *     summary: logout job seeker if logged in
  *     tags: [Job Seeker]
@@ -312,8 +393,55 @@ userRouter
  *                  example: Successfully fetch api
  *                data:
  *                  type: object
- *                  description: response data
- *                  example: {id: 876, username: hello}
+ *                  properties:
+ *                    id:
+ *                      type: string
+ *                      description: employer's id
+ *                      example: 123
+ *                    username:
+ *                      type: string
+ *                      description: employer's username
+ *                      example: Palm
+ *                    firstName:
+ *                      type: string
+ *                      description: employer's first name
+ *                      example: Palm
+ *                    lastName:
+ *                      type: string
+ *                      description: employer's last name
+ *                      example: Duangjun
+ *                    email:
+ *                      type: string
+ *                      description: employer's email
+ *                      example: duangjun@gmail.com
+ *                    profilePicture:
+ *                      type: string
+ *                      description: employer's profile picture link
+ *                      example: duangjun.img
+ *                    aboutMe:
+ *                      type: string
+ *                      description: employer's self description
+ *                      example: A very long about me
+ *                    contact:
+ *                      type: string
+ *                      description: employer's contact info
+ *                      example: 0123456789
+ *                    address:
+ *                      type: string
+ *                      description: employer's address
+ *                      example: 69 Borwon rd. Gambler district, Duangjun province, NongPalm country, Uranus, 696969
+ *                    approvalStatus:
+ *                      type: string
+ *                      description: employer's approval status
+ *                      example: APPROVED
+ *                    providerId:
+ *                      type: string
+ *                      description: employer's oauth provider id (only when auth with oauth)
+ *                      example: 987
+ *                    provider:
+ *                      type: string
+ *                      description: employer's oauth provider (only when auth with oauth)
+ *                      example: GOOGLE
  *   delete:
  *     summary: logout employer if logged in
  *     tags: [Employer]
@@ -486,8 +614,39 @@ userRouter
  *                  example: Successfully fetch api
  *                data:
  *                  type: object
- *                  description: response data
- *                  example: {id: 69, username: duangjun}
+ *                  properties:
+ *                    id:
+ *                      type: string
+ *                      description: company's id
+ *                      example: 123
+ *                    officialName:
+ *                      type: string
+ *                      description: company's username
+ *                      example: Palm
+ *                    email:
+ *                      type: string
+ *                      description: company's email
+ *                      example: duangjun@gmail.com
+ *                    profilePicture:
+ *                      type: string
+ *                      description: company's profile picture link
+ *                      example: duangjun.img
+ *                    aboutMe:
+ *                      type: string
+ *                      description: company's self description
+ *                      example: A very long about me
+ *                    contact:
+ *                      type: string
+ *                      description: company's contact info
+ *                      example: 0123456789
+ *                    address:
+ *                      type: string
+ *                      description: company's address
+ *                      example: 69 Borwon rd. Gambler district, Duangjun province, NongPalm country, Uranus, 696969
+ *                    approvalStatus:
+ *                      type: string
+ *                      description: company's approval status
+ *                      example: APPROVED
  *   delete:
  *     summary: logout company if logged in
  *     tags: [Company]
