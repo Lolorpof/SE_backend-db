@@ -88,6 +88,10 @@ const postRoutes = Router();
  *           type: string
  *           enum: ["EMPLOYER", "OAUTHEMPLOYER", "COMPANY"]
  *           example: "EMPLOYER"
+ *         jobPostType:
+ *           type: string
+ *           enum: ["FULLTIME", "PARTTIME", "FREELANCE"]
+ *           example: "FULLTIME"
  *         employerId:
  *           type: string
  *           format: uuid

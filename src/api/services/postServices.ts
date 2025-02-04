@@ -10,6 +10,7 @@ import {
   postStatusEnum,
   skillTable,
   jobCategoryTable,
+  jobPostTypeEnum,
 } from "../../db/schema";
 import { jobPostType, validUidType } from "../schemas/api-schema";
 import { TPost, TPostResponse, TPostsResponse } from "../types/postTypes";
@@ -65,6 +66,7 @@ export class postServices {
               hiredAmount: jobHiringPostTable.hiredAmount,
               status: jobHiringPostTable.status,
               jobHirerType: jobHiringPostTable.jobHirerType,
+              jobPostType: jobHiringPostTable.jobPostType,
               companyId: jobHiringPostTable.companyId,
               employerId: jobHiringPostTable.employerId,
               oauthEmployerId: jobHiringPostTable.oauthEmployerId,
@@ -178,6 +180,7 @@ export class postServices {
           jp.hired_amount as "hiredAmount",
           jp.status,
           jp.job_hirer_type as "jobHirerType",
+          jp.job_post_type as "jobPostType",
           jp.company_id as "companyId",
           jp.employer_id as "employerId",
           jp.oauth_employer_id as "oauthEmployerId",
@@ -332,6 +335,7 @@ export class postServices {
           workHoursRange: jobPostData.workHoursRange,
           hiredAmount: jobPostData.hiredAmount,
           status: postStatusEnum.enumValues[1], // UNMATCHED
+          jobPostType: jobPostData.jobPostType,
           jobHirerType: user.isOauth
             ? jobHirerTypeEnum.enumValues[1]
             : jobHirerTypeEnum.enumValues[0], // OAUTH_EMPLOYER or EMPLOYER
@@ -384,6 +388,7 @@ export class postServices {
           workHoursRange: jobPostData.workHoursRange,
           hiredAmount: jobPostData.hiredAmount,
           status: postStatusEnum.enumValues[1], // UNMATCHED
+          jobPostType: jobPostData.jobPostType,
           jobHirerType: jobHirerTypeEnum.enumValues[2], // COMPANY
           employerId: null,
           oauthEmployerId: null,
@@ -470,6 +475,7 @@ export class postServices {
           workDates: jobPostData.workDates,
           workHoursRange: jobPostData.workHoursRange,
           hiredAmount: jobPostData.hiredAmount,
+          jobPostType: jobPostData.jobPostType,
           updatedAt: new Date(),
         })
         .where(eq(jobHiringPostTable.id, id))
@@ -506,6 +512,7 @@ export class postServices {
           hiredAmount: jobHiringPostTable.hiredAmount,
           status: jobHiringPostTable.status,
           jobHirerType: jobHiringPostTable.jobHirerType,
+          jobPostType: jobHiringPostTable.jobPostType,
           employerId: jobHiringPostTable.employerId,
           oauthEmployerId: jobHiringPostTable.oauthEmployerId,
           companyId: jobHiringPostTable.companyId,

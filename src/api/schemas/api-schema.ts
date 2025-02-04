@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { provinces } from "../utilities/province";
+import { jobPostTypeEnum } from "../../db/schema";
 
 // Empty schemas for job posts
 export const dummySchema = z.object({});
@@ -36,6 +37,10 @@ export const jobPostSchema = z.object({
     .positive("Hired amount must be a positive number")
     .min(1, "Must hire at least 1 person")
     .default(1),
+  jobPostType: z.enum(jobPostTypeEnum.enumValues, {
+    required_error: "Job post type is required",
+    invalid_type_error: "Invalid job post type",
+  }),
 });
 export type jobPostType = z.infer<typeof jobPostSchema>;
 

@@ -1,4 +1,4 @@
-import { jobHirerTypeEnum, postStatusEnum } from "../../db/schema";
+import { jobHirerTypeEnum, postStatusEnum, jobPostTypeEnum } from "../../db/schema";
 
 // Base type for job hiring post data
 export type TPost = {
@@ -13,6 +13,7 @@ export type TPost = {
   hiredAmount: number;
   status: typeof postStatusEnum.enumValues[number]; // "MATCHED" | "UNMATCHED" | "MATCHED_INPROG"
   jobHirerType: typeof jobHirerTypeEnum.enumValues[number]; // "EMPLOYER" | "OAUTHEMPLOYER" | "COMPANY"
+  jobPostType: typeof jobPostTypeEnum.enumValues[number]; // "FULLTIME" | "PARTTIME" | "FREELANCE"
   
   // Foreign key references
   employerId: string | null;
