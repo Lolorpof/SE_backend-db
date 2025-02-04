@@ -8,6 +8,13 @@
       "when": 1738143711804,
       "tag": "0000_wandering_salo",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1738695066730,
+      "tag": "0001_petite_klaw",
+      "breakpoints": true
     }
   ]
 }
