@@ -8,8 +8,11 @@ import {
   jobFindingPostTable,
   jobHirerTypeEnum,
   postStatusEnum,
+  skillTable,
+  jobCategoryTable,
 } from "../../db/schema";
 import { jobPostType, validUidType } from "../schemas/api-schema";
+import { TPost, TPostResponse, TPostsResponse } from "../types/postTypes";
 
 export class postServices {
   // singleton design
@@ -29,7 +32,7 @@ export class postServices {
     sortBy?: string;
     salarySort?: string;
     page?: number;
-  }): Promise<SerivcesResponse<any>> {
+  }): Promise<TPostsResponse> {
     try {
       const {
         title,
@@ -46,10 +49,10 @@ export class postServices {
 
       // Check if any filters are applied
       const hasFilters = !!(title || provinces || jobCategories || salaryRange);
-      // if no filters, use simple drizzle query
+
       if (!hasFilters) {
         // Use simple Drizzle query for no filters case
-        const [jobPosts, countResult] = await Promise.all([
+        const [posts, countResult] = await Promise.all([
           drizzlePool
             .select({
               id: jobHiringPostTable.id,
@@ -85,16 +88,49 @@ export class postServices {
             .from(jobHiringPostTable),
         ]);
 
+        const jobPosts = posts as unknown as TPost[];
+        const count = countResult[0].count;
+
+        // After fetching the posts, get company names, skills and categories for each post
+        const postsWithRelations = await Promise.all(
+          jobPosts.map(async (post) => {
+            // Get company name if companyId exists
+            let companyName: string | null = null;
+            if (post.companyId) {
+              const company = await drizzlePool
+                .select({ officialName: companyTable.officialName })
+                .from(companyTable)
+                .where(eq(companyTable.id, post.companyId));
+              
+              if (company && company.length > 0) {
+                companyName = company[0].officialName;
+              }
+            }
+
+            const [skills, categories] = await Promise.all([
+              this.getJobPostSkills(post.id),
+              this.getJobPostCategories(post.id),
+            ]);
+
+            return {
+              ...post,
+              companyName,
+              skills,
+              jobCategories: categories,
+            };
+          })
+        );
+
         return {
           success: true,
           status: 200,
           msg: "Successfully retrieved job posts",
           data: {
-            jobPosts,
+            jobPosts: postsWithRelations,
             pagination: {
               currentPage: Number(page),
-              totalPages: Math.ceil(countResult[0].count / ITEMS_PER_PAGE),
-              totalItems: countResult[0].count,
+              totalPages: Math.ceil(count / ITEMS_PER_PAGE),
+              totalItems: count,
               itemsPerPage: ITEMS_PER_PAGE,
             },
           },
@@ -146,10 +182,8 @@ export class postServices {
           jp.employer_id as "employerId",
           jp.oauth_employer_id as "oauthEmployerId",
           jp.created_at as "createdAt",
-          jp.updated_at as "updatedAt",
-          c.official_name as "companyName"
+          jp.updated_at as "updatedAt"
         FROM job_hiring_post jp
-        LEFT JOIN company c ON jp.company_id = c.id
         ${
           jobCategories
             ? sql`
@@ -199,25 +233,6 @@ export class postServices {
         }
       `;
 
-      type JobPost = {
-        id: string;
-        title: string;
-        description: string | null;
-        jobLocation: string;
-        salary: number;
-        workDates: string;
-        workHoursRange: string;
-        hiredAmount: number;
-        status: string;
-        jobHirerType: string;
-        companyId: string | null;
-        employerId: string | null;
-        oauthEmployerId: string | null;
-        createdAt: Date;
-        updatedAt: Date;
-        companyName: string | null;
-      };
-
       // Execute both queries concurrently
       const [jobPostsResult, countResult] = await Promise.all([
         drizzlePool.execute(baseQuery),
@@ -225,15 +240,45 @@ export class postServices {
       ]);
 
       // Type cast with intermediate unknown type
-      const jobPosts = jobPostsResult as unknown as JobPost[];
+      const jobPosts = jobPostsResult as unknown as TPost[];
       const count = (countResult as unknown as [{ count: number }])[0].count;
+
+      // After fetching the posts, get company names, skills and categories for each post
+      const postsWithRelations = await Promise.all(
+        jobPosts.map(async (post) => {
+          // Get company name if companyId exists
+          let companyName: string | null = null;
+          if (post.companyId) {
+            const company = await drizzlePool
+              .select({ officialName: companyTable.officialName })
+              .from(companyTable)
+              .where(eq(companyTable.id, post.companyId));
+            
+            if (company && company.length > 0) {
+              companyName = company[0].officialName;
+            }
+          }
+
+          const [skills, categories] = await Promise.all([
+            this.getJobPostSkills(post.id),
+            this.getJobPostCategories(post.id),
+          ]);
+
+          return {
+            ...post,
+            companyName,
+            skills,
+            jobCategories: categories,
+          };
+        })
+      );
 
       return {
         success: true,
         status: 200,
         msg: "Successfully retrieved job posts",
         data: {
-          jobPosts,
+          jobPosts: postsWithRelations,
           pagination: {
             currentPage: Number(page),
             totalPages: Math.ceil(Number(count) / ITEMS_PER_PAGE),
@@ -248,6 +293,15 @@ export class postServices {
         success: false,
         status: 500,
         msg: "Failed to fetch job posts",
+        data: {
+          jobPosts: [],
+          pagination: {
+            currentPage: 0,
+            totalPages: 0,
+            totalItems: 0,
+            itemsPerPage: 0,
+          },
+        },
       };
     }
   }
@@ -255,13 +309,14 @@ export class postServices {
   async createJobPostFromEmp(
     jobPostData: jobPostType,
     user: TEmployerSession
-  ): Promise<SerivcesResponse<any>> {
+  ): Promise<TPostResponse> {
     try {
       if (!user) {
         return {
           success: false,
           status: 401,
           msg: "Unauthorized",
+          data: null as unknown as TPost,
         };
       }
 
@@ -290,7 +345,7 @@ export class postServices {
         success: true,
         status: 201,
         msg: "Job hiring post created successfully",
-        data: jobPost,
+        data: jobPost as TPost,
       };
     } catch (error) {
       console.error("Error creating job hiring post:", error);
@@ -298,6 +353,7 @@ export class postServices {
         success: false,
         status: 500,
         msg: "Failed to create job hiring post",
+        data: null as unknown as TPost,
       };
     }
   }
@@ -305,13 +361,14 @@ export class postServices {
   async createJobPostFromCompany(
     jobPostData: jobPostType,
     user: TCompanySession
-  ): Promise<SerivcesResponse<any>> {
+  ): Promise<TPostResponse> {
     try {
       if (!user) {
         return {
           success: false,
           status: 401,
           msg: "Unauthorized",
+          data: null as unknown as TPost,
         };
       }
 
@@ -338,7 +395,7 @@ export class postServices {
         success: true,
         status: 201,
         msg: "Job hiring post created successfully",
-        data: jobPost,
+        data: jobPost as TPost,
       };
     } catch (error) {
       console.error("Error creating job hiring post:", error);
@@ -346,6 +403,7 @@ export class postServices {
         success: false,
         status: 500,
         msg: "Failed to create job hiring post",
+        data: null as unknown as TPost,
       };
     }
   }
@@ -354,13 +412,14 @@ export class postServices {
     id: string,
     jobPostData: jobPostType,
     user: TEmployerSession | TCompanySession
-  ): Promise<SerivcesResponse<any>> {
+  ): Promise<TPostResponse> {
     try {
       if (!user) {
         return {
           success: false,
           status: 401,
           msg: "Unauthorized",
+          data: null as unknown as TPost,
         };
       }
 
@@ -375,6 +434,7 @@ export class postServices {
           success: false,
           status: 404,
           msg: "Job post not found",
+          data: null as unknown as TPost,
         };
       }
 
@@ -395,6 +455,7 @@ export class postServices {
           success: false,
           status: 403,
           msg: "You are not authorized to update this job post",
+          data: null as unknown as TPost,
         };
       }
 
@@ -418,7 +479,7 @@ export class postServices {
         success: true,
         status: 200,
         msg: "Job post updated successfully",
-        data: updatedPost,
+        data: updatedPost as TPost,
       };
     } catch (error) {
       console.error("Error updating job post:", error);
@@ -426,14 +487,31 @@ export class postServices {
         success: false,
         status: 500,
         msg: "Failed to update job post",
+        data: null as unknown as TPost,
       };
     }
   }
 
-  async getJobPost(id: string): Promise<SerivcesResponse<any>> {
+  async getJobPost(id: string): Promise<TPostResponse> {
     try {
       const jobPost = await drizzlePool
-        .select()
+        .select({
+          id: jobHiringPostTable.id,
+          title: jobHiringPostTable.title,
+          description: jobHiringPostTable.description,
+          jobLocation: jobHiringPostTable.jobLocation,
+          salary: jobHiringPostTable.salary,
+          workDates: jobHiringPostTable.workDates,
+          workHoursRange: jobHiringPostTable.workHoursRange,
+          hiredAmount: jobHiringPostTable.hiredAmount,
+          status: jobHiringPostTable.status,
+          jobHirerType: jobHiringPostTable.jobHirerType,
+          employerId: jobHiringPostTable.employerId,
+          oauthEmployerId: jobHiringPostTable.oauthEmployerId,
+          companyId: jobHiringPostTable.companyId,
+          createdAt: jobHiringPostTable.createdAt,
+          updatedAt: jobHiringPostTable.updatedAt,
+        })
         .from(jobHiringPostTable)
         .where(eq(jobHiringPostTable.id, id));
 
@@ -442,14 +520,41 @@ export class postServices {
           success: false,
           status: 404,
           msg: "Job post not found",
+          data: null as unknown as TPost,
         };
       }
+
+      // Fetch company name if companyId exists
+      let companyName: string | null = null;
+      if (jobPost[0].companyId) {
+        const company = await drizzlePool
+          .select({ officialName: companyTable.officialName })
+          .from(companyTable)
+          .where(eq(companyTable.id, jobPost[0].companyId));
+        
+        if (company && company.length > 0) {
+          companyName = company[0].officialName;
+        }
+      }
+
+      // Fetch skills and categories
+      const [skills, categories] = await Promise.all([
+        this.getJobPostSkills(id),
+        this.getJobPostCategories(id),
+      ]);
+
+      const postWithRelations = {
+        ...jobPost[0],
+        companyName,
+        skills,
+        jobCategories: categories,
+      };
 
       return {
         success: true,
         status: 200,
         msg: "Job post fetched successfully",
-        data: jobPost[0],
+        data: postWithRelations as TPost,
       };
     } catch (error) {
       console.error("Error fetching job post:", error);
@@ -457,6 +562,7 @@ export class postServices {
         success: false,
         status: 500,
         msg: "Failed to fetch job post",
+        data: null as unknown as TPost,
       };
     }
   }
@@ -464,13 +570,14 @@ export class postServices {
   async deleteJobPost(
     id: string,
     user: TEmployerSession | TCompanySession
-  ): Promise<SerivcesResponse<any>> {
+  ): Promise<TPostResponse> {
     try {
       if (!user) {
         return {
           success: false,
           status: 401,
           msg: "Unauthorized",
+          data: null as unknown as TPost,
         };
       }
 
@@ -485,6 +592,7 @@ export class postServices {
           success: false,
           status: 404,
           msg: "Job post not found",
+          data: null as unknown as TPost,
         };
       }
 
@@ -505,6 +613,7 @@ export class postServices {
           success: false,
           status: 403,
           msg: "You are not authorized to delete this job post",
+          data: null as unknown as TPost,
         };
       }
 
@@ -518,7 +627,7 @@ export class postServices {
         success: true,
         status: 200,
         msg: "Job post deleted successfully",
-        data: deletedPost,
+        data: deletedPost as TPost,
       };
     } catch (error) {
       console.error("Error deleting job post:", error);
@@ -526,7 +635,60 @@ export class postServices {
         success: false,
         status: 500,
         msg: "Failed to delete job post",
+        data: null as unknown as TPost,
       };
+    }
+  }
+
+  async getJobPostSkills(postId: string): Promise<{
+    id: string;
+    name: string;
+    description: string | null;
+  }[]> {
+    try {
+      const skills = await drizzlePool
+        .select({
+          id: skillTable.id,
+          name: skillTable.name,
+          description: skillTable.description,
+        })
+        .from(jobHiringPostSkillTable)
+        .innerJoin(
+          skillTable,
+          eq(jobHiringPostSkillTable.skillId, skillTable.id)
+        )
+        .where(eq(jobHiringPostSkillTable.jobHiringPostId, postId));
+
+      return skills;
+    } catch (error) {
+      console.error("Error fetching job post skills:", error);
+      return [];
+    }
+  }
+
+  async getJobPostCategories(postId: string): Promise<{
+    id: string;
+    name: string;
+    description: string | null;
+  }[]> {
+    try {
+      const categories = await drizzlePool
+        .select({
+          id: jobCategoryTable.id,
+          name: jobCategoryTable.name,
+          description: jobCategoryTable.description,
+        })
+        .from(jobHireCategoryTable)
+        .innerJoin(
+          jobCategoryTable,
+          eq(jobHireCategoryTable.jobCategoryId, jobCategoryTable.id)
+        )
+        .where(eq(jobHireCategoryTable.jobHiringPostId, postId));
+
+      return categories;
+    } catch (error) {
+      console.error("Error fetching job post categories:", error);
+      return [];
     }
   }
 } 

@@ -21,6 +21,160 @@ const postRoutes = Router();
 // Job hiring routes
 /**
  * @openapi
+ * components:
+ *   schemas:
+ *     Skill:
+ *       type: object
+ *       properties:
+ *         id:
+ *           type: string
+ *           format: uuid
+ *           example: "123e4567-e89b-12d3-a456-426614174010"
+ *         name:
+ *           type: string
+ *           example: "JavaScript"
+ *         description:
+ *           type: string
+ *           nullable: true
+ *           example: "Programming language for web development"
+ *     JobCategory:
+ *       type: object
+ *       properties:
+ *         id:
+ *           type: string
+ *           format: uuid
+ *           example: "123e4567-e89b-12d3-a456-426614174020"
+ *         name:
+ *           type: string
+ *           example: "Software Development"
+ *         description:
+ *           type: string
+ *           nullable: true
+ *           example: "Development of software applications"
+ *     JobPost:
+ *       type: object
+ *       properties:
+ *         id:
+ *           type: string
+ *           format: uuid
+ *           example: "123e4567-e89b-12d3-a456-426614174000"
+ *         title:
+ *           type: string
+ *           example: "Senior Software Engineer"
+ *         description:
+ *           type: string
+ *           nullable: true
+ *           example: "Looking for an experienced developer"
+ *         jobLocation:
+ *           type: string
+ *           example: "Bangkok"
+ *         salary:
+ *           type: integer
+ *           example: 50000
+ *         workDates:
+ *           type: string
+ *           example: "Monday-Friday"
+ *         workHoursRange:
+ *           type: string
+ *           example: "9:00-18:00"
+ *         hiredAmount:
+ *           type: integer
+ *           example: 2
+ *         status:
+ *           type: string
+ *           enum: ["MATCHED", "UNMATCHED", "MATCHED_INPROG"]
+ *           example: "UNMATCHED"
+ *         jobHirerType:
+ *           type: string
+ *           enum: ["EMPLOYER", "OAUTHEMPLOYER", "COMPANY"]
+ *           example: "EMPLOYER"
+ *         employerId:
+ *           type: string
+ *           format: uuid
+ *           nullable: true
+ *           example: "123e4567-e89b-12d3-a456-426614174001"
+ *         oauthEmployerId:
+ *           type: string
+ *           format: uuid
+ *           nullable: true
+ *           example: null
+ *         companyId:
+ *           type: string
+ *           format: uuid
+ *           nullable: true
+ *           example: null
+ *         createdAt:
+ *           type: string
+ *           format: date-time
+ *           example: "2024-01-20T15:30:00.000Z"
+ *         updatedAt:
+ *           type: string
+ *           format: date-time
+ *           example: "2024-01-20T15:30:00.000Z"
+ *         companyName:
+ *           type: string
+ *           nullable: true
+ *           example: null
+ *         skills:
+ *           type: array
+ *           items:
+ *             $ref: '#/components/schemas/Skill'
+ *         jobCategories:
+ *           type: array
+ *           items:
+ *             $ref: '#/components/schemas/JobCategory'
+ *     SinglePostResponse:
+ *       type: object
+ *       properties:
+ *         success:
+ *           type: boolean
+ *           example: true
+ *         status:
+ *           type: integer
+ *           example: 200
+ *         msg:
+ *           type: string
+ *           example: "Successfully retrieved job post"
+ *         data:
+ *           $ref: '#/components/schemas/JobPost'
+ *     MultiplePostsResponse:
+ *       type: object
+ *       properties:
+ *         success:
+ *           type: boolean
+ *           example: true
+ *         status:
+ *           type: integer
+ *           example: 200
+ *         msg:
+ *           type: string
+ *           example: "Successfully retrieved job posts"
+ *         data:
+ *           type: object
+ *           properties:
+ *             jobPosts:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/JobPost'
+ *             pagination:
+ *               type: object
+ *               properties:
+ *                 currentPage:
+ *                   type: integer
+ *                   example: 1
+ *                 totalPages:
+ *                   type: integer
+ *                   example: 5
+ *                 totalItems:
+ *                   type: integer
+ *                   example: 48
+ *                 itemsPerPage:
+ *                   type: integer
+ *                   example: 10
+ */
+
+/**
+ * @openapi
  * /api/post/job-posts/employer:
  *   post:
  *     tags:
@@ -76,61 +230,7 @@ const postRoutes = Router();
  *         content:
  *           application/json:
  *             schema:
- *               type: object
- *               properties:
- *                 success:
- *                   type: boolean
- *                   example: true
- *                 data:
- *                   type: object
- *                   properties:
- *                     id:
- *                       type: string
- *                       format: uuid
- *                     title:
- *                       type: string
- *                     description:
- *                       type: string
- *                       nullable: true
- *                     jobLocation:
- *                       type: string
- *                     salary:
- *                       type: integer
- *                     workDates:
- *                       type: string
- *                     workHoursRange:
- *                       type: string
- *                     status:
- *                       type: string
- *                       enum: ["UNMATCHED", "MATCHED", "MATCHED_INPROG"]
- *                     hiredAmount:
- *                       type: integer
- *                     jobHirerType:
- *                       type: string
- *                       enum: ["EMPLOYER", "OAUTHEMPLOYER", "COMPANY"]
- *                     employerId:
- *                       type: string
- *                       format: uuid
- *                       nullable: true
- *                     oauthEmployerId:
- *                       type: string
- *                       format: uuid
- *                       nullable: true
- *                       example: null
- *                     companyId:
- *                       type: string
- *                       format: uuid
- *                       nullable: true
- *                       example: null
- *                     createdAt:
- *                       type: string
- *                       format: date-time
- *                     updatedAt:
- *                       type: string
- *                       format: date-time
- *                 message:
- *                   type: string
- *                   example: "Job hiring post created successfully"
+ *               $ref: '#/components/schemas/SinglePostResponse'
  *       400:
  *         description: Invalid request data
  *         content:
@@ -151,8 +251,10 @@ const postRoutes = Router();
  *                     properties:
  *                       field:
  *                         type: string
+ *                         example: "salary"
  *                       message:
  *                         type: string
+ *                         example: "Salary must be greater than 0"
  *       401:
  *         description: Unauthorized - User not logged in
  *         content:
@@ -166,6 +268,8 @@ const postRoutes = Router();
  *                 message:
  *                   type: string
  *                   example: "Unauthorized"
+ *                 data:
+ *                   type: null
  *       500:
  *         description: Server error
  *         content:
@@ -179,6 +283,8 @@ const postRoutes = Router();
  *                 message:
  *                   type: string
  *                   example: "Failed to create job hiring post"
+ *                 data:
+ *                   type: null
  */
 postRoutes.route('/job-posts/employer')
   .post(validateData(jobPostSchema), checkAuthenticated, handleCreateJobPostFromEmp);
@@ -197,20 +303,59 @@ postRoutes.route('/job-posts/employer')
  *       content:
  *         application/json:
  *           schema:
- *             $ref: '#/components/schemas/JobPostRequest'
+ *             $ref: '#/components/schemas/JobPost'
  *     responses:
  *       201:
  *         description: Job post created successfully
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/JobPostResponse'
+ *               $ref: '#/components/schemas/SinglePostResponse'
  *       400:
- *         $ref: '#/components/responses/ValidationError'
+ *         description: Invalid request data
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 message:
+ *                   type: string
+ *                   example: "Invalid request data"
+ *                 data:
+ *                   type: null
  *       401:
- *         $ref: '#/components/responses/UnauthorizedError'
+ *         description: Unauthorized
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 message:
+ *                   type: string
+ *                   example: "Unauthorized"
+ *                 data:
+ *                   type: null
  *       500:
- *         $ref: '#/components/responses/ServerError'
+ *         description: Server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 message:
+ *                   type: string
+ *                   example: "Failed to create job hiring post"
+ *                 data:
+ *                   type: null
  */
 postRoutes.route('/job-posts/company')
   .post(validateData(jobPostSchema), checkAuthenticated, handleCreateJobPostFromCompany);
@@ -280,80 +425,75 @@ postRoutes.route('/job-posts/company')
  *         content:
  *           application/json:
  *             schema:
+ *               $ref: '#/components/schemas/MultiplePostsResponse'
+ *       401:
+ *         description: Unauthorized
+ *         content:
+ *           application/json:
+ *             schema:
  *               type: object
  *               properties:
  *                 success:
  *                   type: boolean
- *                   example: true
+ *                   example: false
+ *                 message:
+ *                   type: string
+ *                   example: "Unauthorized"
  *                 data:
- *                   type: array
- *                   items:
- *                     type: object
- *                     properties:
- *                       id:
- *                         type: string
- *                         format: uuid
- *                       title:
- *                         type: string
- *                       description:
- *                         type: string
- *                         nullable: true
- *                       jobLocation:
- *                         type: string
- *                       salary:
- *                         type: number
- *                       workDates:
- *                         type: string
- *                       workHoursRange:
- *                         type: string
- *                       hiredAmount:
- *                         type: number
- *                       status:
- *                         type: string
- *                         enum: [UNMATCHED, MATCHED, MATCHED_INPROG]
- *                       jobHirerType:
- *                         type: string
- *                         enum: [EMPLOYER, OAUTHEMPLOYER, COMPANY]
- *                       companyId:
- *                         type: string
- *                         format: uuid
- *                         nullable: true
- *                       employerId:
- *                         type: string
- *                         format: uuid
- *                         nullable: true
- *                       oauthEmployerId:
- *                         type: string
- *                         format: uuid
- *                         nullable: true
- *                       createdAt:
- *                         type: string
- *                         format: date-time
- *                       updatedAt:
- *                         type: string
- *                         format: date-time
- *                       companyName:
- *                         type: string
- *                         nullable: true
- *                 pagination:
  *                   type: object
  *                   properties:
- *                     currentPage:
- *                       type: integer
- *                       example: 1
- *                     totalPages:
- *                       type: integer
- *                       example: 5
- *                     totalItems:
- *                       type: integer
- *                       example: 48
- *                     itemsPerPage:
- *                       type: integer
- *                       example: 10
- *       401:
- *         $ref: '#/components/responses/UnauthorizedError'
+ *                     jobPosts:
+ *                       type: array
+ *                       items: []
+ *                     pagination:
+ *                       type: object
+ *                       properties:
+ *                         currentPage:
+ *                           type: integer
+ *                           example: 0
+ *                         totalPages:
+ *                           type: integer
+ *                           example: 0
+ *                         totalItems:
+ *                           type: integer
+ *                           example: 0
+ *                         itemsPerPage:
+ *                           type: integer
+ *                           example: 0
  *       500:
- *         $ref: '#/components/responses/ServerError'
+ *         description: Server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 message:
+ *                   type: string
+ *                   example: "Failed to fetch job posts"
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     jobPosts:
+ *                       type: array
+ *                       items: []
+ *                     pagination:
+ *                       type: object
+ *                       properties:
+ *                         currentPage:
+ *                           type: integer
+ *                           example: 0
+ *                         totalPages:
+ *                           type: integer
+ *                           example: 0
+ *                         totalItems:
+ *                           type: integer
+ *                           example: 0
+ *                         itemsPerPage:
+ *                           type: integer
+ *                           example: 0
  */
 postRoutes.route('/job-posts')
   .get(validateData(getAllJobPostsSchema), checkAuthenticated, handleGetAllJobPosts);
@@ -379,36 +519,37 @@ postRoutes.route('/job-posts')
  *         content:
  *           application/json:
  *             schema:
+ *               $ref: '#/components/schemas/SinglePostResponse'
+ *       404:
+ *         description: Job post not found
+ *         content:
+ *           application/json:
+ *             schema:
  *               type: object
  *               properties:
  *                 success:
  *                   type: boolean
+ *                   example: false
+ *                 message:
+ *                   type: string
+ *                   example: "Job post not found"
  *                 data:
- *                   type: object
- *                   properties:
- *                     id:
- *                       type: string
- *                       format: uuid
- *                     title:
- *                       type: string
- *                     description:
- *                       type: string
- *                     jobLocation:
- *                       type: string
- *                     salary:
- *                       type: number
- *                     workDates:
- *                       type: string
- *                     workHoursRange:
- *                       type: string
- *                     hiredAmount:
- *                       type: number
- *                     companyName:
- *                       type: string
- *       404:
- *         description: Job post not found
+ *                   type: null
  *       500:
  *         description: Server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 message:
+ *                   type: string
+ *                   example: "Failed to fetch job post"
+ *                 data:
+ *                   type: null
  *   put:
  *     tags:
  *       - Job Post from Company/Employer
@@ -428,18 +569,44 @@ postRoutes.route('/job-posts')
  *       content:
  *         application/json:
  *           schema:
- *             $ref: '#/components/schemas/JobPostRequest'
+ *             $ref: '#/components/schemas/JobPost'
  *     responses:
  *       200:
  *         description: Job post updated successfully
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/JobPostResponse'
+ *               $ref: '#/components/schemas/SinglePostResponse'
  *       400:
- *         $ref: '#/components/responses/ValidationError'
+ *         description: Invalid request data
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 message:
+ *                   type: string
+ *                   example: "Invalid request data"
+ *                 data:
+ *                   type: null
  *       401:
- *         $ref: '#/components/responses/UnauthorizedError'
+ *         description: Unauthorized
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 message:
+ *                   type: string
+ *                   example: "Unauthorized"
+ *                 data:
+ *                   type: null
  *       403:
  *         description: Not authorized to update this job post
  *         content:
@@ -453,6 +620,8 @@ postRoutes.route('/job-posts')
  *                 message:
  *                   type: string
  *                   example: "You are not authorized to update this job post"
+ *                 data:
+ *                   type: null
  *       404:
  *         description: Job post not found
  *         content:
@@ -466,8 +635,23 @@ postRoutes.route('/job-posts')
  *                 message:
  *                   type: string
  *                   example: "Job post not found"
+ *                 data:
+ *                   type: null
  *       500:
- *         $ref: '#/components/responses/ServerError'
+ *         description: Server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 message:
+ *                   type: string
+ *                   example: "Failed to update job post"
+ *                 data:
+ *                   type: null
  *   delete:
  *     tags:
  *       - Job Post from Company/Employer
@@ -488,18 +672,22 @@ postRoutes.route('/job-posts')
  *         content:
  *           application/json:
  *             schema:
+ *               $ref: '#/components/schemas/SinglePostResponse'
+ *       401:
+ *         description: Unauthorized
+ *         content:
+ *           application/json:
+ *             schema:
  *               type: object
  *               properties:
  *                 success:
  *                   type: boolean
- *                   example: true
- *                 data:
- *                   $ref: '#/components/schemas/JobPostResponse/properties/data'
+ *                   example: false
  *                 message:
  *                   type: string
- *                   example: "Job post deleted successfully"
- *       401:
- *         $ref: '#/components/responses/UnauthorizedError'
+ *                   example: "Unauthorized"
+ *                 data:
+ *                   type: null
  *       403:
  *         description: Not authorized to delete this job post
  *         content:
@@ -513,6 +701,8 @@ postRoutes.route('/job-posts')
  *                 message:
  *                   type: string
  *                   example: "You are not authorized to delete this job post"
+ *                 data:
+ *                   type: null
  *       404:
  *         description: Job post not found
  *         content:
@@ -526,8 +716,23 @@ postRoutes.route('/job-posts')
  *                 message:
  *                   type: string
  *                   example: "Job post not found"
+ *                 data:
+ *                   type: null
  *       500:
- *         $ref: '#/components/responses/ServerError'
+ *         description: Server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 message:
+ *                   type: string
+ *                   example: "Failed to delete job post"
+ *                 data:
+ *                   type: null
  */
 postRoutes
   .route('/job-posts/:id')
