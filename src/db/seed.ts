@@ -306,6 +306,7 @@ async function seed() {
           status: "UNMATCHED",
           jobSeekerType: "NORMAL",
           jobSeekerId: jobSeeker1.id,
+          jobPostType: "FULLTIME",
         },
         {
           title: "Seeking Project Manager Role",
@@ -317,9 +318,11 @@ async function seed() {
           status: "UNMATCHED",
           jobSeekerType: "NORMAL",
           jobSeekerId: jobSeeker2.id,
+          jobPostType: "PARTTIME",
         },
       ])
       .returning();
+
 
     // Seed Job Hiring Posts
     const [hiringPost1, hiringPost2] = await db
@@ -336,6 +339,7 @@ async function seed() {
           hiredAmount: 2,
           jobHirerType: "EMPLOYER",
           employerId: employer1.id,
+          jobPostType: "FULLTIME",
         },
         {
           title: "Data Scientist",
@@ -348,9 +352,11 @@ async function seed() {
           hiredAmount: 1,
           jobHirerType: "COMPANY",
           companyId: company1.id,
+          jobPostType: "PARTTIME",
         },
       ])
       .returning();
+
 
     // Seed Job Categories for Posts
     await db.insert(jobFindCategoryTable).values([
@@ -502,10 +508,12 @@ async function seed() {
           workHoursRange: "9:00-18:00",
           status: "UNMATCHED",
           jobSeekerType: "OAUTH",
+          jobPostType: "FULLTIME",
           oauthJobSeekerId: oauthJobSeeker1.id,
         },
         {
           title: "UX Designer Position",
+
           description: "Experienced in user research and prototyping",
           jobLocation: "Bangkok",
           expectedSalary: 60000,
@@ -513,9 +521,11 @@ async function seed() {
           workHoursRange: "9:00-18:00",
           status: "UNMATCHED",
           jobSeekerType: "OAUTH",
+          jobPostType: "PARTTIME",
           oauthJobSeekerId: oauthJobSeeker2.id,
         },
       ])
+
       .returning();
 
     // Add OAuth Job Hiring Posts
@@ -533,9 +543,11 @@ async function seed() {
           hiredAmount: 2,
           jobHirerType: "OAUTHEMPLOYER",
           oauthEmployerId: oauthEmployer1.id,
+          jobPostType: "FULLTIME",
         },
         {
           title: "Senior UX Designer",
+
           description: "Looking for experienced UX designer",
           jobLocation: "Bangkok",
           salary: 75000,
@@ -545,9 +557,11 @@ async function seed() {
           hiredAmount: 1,
           jobHirerType: "OAUTHEMPLOYER",
           oauthEmployerId: oauthEmployer2.id,
+          jobPostType: "PARTTIME",
         },
       ])
       .returning();
+
 
     // Add Categories for OAuth Posts
     await db.insert(jobFindCategoryTable).values([

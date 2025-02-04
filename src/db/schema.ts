@@ -41,6 +41,12 @@ export const jobHirerTypeEnum = pgEnum("jobHirerType", [
   "COMPANY",
 ]);
 
+export const jobPostTypeEnum = pgEnum("jobPostType", [
+  "FULLTIME", 
+  "PARTTIME",
+  "FREELANCE",
+]);
+
 // {Status}
 
 export const publicStatusEnum = pgEnum("publicStatus", ["SHOWN", "HIDDEN"]);
@@ -339,11 +345,13 @@ export const jobFindingPostTable = pgTable("job_finding_post", {
   workDates: varchar("work_dates", { length: 1024 }).notNull(),
   workHoursRange: varchar("work_hours_range", { length: 255 }).notNull(),
   status: postStatusEnum("status").notNull().default("UNMATCHED"),
+  jobPostType: jobPostTypeEnum("job_post_type").notNull(),
   jobSeekerType: jobSeekerTypeEnum("job_seeker_type").notNull(),
   jobSeekerId: uuid("job_seeker_id").references(() => jobSeekerTable.id, {
     onDelete: "cascade",
     onUpdate: "cascade",
   }),
+
   oauthJobSeekerId: uuid("oauth_job_seeker_id").references(
     () => oauthJobSeekerTable.id,
     {
@@ -368,6 +376,7 @@ export const jobHiringPostTable = pgTable("job_hiring_post", {
   workHoursRange: varchar("work_hours_range", { length: 255 }).notNull(),
   status: postStatusEnum("status").notNull().default("UNMATCHED"),
   hiredAmount: integer("hired_amount").notNull().default(1),
+  jobPostType: jobPostTypeEnum("job_post_type").notNull(),
   jobHirerType: jobHirerTypeEnum("job_hirer_type").notNull(),
   employerId: uuid("employer_id").references(() => employerTable.id, {
     onDelete: "cascade",
