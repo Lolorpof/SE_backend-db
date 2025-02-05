@@ -13,6 +13,7 @@ import {
 } from "../interfaces/userModelInterfaces";
 import { Profile as GoogleProfile } from "passport-google-oauth20";
 import { TApprovedRequest } from "../validators/usersValidator";
+import { minioClient } from "../utilities/minio/minio";
 
 export class jobSeekerModels implements userOauthModelInterfaces {
   // singleton design
