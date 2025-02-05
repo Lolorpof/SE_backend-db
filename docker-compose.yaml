@@ -26,8 +26,24 @@ services:
       - database
     networks:
       - t10-network
-
+  minio:
+    image: minio/minio
+    container_name: t10-minio
+    ports:
+      - ${MINIO_API_PORT}:9000
+      - ${MINIO_WEBUI_PORT}:9090
+    environment:
+      - MINIO_ROOT_USER=${MINIO_ROOT_USER}
+      - MINIO_ROOT_PASSWORD=${MINIO_ROOT_PASSWORD}
+    depends_on:
+      - database
+    command: server /data --console-address ":9090"
+    volumes:
+      - minio_data:/data
+    networks:
+      - t10-network
 networks:
   t10-network:
 volumes:
   database_data:
+  minio_data:
