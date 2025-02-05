@@ -42,7 +42,7 @@ export const jobHirerTypeEnum = pgEnum("jobHirerType", [
 ]);
 
 export const jobPostTypeEnum = pgEnum("jobPostType", [
-  "FULLTIME", 
+  "FULLTIME",
   "PARTTIME",
   "FREELANCE",
 ]);
