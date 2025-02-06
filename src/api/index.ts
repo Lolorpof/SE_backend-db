@@ -11,6 +11,7 @@ import swaggerOption from "./swagger";
 import { adminRouter } from "./routes/adminRoutes";
 import postRoutes from "./routes/postRoutes";
 import skillRoutes from "./routes/skillRoutes";
+import categoryRoutes from "./routes/categoryRoutes";
 const port = process.env.BACKEND_PORT; //6977
 const cookieExpireTime = { real: 1000 * 60 * 60 * 4, dev: 1000 * 60 * 5 };
 
@@ -49,6 +50,7 @@ app.use("/api/user", userRouter);
 app.use("/api/admin", adminRouter);
 app.use("/api/post", postRoutes);
 app.use("/api/skill", skillRoutes);
+app.use("/api/category", categoryRoutes);
 
 // HTTP Server setup
 app.listen(port, () => {

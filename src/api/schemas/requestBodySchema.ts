@@ -129,4 +129,10 @@ export const skillSchema = z.object({
 });
 export type skillType = z.infer<typeof skillSchema>;
 
+export const categorySchema = z.object({
+  name: z.string().min(1, "Name is required"),
+  description: z.string().optional(),
+});
+export type categoryType = z.infer<typeof categorySchema>;
+
 
