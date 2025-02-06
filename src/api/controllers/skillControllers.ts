@@ -1,30 +1,48 @@
 import { Request, Response } from "express";
 import { skillServices } from "../services/skillServices";
+import { BaseEntity } from "../services/services";
+import { skillType } from "../schemas/requestBodySchema";
+import { Controllers } from "./controllers";
 
-export const getAllSkills = async (req: Request, res: Response) => {
-  const result = await skillServices.instance().getAllSkills();
-  res.status(result.status).json(result);
-};
+type TSkill = BaseEntity;
 
-export const getSkillById = async (req: Request, res: Response) => {
-  const result = await skillServices.instance().getSkillById(req.params.id);
-  res.status(result.status).json(result);
-};
+export class skillControllers extends Controllers<TSkill, skillType, skillServices> {
+  private constructor() {
+    super(skillServices.instance());
+  }
 
-export const createSkill = async (req: Request, res: Response) => {
-  const result = await skillServices.instance().createSkill(req.body);
-  res.status(result.status).json(result);
-};
+  static instance(): skillControllers {
+    return Controllers.getInstance.call(skillControllers);
+  }
 
-export const updateSkill = async (req: Request, res: Response) => {
-  const result = await skillServices.instance().updateSkill(req.params.id, req.body);
-  res.status(result.status).json(result);
-};
+  async getAllSkills(req: Request, res: Response) {
+    return this.getAll(req, res);
+  }
 
-export const deleteSkill = async (req: Request, res: Response) => {
-  const result = await skillServices.instance().deleteSkill(req.params.id);
-  res.status(result.status).json(result);
-};
+  async getSkillById(req: Request, res: Response) {
+    return this.getById(req, res);
+  }
+
+  async createSkill(req: Request, res: Response) {
+    return this.create(req, res);
+  }
+
+  async updateSkill(req: Request, res: Response) {
+    return this.update(req, res);
+  }
+
+  async deleteSkill(req: Request, res: Response) {
+    return this.delete(req, res);
+  }
+}
+
+export const {
+  getAllSkills,
+  getSkillById,
+  createSkill,
+  updateSkill,
+  deleteSkill
+} = skillControllers.instance();
 
 
 

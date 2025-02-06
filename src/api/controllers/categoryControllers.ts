@@ -1,92 +1,45 @@
 import { Request, Response } from "express";
 import { categoryServices } from "../services/categoryServices";
+import { BaseEntity } from "../services/services";
+import { categoryType } from "../schemas/requestBodySchema";
+import { Controllers } from "./controllers";
 
-export async function getAllCategories(req: Request, res: Response) {
-  const result = await categoryServices.instance().getAll();
-  
-  if (!result.success || !result.data) {
-    res.status(result.status).json({
-      success: result.success,
-      msg: result.msg
-    });
-    return;
+type TJobCategory = BaseEntity;
+
+export class categoryControllers extends Controllers<TJobCategory, categoryType, categoryServices> {
+  private constructor() {
+    super(categoryServices.instance());
   }
 
-  res.status(result.status).json({
-    success: result.success,
-    msg: result.msg,
-    data: result.data
-  });
+  static instance(): categoryControllers {
+    return Controllers.getInstance.call(categoryControllers);
+  }
+
+  async getAllCategories(req: Request, res: Response) {
+    return this.getAll(req, res);
+  }
+
+  async getCategoryById(req: Request, res: Response) {
+    return this.getById(req, res);
+  }
+
+  async createCategory(req: Request, res: Response) {
+    return this.create(req, res);
+  }
+
+  async updateCategory(req: Request, res: Response) {
+    return this.update(req, res);
+  }
+
+  async deleteCategory(req: Request, res: Response) {
+    return this.delete(req, res);
+  }
 }
 
-export async function getCategoryById(req: Request, res: Response) {
-  const result = await categoryServices.instance().getById(req.params.id);
-  
-  if (!result.success || !result.data) {
-    res.status(result.status).json({
-      success: result.success,
-      msg: result.msg
-    });
-    return;
-  }
-
-  res.status(result.status).json({
-    success: result.success,
-    msg: result.msg,
-    data: result.data
-  });
-}
-
-export async function createCategory(req: Request, res: Response) {
-  const result = await categoryServices.instance().create(req.body);
-  
-  if (!result.success || !result.data) {
-    res.status(result.status).json({
-      success: result.success,
-      msg: result.msg
-    });
-    return;
-  }
-
-  res.status(result.status).json({
-    success: result.success,
-    msg: result.msg,
-    data: result.data
-  });
-}
-
-export async function updateCategory(req: Request, res: Response) {
-  const result = await categoryServices.instance().update(req.params.id, req.body);
-  
-  if (!result.success || !result.data) {
-    res.status(result.status).json({
-      success: result.success,
-      msg: result.msg
-    });
-    return;
-  }
-
-  res.status(result.status).json({
-    success: result.success,
-    msg: result.msg,
-    data: result.data
-  });
-}
-
-export async function deleteCategory(req: Request, res: Response) {
-  const result = await categoryServices.instance().delete(req.params.id);
-  
-  if (!result.success || !result.data) {
-    res.status(result.status).json({
-      success: result.success,
-      msg: result.msg
-    });
-    return;
-  }
-
-  res.status(result.status).json({
-    success: result.success,
-    msg: result.msg,
-    data: result.data
-  });
-} 
+export const {
+  getAllCategories,
+  getCategoryById,
+  createCategory,
+  updateCategory,
+  deleteCategory
+} = categoryControllers.instance(); 

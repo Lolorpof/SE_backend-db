@@ -1,187 +1,37 @@
-import { eq } from "drizzle-orm";
 import { drizzlePool as db } from "../../db/conn";
 import { jobCategoryTable } from "../../db/schema";
 import { categoryType } from "../schemas/requestBodySchema";
 import { SerivcesResponse } from "../types/responseTypes";
-type TJobCategory = {
-  id: string;
-  name: string;
-  description: string | null;
-  createdAt: Date;
-  updatedAt: Date;
-};
+import { BaseEntity, Services } from "./services";
 
+type TJobCategory = BaseEntity;
 
-export class categoryServices {
-  private static categoryService: categoryServices | undefined;
+export class categoryServices extends Services<TJobCategory, categoryType> {
+  private constructor() {
+    super(jobCategoryTable);
+  }
 
-  static instance() {
-    if (!this.categoryService) {
-      this.categoryService = new categoryServices();
-    }
-    return this.categoryService;
+  static instance(): categoryServices {
+    return Services.getInstance.call(categoryServices);
   }
 
   async getAll(): Promise<SerivcesResponse<TJobCategory[]>> {
-    try {
-      const categories = await db.select().from(jobCategoryTable);
-      return {
-        success: true,
-        status: 200,
-        msg: "Successfully retrieved categories",
-        data: categories,
-      };
-    } catch (error) {
-      console.error("Error fetching categories:", error);
-      return {
-        success: false,
-        status: 500,
-        msg: "Failed to fetch categories",
-      };
-    }
+    return super.getAll();
   }
 
   async getById(id: string): Promise<SerivcesResponse<TJobCategory>> {
-    try {
-      const category = await db
-        .select()
-
-        .from(jobCategoryTable)
-        .where(eq(jobCategoryTable.id, id));
-
-      if (!category || category.length === 0) {
-        return {
-          success: false,
-          status: 404,
-          msg: "Category not found",
-        };
-      }
-
-      return {
-        success: true,
-        status: 200,
-        msg: "Successfully retrieved category",
-        data: category[0],
-      };
-    } catch (error) {
-      console.error("Error fetching category:", error);
-      return {
-        success: false,
-        status: 500,
-        msg: "Failed to fetch category",
-      };
-    }
+    return super.getById(id);
   }
 
   async create(categoryData: categoryType): Promise<SerivcesResponse<TJobCategory>> {
-    try {
-      const newCategory = await db
-
-        .insert(jobCategoryTable)
-        .values({
-          name: categoryData.name,
-          description: categoryData.description,
-        })
-        .returning();
-
-      return {
-        success: true,
-        status: 201,
-        msg: "Successfully created category",
-        data: newCategory[0],
-      };
-    } catch (error) {
-      console.error("Error creating category:", error);
-      if (error.code === "23505") {
-        // Unique constraint violation
-        return {
-          success: false,
-          status: 400,
-          msg: "Category with this name already exists",
-        };
-      }
-      return {
-        success: false,
-        status: 500,
-        msg: "Failed to create category",
-      };
-    }
+    return super.create(categoryData);
   }
 
   async update(id: string, categoryData: categoryType): Promise<SerivcesResponse<TJobCategory>> {
-    try {
-      const updatedCategory = await db
-
-        .update(jobCategoryTable)
-        .set({
-          name: categoryData.name,
-          description: categoryData.description,
-          updatedAt: new Date(),
-        })
-        .where(eq(jobCategoryTable.id, id))
-        .returning();
-
-      if (!updatedCategory || updatedCategory.length === 0) {
-        return {
-          success: false,
-          status: 404,
-          msg: "Category not found",
-        };
-      }
-
-      return {
-        success: true,
-        status: 200,
-        msg: "Successfully updated category",
-        data: updatedCategory[0],
-      };
-    } catch (error) {
-      console.error("Error updating category:", error);
-      if (error.code === "23505") {
-        // Unique constraint violation
-        return {
-          success: false,
-          status: 400,
-          msg: "Category with this name already exists",
-        };
-      }
-      return {
-        success: false,
-        status: 500,
-        msg: "Failed to update category",
-      };
-    }
+    return super.update(id, categoryData);
   }
 
   async delete(id: string): Promise<SerivcesResponse<TJobCategory>> {
-    try {
-      const deletedCategory = await db
-
-        .delete(jobCategoryTable)
-        .where(eq(jobCategoryTable.id, id))
-        .returning();
-
-      if (!deletedCategory || deletedCategory.length === 0) {
-        return {
-          success: false,
-          status: 404,
-          msg: "Category not found",
-        };
-      }
-
-      return {
-        success: true,
-        status: 200,
-        msg: "Successfully deleted category",
-        data: deletedCategory[0],
-      };
-    } catch (error) {
-      console.error("Error deleting category:", error);
-      return {
-        success: false,
-        status: 500,
-        msg: "Failed to delete category",
-      };
-    }
+    return super.delete(id);
   }
 }
