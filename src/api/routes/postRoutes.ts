@@ -192,6 +192,126 @@ const postRoutes = Router();
  *                 itemsPerPage:
  *                   type: integer
  *                   example: 10
+ *     JobPostRequest:
+ *       type: object
+ *       required:
+ *         - title
+ *         - jobLocation
+ *         - salary
+ *         - workDates
+ *         - workHoursRange
+ *         - jobPostType
+ *       properties:
+ *         title:
+ *           type: string
+ *           maxLength: 255
+ *           minLength: 1
+ *           example: "Senior Software Engineer"
+ *         description:
+ *           type: string
+ *           maxLength: 540
+ *           nullable: true
+ *           example: "Looking for an experienced developer"
+ *         jobLocation:
+ *           type: string
+ *           maxLength: 255
+ *           minLength: 1
+ *           example: "Bangkok"
+ *         salary:
+ *           type: integer
+ *           minimum: 1
+ *           example: 50000
+ *         workDates:
+ *           type: string
+ *           maxLength: 1024
+ *           minLength: 1
+ *           example: "Monday-Friday"
+ *         workHoursRange:
+ *           type: string
+ *           maxLength: 255
+ *           minLength: 1
+ *           example: "9:00-18:00"
+ *         hiredAmount:
+ *           type: integer
+ *           minimum: 1
+ *           default: 1
+ *           example: 2
+ *         jobPostType:
+ *           type: string
+ *           enum: ["FULLTIME", "PARTTIME", "FREELANCE"]
+ *           example: "FULLTIME"
+ *         skills:
+ *           type: array
+ *           items:
+ *             type: string
+ *             format: uuid
+ *           example: ["123e4567-e89b-12d3-a456-426614174010"]
+ *         jobCategories:
+ *           type: array
+ *           items:
+ *             type: string
+ *             format: uuid
+ *           example: ["123e4567-e89b-12d3-a456-426614174020"]
+ *     JobFindingPostRequest:
+ *       type: object
+ *       required:
+ *         - title
+ *         - jobLocation
+ *         - expectedSalary
+ *         - workDates
+ *         - workHoursRange
+ *         - jobPostType
+ *         - jobSeekerType
+ *       properties:
+ *         title:
+ *           type: string
+ *           maxLength: 255
+ *           minLength: 1
+ *           example: "Looking for Software Engineer Position"
+ *         description:
+ *           type: string
+ *           maxLength: 540
+ *           nullable: true
+ *           example: "Experienced software engineer looking for new opportunities"
+ *         jobLocation:
+ *           type: string
+ *           maxLength: 255
+ *           minLength: 1
+ *           example: "Bangkok"
+ *         expectedSalary:
+ *           type: integer
+ *           minimum: 1
+ *           example: 50000
+ *         workDates:
+ *           type: string
+ *           maxLength: 1024
+ *           minLength: 1
+ *           example: "Monday-Friday"
+ *         workHoursRange:
+ *           type: string
+ *           maxLength: 255
+ *           minLength: 1
+ *           example: "9:00-18:00"
+ *         jobPostType:
+ *           type: string
+ *           enum: ["FULLTIME", "PARTTIME", "FREELANCE"]
+ *           example: "FULLTIME"
+ *         jobSeekerType:
+ *           type: string
+ *           enum: ["NORMAL", "OAUTH"]
+ *           example: "NORMAL"
+ *         skills:
+ *           type: array
+ *           items:
+ *             type: string
+ *             format: uuid
+ *           example: ["123e4567-e89b-12d3-a456-426614174010"]
+ *         jobCategories:
+ *           type: array
+ *           items:
+ *             type: string
+ *             format: uuid
+ *           example: ["123e4567-e89b-12d3-a456-426614174020"]
  */
 
 /**
@@ -208,60 +328,7 @@ const postRoutes = Router();
  *       content:
  *         application/json:
  *           schema:
- *             type: object
- *             required:
- *               - title
- *               - jobLocation
- *               - salary
- *               - workDates
- *               - workHoursRange
- *               - jobPostType
- *             properties:
- *               title:
- *                 type: string
- *                 maxLength: 255
- *                 example: "Senior Software Engineer"
- *               description:
- *                 type: string
- *                 maxLength: 540
- *                 example: "Looking for an experienced developer"
- *               jobLocation:
- *                 type: string
- *                 maxLength: 255
- *                 example: "Bangkok"
- *               salary:
- *                 type: integer
- *                 minimum: 1
- *                 example: 50000
- *               workDates:
- *                 type: string
- *                 maxLength: 1024
- *                 example: "Monday-Friday"
- *               workHoursRange:
- *                 type: string
- *                 maxLength: 255
- *                 example: "9:00-18:00"
- *               hiredAmount:
- *                 type: integer
- *                 minimum: 1
- *                 default: 1
- *                 example: 2
- *               jobPostType:
- *                 type: string
- *                 enum: ["FULLTIME", "PARTTIME", "FREELANCE"]
- *                 example: "FULLTIME"
- *               skills:
- *                 type: array
- *                 items:
- *                   type: string
- *                   format: uuid
- *                 example: ["123e4567-e89b-12d3-a456-426614174010"]
- *               jobCategories:
- *                 type: array
- *                 items:
- *                   type: string
- *                   format: uuid
- *                 example: ["123e4567-e89b-12d3-a456-426614174020"]
+ *             $ref: '#/components/schemas/JobPostRequest'
  *     responses:
  *       201:
  *         description: Job post created successfully
@@ -271,62 +338,13 @@ const postRoutes = Router();
  *               $ref: '#/components/schemas/SinglePostResponse'
  *       400:
  *         description: Invalid request data
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 success:
- *                   type: boolean
- *                   example: false
- *                 message:
- *                   type: string
- *                   example: "Invalid request data"
- *                 errors:
- *                   type: array
- *                   items:
- *                     type: object
- *                     properties:
- *                       field:
- *                         type: string
- *                         example: "salary"
- *                       message:
- *                         type: string
- *                         example: "Salary must be greater than 0"
  *       401:
- *         description: Unauthorized - User not logged in
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 success:
- *                   type: boolean
- *                   example: false
- *                 message:
- *                   type: string
- *                   example: "Unauthorized"
- *                 data:
- *                   type: null
+ *         description: Unauthorized
  *       500:
  *         description: Server error
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 success:
- *                   type: boolean
- *                   example: false
- *                 message:
- *                   type: string
- *                   example: "Failed to create job hiring post"
- *                 data:
- *                   type: null
  */
 postRoutes.route('/job-posts/employer')
   .post(validateData(jobPostSchema), checkAuthenticated,checkEmployer, handleCreateJobPostFromEmp);
-
 
 /**
  * @openapi
@@ -342,60 +360,7 @@ postRoutes.route('/job-posts/employer')
  *       content:
  *         application/json:
  *           schema:
- *             type: object
- *             required:
- *               - title
- *               - jobLocation
- *               - salary
- *               - workDates
- *               - workHoursRange
- *               - jobPostType
- *             properties:
- *               title:
- *                 type: string
- *                 maxLength: 255
- *                 example: "Senior Software Engineer"
- *               description:
- *                 type: string
- *                 maxLength: 540
- *                 example: "Looking for an experienced developer"
- *               jobLocation:
- *                 type: string
- *                 maxLength: 255
- *                 example: "Bangkok"
- *               salary:
- *                 type: integer
- *                 minimum: 1
- *                 example: 50000
- *               workDates:
- *                 type: string
- *                 maxLength: 1024
- *                 example: "Monday-Friday"
- *               workHoursRange:
- *                 type: string
- *                 maxLength: 255
- *                 example: "9:00-18:00"
- *               hiredAmount:
- *                 type: integer
- *                 minimum: 1
- *                 default: 1
- *                 example: 2
- *               jobPostType:
- *                 type: string
- *                 enum: ["FULLTIME", "PARTTIME", "FREELANCE"]
- *                 example: "FULLTIME"
- *               skills:
- *                 type: array
- *                 items:
- *                   type: string
- *                   format: uuid
- *                 example: ["123e4567-e89b-12d3-a456-426614174010"]
- *               jobCategories:
- *                 type: array
- *                 items:
- *                   type: string
- *                   format: uuid
- *                 example: ["123e4567-e89b-12d3-a456-426614174020"]
+ *             $ref: '#/components/schemas/JobPostRequest'
  *     responses:
  *       201:
  *         description: Job post created successfully
@@ -405,49 +370,10 @@ postRoutes.route('/job-posts/employer')
  *               $ref: '#/components/schemas/SinglePostResponse'
  *       400:
  *         description: Invalid request data
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 success:
- *                   type: boolean
- *                   example: false
- *                 message:
- *                   type: string
- *                   example: "Invalid request data"
- *                 data:
- *                   type: null
  *       401:
  *         description: Unauthorized
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 success:
- *                   type: boolean
- *                   example: false
- *                 message:
- *                   type: string
- *                   example: "Unauthorized"
- *                 data:
- *                   type: null
  *       500:
  *         description: Server error
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 success:
- *                   type: boolean
- *                   example: false
- *                 message:
- *                   type: string
- *                   example: "Failed to create job hiring post"
- *                 data:
- *                   type: null
  */
 postRoutes.route('/job-posts/company')
   .post(validateData(jobPostSchema), checkAuthenticated,checkCompany, handleCreateJobPostFromCompany);
@@ -1102,60 +1028,7 @@ postRoutes.route('/user/finding-posts')
  *       content:
  *         application/json:
  *           schema:
- *             type: object
- *             required:
- *               - title
- *               - jobLocation
- *               - expectedSalary
- *               - workDates
- *               - workHoursRange
- *               - jobPostType
- *               - jobSeekerType
- *             properties:
- *               title:
- *                 type: string
- *                 maxLength: 255
- *                 example: "Looking for Software Engineer Position"
- *               description:
- *                 type: string
- *                 maxLength: 540
- *                 example: "Experienced software engineer looking for new opportunities"
- *               jobLocation:
- *                 type: string
- *                 maxLength: 255
- *                 example: "Bangkok"
- *               expectedSalary:
- *                 type: integer
- *                 minimum: 1
- *                 example: 50000
- *               workDates:
- *                 type: string
- *                 maxLength: 1024
- *                 example: "Monday-Friday"
- *               workHoursRange:
- *                 type: string
- *                 maxLength: 255
- *                 example: "9:00-18:00"
- *               jobPostType:
- *                 type: string
- *                 enum: ["FULLTIME", "PARTTIME", "FREELANCE"]
- *                 example: "FULLTIME"
- *               jobSeekerType:
- *                 type: string
- *                 enum: ["NORMAL", "OAUTH"]
- *                 example: "NORMAL"
- *               skills:
- *                 type: array
- *                 items:
- *                   type: string
- *                   format: uuid
- *                 example: ["123e4567-e89b-12d3-a456-426614174010"]
- *               jobCategories:
- *                 type: array
- *                 items:
- *                   type: string
- *                   format: uuid
- *                 example: ["123e4567-e89b-12d3-a456-426614174020"]
+ *             $ref: '#/components/schemas/JobFindingPostRequest'
  *     responses:
  *       201:
  *         description: Job finding post created successfully
@@ -1165,195 +1038,10 @@ postRoutes.route('/user/finding-posts')
  *               $ref: '#/components/schemas/JobFindingPostResponse'
  *       400:
  *         description: Invalid request data
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 success:
- *                   type: boolean
- *                   example: false
- *                 status:
- *                   type: integer
- *                   example: 400
- *                 msg:
- *                   type: string
- *                   example: "Invalid request data"
- *                 data:
- *                   type: object
- *       401:
- *         description: Unauthorized - User not logged in
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 success:
- *                   type: boolean
- *                   example: false
- *                 status:
- *                   type: integer
- *                   example: 401
- *                 msg:
- *                   type: string
- *                   example: "Unauthorized"
- *                 data:
- *                   type: object
- *       500:
- *         description: Server error
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 success:
- *                   type: boolean
- *                   example: false
- *                 status:
- *                   type: integer
- *                   example: 500
- *                 msg:
- *                   type: string
- *                   example: "Failed to create job finding post"
- *                 data:
- *                   type: object
- *   get:
- *     tags:
- *       - Job Finding Post from Job Seeker
- *     summary: Get all job finding posts with filtering, sorting, and pagination
- *     security:
- *       - sessionAuth: []
- *     parameters:
- *       - in: query
- *         name: title
- *         schema:
- *           type: string
- *         description: Filter by job title (case-insensitive partial match)
- *       - in: query
- *         name: provinces
- *         schema:
- *           type: array
- *           items:
- *             type: string
- *         style: form
- *         explode: true
- *         description: Filter by multiple provinces
- *       - in: query
- *         name: jobCategories
- *         schema:
- *           type: array
- *           items:
- *             type: string
- *             format: uuid
- *         style: form
- *         explode: true
- *         description: Filter by job category IDs
- *       - in: query
- *         name: salaryRange
- *         schema:
- *           type: number
- *         description: Filter jobs with expected salary less than or equal to this value
- *       - in: query
- *         name: sortBy
- *         schema:
- *           type: string
- *           enum: [asc, desc]
- *         default: desc
- *         description: Sort by creation date
- *       - in: query
- *         name: salarySort
- *         schema:
- *           type: string
- *           enum: [high-low, low-high]
- *         description: Sort by expected salary
- *       - in: query
- *         name: page
- *         schema:
- *           type: integer
- *           minimum: 1
- *         default: 1
- *         description: Page number for pagination
- *     responses:
- *       200:
- *         description: Successfully retrieved job finding posts
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/MultipleJobFindingPostsResponse'
  *       401:
  *         description: Unauthorized
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 success:
- *                   type: boolean
- *                   example: false
- *                 status:
- *                   type: integer
- *                   example: 401
- *                 msg:
- *                   type: string
- *                   example: "Unauthorized"
- *                 data:
- *                   type: object
- *                   properties:
- *                     jobPosts:
- *                       type: array
- *                       items: []
- *                     pagination:
- *                       type: object
- *                       properties:
- *                         currentPage:
- *                           type: integer
- *                           example: 0
- *                         totalPages:
- *                           type: integer
- *                           example: 0
- *                         totalItems:
- *                           type: integer
- *                           example: 0
- *                         itemsPerPage:
- *                           type: integer
- *                           example: 0
  *       500:
  *         description: Server error
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 success:
- *                   type: boolean
- *                   example: false
- *                 status:
- *                   type: integer
- *                   example: 500
- *                 msg:
- *                   type: string
- *                   example: "Failed to fetch job finding posts"
- *                 data:
- *                   type: object
- *                   properties:
- *                     jobPosts:
- *                       type: array
- *                       items: []
- *                     pagination:
- *                       type: object
- *                       properties:
- *                         currentPage:
- *                           type: integer
- *                           example: 0
- *                         totalPages:
- *                           type: integer
- *                           example: 0
- *                         totalItems:
- *                           type: integer
- *                           example: 0
- *                         itemsPerPage:
- *                           type: integer
- *                           example: 0
  */
 postRoutes
   .route('/finding-posts')
