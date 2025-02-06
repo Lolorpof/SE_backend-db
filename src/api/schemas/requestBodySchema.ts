@@ -121,4 +121,12 @@ export const jobFindingPostSchema = z.object({
   skills: z.array(z.string().uuid("Invalid skill ID")).optional(),
   jobCategories: z.array(z.string().uuid("Invalid category ID")).optional(),
 });
-export type jobFindingPostType = z.infer<typeof jobFindingPostSchema>;
+export type jobFindingPostType = z.infer<typeof jobFindingPostSchema>; 
+
+export const skillSchema = z.object({
+  name: z.string().min(1, "Name is required"),
+  description: z.string().optional(),
+});
+export type skillType = z.infer<typeof skillSchema>;
+
+

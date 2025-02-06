@@ -10,6 +10,7 @@ import swaggerUi from "swagger-ui-express";
 import swaggerOption from "./swagger";
 import { adminRouter } from "./routes/adminRoutes";
 import postRoutes from "./routes/postRoutes";
+import skillRoutes from "./routes/skillRoutes";
 const port = process.env.BACKEND_PORT; //6977
 const cookieExpireTime = { real: 1000 * 60 * 60 * 4, dev: 1000 * 60 * 5 };
 
@@ -37,7 +38,7 @@ app.use([
 
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerOption));
 
-app.use("/api/post", postRoutes);
+
 
 app.get("/", async (req, res) => {
   res.json({ success: true, msg: "hello world" });
@@ -46,6 +47,8 @@ app.get("/", async (req, res) => {
 // Routes
 app.use("/api/user", userRouter);
 app.use("/api/admin", adminRouter);
+app.use("/api/post", postRoutes);
+app.use("/api/skill", skillRoutes);
 
 // HTTP Server setup
 app.listen(port, () => {

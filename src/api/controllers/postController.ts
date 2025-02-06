@@ -6,10 +6,9 @@ import {
   validUidType,
   jobFindingPostSchema,
   jobFindingPostType,
-} from "../schemas/api-schema";
+  getAllJobPostsType,
+} from "../schemas/requestBodySchema";
 import { postServices } from "../services/postServices";
-//need fix
-//TODO: title, companyName time, location ,salary, description
 export async function handleGetAllJobPosts(req: Request, res: Response) {
   const result = await postServices.instance().getAllJobPosts(req.query);
   res.status(result.status).json({

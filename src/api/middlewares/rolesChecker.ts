@@ -29,6 +29,14 @@ export const checkCompany = (req: Request, res: Response, next: NextFunction) =>
   next();
 };
 
+export const checkAdmin = (req: Request, res: Response, next: NextFunction) => {
+  const user = req.user as TAdminSession;
+  if (!user || user.type !== "ADMIN") {
+    res.status(403).json({ success: false, msg: "Access denied. Only admins can perform this action.", data: null });
+    return;
+  }
+  next();
+};
 
 
     

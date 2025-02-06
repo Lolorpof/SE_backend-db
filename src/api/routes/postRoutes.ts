@@ -2,10 +2,11 @@ import { Router } from "express";
 import { validateData } from "../middlewares/validationMiddleware";
 import {
   jobPostSchema,
-  dummySchema,
-  getAllJobPostsSchema,
   jobFindingPostSchema,
-} from "../schemas/api-schema";
+  getAllJobPostsSchema,
+  validUidSchema,
+  dummySchema,
+} from "../schemas/requestBodySchema";
 import {
   dummyHandler,
   handleCreateJobPostFromCompany,
