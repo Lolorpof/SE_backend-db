@@ -17,8 +17,11 @@ export interface BaseEntityInput {
 }
 
 export abstract class Services<T extends BaseEntity, TInput extends BaseEntityInput = BaseEntityInput> {
-  private static ServicesInstances: Map<string, Services<any, any>> = new Map();
-  protected table: Table;
+  //singleton design
+  //protected to allow access in child classes
+  protected static ServicesInstances: Map<string, Services<any, any>> = new Map();
+  //readonly table
+  protected readonly table: Table;
 
   protected constructor(table: Table) {
     this.table = table;

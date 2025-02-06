@@ -1,4 +1,3 @@
-import { Request, Response } from "express";
 import { categoryServices } from "../services/categoryServices";
 import { BaseEntity } from "../services/services";
 import { categoryType } from "../schemas/requestBodySchema";
@@ -18,26 +17,6 @@ class CategoryControllers extends Controllers<TJobCategory, categoryType, catego
       CategoryControllers.instance_ = new CategoryControllers();
     }
     return CategoryControllers.instance_;
-  }
-
-  async getAllCategories(req: Request, res: Response) {
-    return this.getAll(req, res);
-  }
-
-  async getCategoryById(req: Request, res: Response) {
-    return this.getById(req, res);
-  }
-
-  async createCategory(req: Request, res: Response) {
-    return this.create(req, res);
-  }
-
-  async updateCategory(req: Request, res: Response) {
-    return this.update(req, res);
-  }
-
-  async deleteCategory(req: Request, res: Response) {
-    return this.delete(req, res);
   }
 }
 

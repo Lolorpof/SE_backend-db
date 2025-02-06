@@ -1,4 +1,3 @@
-import { Request, Response } from "express";
 import { skillServices } from "../services/skillServices";
 import { BaseEntity } from "../services/services";
 import { skillType } from "../schemas/requestBodySchema";
