@@ -63,6 +63,13 @@ const postRoutes = Router();
  *           example: "Development of software applications"
  *     JobPost:
  *       type: object
+ *       required:
+ *         - title
+ *         - jobLocation
+ *         - salary
+ *         - workDates
+ *         - workHoursRange
+ *         - jobPostType
  *       properties:
  *         id:
  *           type: string
@@ -208,6 +215,7 @@ const postRoutes = Router();
  *               - salary
  *               - workDates
  *               - workHoursRange
+ *               - jobPostType
  *             properties:
  *               title:
  *                 type: string
@@ -238,6 +246,22 @@ const postRoutes = Router();
  *                 minimum: 1
  *                 default: 1
  *                 example: 2
+ *               jobPostType:
+ *                 type: string
+ *                 enum: ["FULLTIME", "PARTTIME", "FREELANCE"]
+ *                 example: "FULLTIME"
+ *               skills:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *                   format: uuid
+ *                 example: ["123e4567-e89b-12d3-a456-426614174010"]
+ *               jobCategories:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *                   format: uuid
+ *                 example: ["123e4567-e89b-12d3-a456-426614174020"]
  *     responses:
  *       201:
  *         description: Job post created successfully
@@ -318,7 +342,60 @@ postRoutes.route('/job-posts/employer')
  *       content:
  *         application/json:
  *           schema:
- *             $ref: '#/components/schemas/JobPost'
+ *             type: object
+ *             required:
+ *               - title
+ *               - jobLocation
+ *               - salary
+ *               - workDates
+ *               - workHoursRange
+ *               - jobPostType
+ *             properties:
+ *               title:
+ *                 type: string
+ *                 maxLength: 255
+ *                 example: "Senior Software Engineer"
+ *               description:
+ *                 type: string
+ *                 maxLength: 540
+ *                 example: "Looking for an experienced developer"
+ *               jobLocation:
+ *                 type: string
+ *                 maxLength: 255
+ *                 example: "Bangkok"
+ *               salary:
+ *                 type: integer
+ *                 minimum: 1
+ *                 example: 50000
+ *               workDates:
+ *                 type: string
+ *                 maxLength: 1024
+ *                 example: "Monday-Friday"
+ *               workHoursRange:
+ *                 type: string
+ *                 maxLength: 255
+ *                 example: "9:00-18:00"
+ *               hiredAmount:
+ *                 type: integer
+ *                 minimum: 1
+ *                 default: 1
+ *                 example: 2
+ *               jobPostType:
+ *                 type: string
+ *                 enum: ["FULLTIME", "PARTTIME", "FREELANCE"]
+ *                 example: "FULLTIME"
+ *               skills:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *                   format: uuid
+ *                 example: ["123e4567-e89b-12d3-a456-426614174010"]
+ *               jobCategories:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *                   format: uuid
+ *                 example: ["123e4567-e89b-12d3-a456-426614174020"]
  *     responses:
  *       201:
  *         description: Job post created successfully
