@@ -1174,6 +1174,7 @@ postRoutes.route('/user/finding-posts')
  *       500:
  *         description: Server error
  */
+
 postRoutes
   .route('/finding-posts')
   .get(validateData(getAllJobPostsSchema), checkAuthenticated, handleGetAllJobFindingPosts)
