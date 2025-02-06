@@ -1,4 +1,4 @@
-import { jobHirerTypeEnum, postStatusEnum, jobPostTypeEnum } from "../../db/schema";
+import { jobHirerTypeEnum, postStatusEnum, jobPostTypeEnum, jobSeekerTypeEnum } from "../../db/schema";
 
 // Base type for job hiring post data
 export type TPost = {
@@ -41,21 +41,53 @@ export type TPost = {
   }[];
 };
 
+// Type for job finding post data
+export type TJobFindingPost = {
+  id: string;
+  title: string;
+  description: string | null;
+  jobLocation: string;
+  expectedSalary: number;
+  workDates: string;
+  workHoursRange: string;
+  status: typeof postStatusEnum.enumValues[number]; // "MATCHED" | "UNMATCHED" | "MATCHED_INPROG"
+  jobPostType: typeof jobPostTypeEnum.enumValues[number]; // "FULLTIME" | "PARTTIME" | "FREELANCE"
+  jobSeekerType: typeof jobSeekerTypeEnum.enumValues[number]; // "NORMAL" | "OAUTH"
+  jobSeekerId: string | null;
+  oauthJobSeekerId: string | null;
+
+  // Metadata
+  createdAt: Date;
+  updatedAt: Date;
+
+  // Additional joined data
+  skills?: {
+    id: string;
+    name: string;
+    description: string | null;
+  }[];
+  jobCategories?: {
+    id: string;
+    name: string;
+    description: string | null;
+  }[];
+}
+
 // Type for single job post response
 export type TPostResponse = {
   success: boolean;
   status: number;
   msg: string;
-  data: TPost;
+  data: TPost | TJobFindingPost;
 };
 
 // Type for paginated job posts response
-export type TPostsResponse = {
+export type TPostsResponse<T = TPost> = {
   success: boolean;
   status: number;
   msg: string;
   data: {
-    jobPosts: TPost[];
+    jobPosts: T[];
     pagination: {
       currentPage: number;
       totalPages: number;

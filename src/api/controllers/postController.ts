@@ -4,6 +4,8 @@ import {
   jobPostType,
   validUidSchema,
   validUidType,
+  jobFindingPostSchema,
+  jobFindingPostType,
 } from "../schemas/api-schema";
 import { postServices } from "../services/postServices";
 //need fix
@@ -168,4 +170,131 @@ export async function dummyHandler(req: Request, res: Response) {
     success: true,
     message: "Dummy handler",
   });
+}
+
+export async function handleGetAllJobFindingPosts(req: Request, res: Response) {
+  const result = await postServices.instance().getAllJobFindingPosts(req.query);
+  res.status(result.status).json({
+    success: result.success,
+    data: result.data,  
+    message: result.msg,
+  });
+}
+
+export async function handleCreateJobFindingPost(req: Request, res: Response) {
+  try {
+    const validatedData = jobFindingPostSchema.parse(req.body);
+    const user = req.user as TJobSeekerSession;
+    
+    const result = await postServices.instance().createJobFindingPost(validatedData, user);
+    
+    res.status(result.status).json({
+      success: result.success,
+      data: result.data,
+      message: result.msg,
+    });
+  } catch (error) {
+    if (error.name === "ZodError") {
+      res.status(400).json({
+        success: false,
+        message: "Invalid request data",
+        errors: error.errors,
+      });
+      return;
+    }
+
+    res.status(500).json({
+      success: false,
+      message: "Failed to create job finding post",
+    });
+  }
+}
+
+export async function handleUpdateJobFindingPost(req: Request, res: Response) {
+  try {
+    const validatedId = validUidSchema.parse(req.params);
+    const validatedData = jobFindingPostSchema.parse(req.body);
+    const user = req.user as TJobSeekerSession;
+
+    const result = await postServices.instance().updateJobFindingPost(validatedId.id, validatedData, user);
+    
+    res.status(result.status).json({
+      success: result.success,
+      data: result.data,
+      message: result.msg,
+    });
+  } catch (error) {
+    if (error.name === "ZodError") {
+      res.status(400).json({
+        success: false,
+        message: "Invalid request data",
+        errors: error.errors,
+      });
+      return;
+    }
+
+    res.status(500).json({
+      success: false,
+      message: "Failed to update job finding post",
+      error: error.message,
+    });
+  }
+}
+
+export async function handleGetJobFindingPost(req: Request, res: Response) {
+  try {
+    const validatedId = validUidSchema.parse(req.params);
+    const result = await postServices.instance().getJobFindingPost(validatedId.id);
+    
+    res.status(result.status).json({
+      success: result.success,
+      data: result.data,
+      message: result.msg,
+    });
+  } catch (error) {
+    if (error.name === "ZodError") {
+      res.status(400).json({
+        success: false,
+        message: "Invalid request data",
+        errors: error.errors,
+      });
+      return;
+    }
+
+    res.status(500).json({
+      success: false,
+      message: "Failed to fetch job finding post",
+      error: error.message,
+    });
+  }
+}
+
+export async function handleDeleteJobFindingPost(req: Request, res: Response) {
+  try {
+    const validatedId = validUidSchema.parse(req.params);
+    const user = req.user as TJobSeekerSession;
+
+    const result = await postServices.instance().deleteJobFindingPost(validatedId.id, user);
+    
+    res.status(result.status).json({
+      success: result.success,
+      data: result.data,
+      message: result.msg,
+    });
+  } catch (error) {
+    if (error.name === "ZodError") {
+      res.status(400).json({
+        success: false,
+        message: "Invalid request data",
+        errors: error.errors,
+      });
+      return;
+    }
+
+    res.status(500).json({
+      success: false,
+      message: "Failed to delete job finding post",
+      error: error.message,
+    });
+  }
 }

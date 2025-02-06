@@ -6,14 +6,17 @@ import {
   jobHireCategoryTable,
   companyTable,
   jobFindingPostTable,
+  jobFindingPostSkillTable,
+  jobFindCategoryTable,
   jobHirerTypeEnum,
   postStatusEnum,
   skillTable,
   jobCategoryTable,
   jobPostTypeEnum,
 } from "../../db/schema";
-import { jobPostType, validUidType } from "../schemas/api-schema";
-import { TPost, TPostResponse, TPostsResponse } from "../types/postTypes";
+import { jobPostType, jobFindingPostType, validUidType } from "../schemas/api-schema";
+import { TPost, TPostResponse, TPostsResponse, TJobFindingPost } from "../types/postTypes";
+
 
 export class postServices {
   // singleton design
@@ -110,8 +113,8 @@ export class postServices {
             }
 
             const [skills, categories] = await Promise.all([
-              this.getJobPostSkills(post.id),
-              this.getJobPostCategories(post.id),
+              this.getJobPostSkills(post.id, "hiring"),
+              this.getJobPostCategories(post.id, "hiring"),
             ]);
 
             return {
@@ -263,8 +266,8 @@ export class postServices {
           }
 
           const [skills, categories] = await Promise.all([
-            this.getJobPostSkills(post.id),
-            this.getJobPostCategories(post.id),
+            this.getJobPostSkills(post.id, "hiring"),
+            this.getJobPostCategories(post.id, "hiring"),
           ]);
 
           return {
@@ -546,8 +549,8 @@ export class postServices {
 
       // Fetch skills and categories
       const [skills, categories] = await Promise.all([
-        this.getJobPostSkills(id),
-        this.getJobPostCategories(id),
+        this.getJobPostSkills(id, "hiring"),
+        this.getJobPostCategories(id, "hiring"),
       ]);
 
       const postWithRelations = {
@@ -647,55 +650,520 @@ export class postServices {
     }
   }
 
-  async getJobPostSkills(postId: string): Promise<{
-    id: string;
-    name: string;
-    description: string | null;
-  }[]> {
-    try {
-      const skills = await drizzlePool
-        .select({
-          id: skillTable.id,
-          name: skillTable.name,
-          description: skillTable.description,
-        })
-        .from(jobHiringPostSkillTable)
-        .innerJoin(
-          skillTable,
-          eq(jobHiringPostSkillTable.skillId, skillTable.id)
-        )
-        .where(eq(jobHiringPostSkillTable.jobHiringPostId, postId));
+  private async getJobPostSkills(postId: string, type: "hiring" | "finding") {
+    const skillsTable = type === "hiring" ? jobHiringPostSkillTable : jobFindingPostSkillTable;
+    const postIdField = type === "hiring" ? "jobHiringPostId" : "jobFindingPostId";
 
-      return skills;
+    return await drizzlePool
+      .select({
+        id: skillTable.id,
+        name: skillTable.name,
+        description: skillTable.description,
+      })
+      .from(skillsTable)
+      .innerJoin(skillTable, eq(skillsTable.skillId, skillTable.id))
+      .where(eq(skillsTable[postIdField], postId));
+  }
+
+  private async getJobPostCategories(postId: string, type: "hiring" | "finding") {
+    const categoriesTable = type === "hiring" ? jobHireCategoryTable : jobFindCategoryTable;
+    const postIdField = type === "hiring" ? "jobHiringPostId" : "jobFindingPostId";
+
+    return await drizzlePool
+      .select({
+        id: jobCategoryTable.id,
+        name: jobCategoryTable.name,
+        description: jobCategoryTable.description,
+      })
+      .from(categoriesTable)
+      .innerJoin(jobCategoryTable, eq(categoriesTable.jobCategoryId, jobCategoryTable.id))
+      .where(eq(categoriesTable[postIdField], postId));
+  }
+
+  async getAllJobFindingPosts(queryParams: {
+    title?: string;
+    provinces?: string | string[];
+    jobCategories?: string | string[];
+    salaryRange?: string;
+    sortBy?: string;
+    salarySort?: string;
+    page?: number;
+  }): Promise<TPostsResponse<TJobFindingPost>> {
+    try {
+      const {
+        title,
+        provinces,
+        jobCategories,
+        salaryRange,
+        sortBy = "desc",
+        salarySort,
+        page = 1,
+      } = queryParams;
+
+      const ITEMS_PER_PAGE = 10;
+      const offset = (Number(page) - 1) * ITEMS_PER_PAGE;
+
+      // Check if any filters are applied
+      const hasFilters = !!(title || provinces || jobCategories || salaryRange);
+
+      if (!hasFilters) {
+        // Use simple Drizzle query for no filters case
+        const [posts, countResult] = await Promise.all([
+          drizzlePool
+            .select({
+              id: jobFindingPostTable.id,
+              title: jobFindingPostTable.title,
+              description: jobFindingPostTable.description,
+              jobLocation: jobFindingPostTable.jobLocation,
+              expectedSalary: jobFindingPostTable.expectedSalary,
+              workDates: jobFindingPostTable.workDates,
+              workHoursRange: jobFindingPostTable.workHoursRange,
+              status: jobFindingPostTable.status,
+              jobPostType: jobFindingPostTable.jobPostType,
+              jobSeekerType: jobFindingPostTable.jobSeekerType,
+              jobSeekerId: jobFindingPostTable.jobSeekerId,
+              oauthJobSeekerId: jobFindingPostTable.oauthJobSeekerId,
+              createdAt: jobFindingPostTable.createdAt,
+              updatedAt: jobFindingPostTable.updatedAt,
+            })
+            .from(jobFindingPostTable)
+            .orderBy(
+              salarySort === "high-low"
+                ? desc(jobFindingPostTable.expectedSalary)
+                : salarySort === "low-high"
+                ? jobFindingPostTable.expectedSalary
+                : sortBy === "desc"
+                ? desc(jobFindingPostTable.createdAt)
+                : jobFindingPostTable.createdAt
+            )
+            .limit(ITEMS_PER_PAGE)
+            .offset(offset),
+          drizzlePool
+            .select({ count: sql<number>`count(*)` })
+            .from(jobFindingPostTable),
+        ]);
+
+        const count = countResult[0].count;
+
+        // After fetching the posts, get skills and categories for each post
+        const postsWithRelations = await Promise.all(
+          posts.map(async (post) => {
+            const [skills, categories] = await Promise.all([
+              this.getJobPostSkills(post.id, "finding"),
+              this.getJobPostCategories(post.id, "finding"),
+            ]);
+            return { ...post, skills, jobCategories: categories } as TJobFindingPost;
+          })
+        );
+
+        return {
+          success: true,
+          status: 200,
+          msg: "Successfully retrieved job finding posts",
+          data: {
+            jobPosts: postsWithRelations,
+            pagination: {
+              currentPage: Number(page),
+              totalPages: Math.ceil(count / ITEMS_PER_PAGE),
+              totalItems: count,
+              itemsPerPage: ITEMS_PER_PAGE,
+            },
+          },
+        };
+      }
+
+      // Build the WHERE clause conditions for filtered case
+      const conditions: SQL[] = [];
+
+      // Title filter
+      if (title) {
+        conditions.push(
+          sql`LOWER(${jobFindingPostTable.title}) ILIKE LOWER(${'%' + title + '%'})`
+        );
+      }
+
+      // Provinces filter (multiple provinces support)
+      if (provinces) {
+        const provinceList = Array.isArray(provinces)
+          ? provinces.map((p) => p.toString())
+          : [provinces.toString()];
+        conditions.push(
+          sql`${jobFindingPostTable.jobLocation} = ANY(${provinceList})`
+        );
+      }
+
+      // Salary range filter
+      if (salaryRange) {
+        const salary = Number(salaryRange);
+        if (!isNaN(salary)) {
+          conditions.push(sql`${jobFindingPostTable.expectedSalary} <= ${salary}`);
+        }
+      }
+
+      // Build the base query
+      const baseQuery = sql`
+        SELECT DISTINCT
+          jp.id,
+          jp.title,
+          jp.description,
+          jp.job_location as "jobLocation",
+          jp.expected_salary as "expectedSalary",
+          jp.work_dates as "workDates",
+          jp.work_hours_range as "workHoursRange",
+          jp.status,
+          jp.job_post_type as "jobPostType",
+          jp.job_seeker_type as "jobSeekerType",
+          jp.job_seeker_id as "jobSeekerId",
+          jp.oauth_job_seeker_id as "oauthJobSeekerId",
+          jp.created_at as "createdAt",
+          jp.updated_at as "updatedAt"
+        FROM job_finding_post jp
+        ${
+          jobCategories
+            ? sql`
+          LEFT JOIN job_find_category jfc ON jp.id = jfc.job_finding_post_id
+          WHERE jfc.job_category_id = ANY(${
+            Array.isArray(jobCategories)
+              ? jobCategories.map((id) => id.toString())
+              : [jobCategories.toString()]
+          })
+          ${conditions.length ? sql`AND ${and(...conditions)}` : sql``}
+        `
+            : conditions.length
+            ? sql`WHERE ${and(...conditions)}`
+            : sql``
+        }
+        ${
+          salarySort === "high-low"
+            ? sql`ORDER BY jp.expected_salary DESC`
+            : salarySort === "low-high"
+            ? sql`ORDER BY jp.expected_salary ASC`
+            : sortBy === "desc"
+            ? sql`ORDER BY jp.created_at DESC`
+            : sql`ORDER BY jp.created_at ASC`
+        }
+        LIMIT ${ITEMS_PER_PAGE}
+        OFFSET ${offset}
+      `;
+
+      // Get total count
+      const countQuery = sql`
+        SELECT COUNT(DISTINCT jp.id) as count
+        FROM job_finding_post jp
+        ${
+          jobCategories
+            ? sql`
+          LEFT JOIN job_find_category jfc ON jp.id = jfc.job_finding_post_id
+          WHERE jfc.job_category_id = ANY(${
+            Array.isArray(jobCategories)
+              ? jobCategories.map((id) => id.toString())
+              : [jobCategories.toString()]
+          })
+          ${conditions.length ? sql`AND ${and(...conditions)}` : sql``}
+        `
+            : conditions.length
+            ? sql`WHERE ${and(...conditions)}`
+            : sql``
+        }
+      `;
+
+      // Execute both queries concurrently
+      const [jobPostsResult, countResult] = await Promise.all([
+        drizzlePool.execute(baseQuery),
+        drizzlePool.execute(countQuery),
+      ]);
+
+      const jobPosts = jobPostsResult as unknown as TJobFindingPost[];
+      const count = (countResult as unknown as [{ count: number }])[0].count;
+
+      // After fetching the posts, get skills and categories for each post
+      const postsWithRelations = await Promise.all(
+        jobPosts.map(async (post) => {
+          const [skills, categories] = await Promise.all([
+            this.getJobPostSkills(post.id, "finding"),
+            this.getJobPostCategories(post.id, "finding"),
+          ]);
+          return { ...post, skills, jobCategories: categories } as TJobFindingPost;
+        })
+      );
+
+      return {
+        success: true,
+        status: 200,
+        msg: "Successfully retrieved job finding posts",
+        data: {
+          jobPosts: postsWithRelations,
+          pagination: {
+            currentPage: Number(page),
+            totalPages: Math.ceil(Number(count) / ITEMS_PER_PAGE),
+            totalItems: Number(count),
+            itemsPerPage: ITEMS_PER_PAGE,
+          },
+        },
+      };
     } catch (error) {
-      console.error("Error fetching job post skills:", error);
-      return [];
+      console.error("Error in getAllJobFindingPosts:", error);
+      return {
+        success: false,
+        status: 500,
+        msg: "Failed to retrieve job finding posts",
+        data: {
+          jobPosts: [],
+          pagination: {
+            currentPage: 0,
+            totalPages: 0,
+            totalItems: 0,
+            itemsPerPage: 0,
+          },
+        },
+      };
     }
   }
 
-  async getJobPostCategories(postId: string): Promise<{
-    id: string;
-    name: string;
-    description: string | null;
-  }[]> {
+  public async createJobFindingPost(
+    jobPostData: jobFindingPostType,
+    user: TJobSeekerSession
+  ): Promise<TPostResponse> {
     try {
-      const categories = await drizzlePool
-        .select({
-          id: jobCategoryTable.id,
-          name: jobCategoryTable.name,
-          description: jobCategoryTable.description,
+      const [newPost] = await drizzlePool
+        .insert(jobFindingPostTable)
+        .values({
+          title: jobPostData.title,
+          description: jobPostData.description ?? null,
+          jobLocation: jobPostData.jobLocation,
+          expectedSalary: jobPostData.expectedSalary,
+          workDates: jobPostData.workDates,
+          workHoursRange: jobPostData.workHoursRange,
+          jobPostType: jobPostData.jobPostType,
+          jobSeekerType: jobPostData.jobSeekerType,
+          status: postStatusEnum.enumValues[1], // UNMATCHED
+          jobSeekerId: user.type === "NORMAL" ? user.id : null,
+          oauthJobSeekerId: user.type === "OAUTH" ? user.id : null,
         })
-        .from(jobHireCategoryTable)
-        .innerJoin(
-          jobCategoryTable,
-          eq(jobHireCategoryTable.jobCategoryId, jobCategoryTable.id)
-        )
-        .where(eq(jobHireCategoryTable.jobHiringPostId, postId));
+        .returning();
 
-      return categories;
+      if (jobPostData.skills) {
+        await drizzlePool.insert(jobFindingPostSkillTable).values(
+          jobPostData.skills.map((skillId) => ({
+            jobFindingPostId: newPost.id,
+            skillId,
+          }))
+        );
+      }
+
+      if (jobPostData.jobCategories) {
+        await drizzlePool.insert(jobFindCategoryTable).values(
+          jobPostData.jobCategories.map((categoryId) => ({
+            jobFindingPostId: newPost.id,
+            jobCategoryId: categoryId,
+          }))
+        );
+      }
+
+      const [skills, categories] = await Promise.all([
+        this.getJobPostSkills(newPost.id, "finding"),
+        this.getJobPostCategories(newPost.id, "finding"),
+      ]);
+
+      return {
+        success: true,
+        status: 201,
+        msg: "Successfully created job finding post",
+        data: { ...newPost, skills, jobCategories: categories } as TJobFindingPost,
+      };
     } catch (error) {
-      console.error("Error fetching job post categories:", error);
-      return [];
+      console.error("Error in createJobFindingPost:", error);
+      return {
+        success: false,
+        status: 500,
+        msg: "Failed to create job finding post",
+        data: {} as TJobFindingPost,
+      };
+    }
+  }
+
+  public async updateJobFindingPost(
+    postId: string,
+    jobPostData: jobFindingPostType,
+    user: TJobSeekerSession
+  ): Promise<TPostResponse> {
+    try {
+      const existingPost = await drizzlePool
+        .select()
+        .from(jobFindingPostTable)
+        .where(
+          and(
+            eq(jobFindingPostTable.id, postId),
+            user.type === "NORMAL"
+              ? eq(jobFindingPostTable.jobSeekerId, user.id)
+              : eq(jobFindingPostTable.oauthJobSeekerId, user.id)
+          )
+        )
+        .limit(1);
+
+      if (!existingPost.length) {
+        return {
+          success: false,
+          status: 404,
+          msg: "Job finding post not found or unauthorized",
+          data: {} as TJobFindingPost,
+        };
+      }
+
+      const [updatedPost] = await drizzlePool
+        .update(jobFindingPostTable)
+        .set({
+          title: jobPostData.title,
+          description: jobPostData.description ?? null,
+          jobLocation: jobPostData.jobLocation,
+          expectedSalary: jobPostData.expectedSalary,
+          workDates: jobPostData.workDates,
+          workHoursRange: jobPostData.workHoursRange,
+          jobPostType: jobPostData.jobPostType,
+          jobSeekerType: jobPostData.jobSeekerType,
+          updatedAt: new Date(),
+        })
+        .where(eq(jobFindingPostTable.id, postId))
+        .returning();
+
+      if (jobPostData.skills) {
+        await drizzlePool.delete(jobFindingPostSkillTable)
+          .where(eq(jobFindingPostSkillTable.jobFindingPostId, postId));
+        await drizzlePool.insert(jobFindingPostSkillTable).values(
+          jobPostData.skills.map((skillId) => ({
+            jobFindingPostId: postId,
+            skillId,
+          }))
+        );
+      }
+
+      if (jobPostData.jobCategories) {
+        await drizzlePool.delete(jobFindCategoryTable)
+          .where(eq(jobFindCategoryTable.jobFindingPostId, postId));
+        await drizzlePool.insert(jobFindCategoryTable).values(
+          jobPostData.jobCategories.map((categoryId) => ({
+            jobFindingPostId: postId,
+            jobCategoryId: categoryId,
+          }))
+        );
+      }
+
+      const [skills, categories] = await Promise.all([
+        this.getJobPostSkills(postId, "finding"),
+        this.getJobPostCategories(postId, "finding"),
+      ]);
+
+      return {
+        success: true,
+        status: 200,
+        msg: "Successfully updated job finding post",
+        data: { ...updatedPost, skills, jobCategories: categories } as TJobFindingPost,
+      };
+    } catch (error) {
+      console.error("Error in updateJobFindingPost:", error);
+      return {
+        success: false,
+        status: 500,
+        msg: "Failed to update job finding post",
+        data: {} as TJobFindingPost,
+      };
+    }
+  }
+
+  public async getJobFindingPost(postId: string): Promise<TPostResponse> {
+    try {
+      const [post] = await drizzlePool
+        .select({
+          id: jobFindingPostTable.id,
+          title: jobFindingPostTable.title,
+          description: jobFindingPostTable.description,
+          jobLocation: jobFindingPostTable.jobLocation,
+          expectedSalary: jobFindingPostTable.expectedSalary,
+          workDates: jobFindingPostTable.workDates,
+          workHoursRange: jobFindingPostTable.workHoursRange,
+          status: jobFindingPostTable.status,
+          jobPostType: jobFindingPostTable.jobPostType,
+          jobSeekerType: jobFindingPostTable.jobSeekerType,
+          jobSeekerId: jobFindingPostTable.jobSeekerId,
+          oauthJobSeekerId: jobFindingPostTable.oauthJobSeekerId,
+          createdAt: jobFindingPostTable.createdAt,
+          updatedAt: jobFindingPostTable.updatedAt,
+        })
+        .from(jobFindingPostTable)
+        .where(eq(jobFindingPostTable.id, postId))
+        .limit(1);
+
+      if (!post) {
+        return {
+          success: false,
+          status: 404,
+          msg: "Job finding post not found",
+          data: {} as TJobFindingPost,
+        };
+      }
+
+      const [skills, categories] = await Promise.all([
+        this.getJobPostSkills(postId, "finding"),
+        this.getJobPostCategories(postId, "finding"),
+      ]);
+
+      return {
+        success: true,
+        status: 200,
+        msg: "Successfully retrieved job finding post",
+        data: { ...post, skills, jobCategories: categories } as TJobFindingPost,
+      };
+    } catch (error) {
+      console.error("Error in getJobFindingPost:", error);
+      return {
+        success: false,
+        status: 500,
+        msg: "Failed to retrieve job finding post",
+        data: {} as TJobFindingPost,
+      };
+    }
+  }
+
+  public async deleteJobFindingPost(
+    postId: string,
+    user: TJobSeekerSession
+  ): Promise<TPostResponse> {
+    try {
+      const [deletedPost] = await drizzlePool
+        .delete(jobFindingPostTable)
+        .where(
+          and(
+            eq(jobFindingPostTable.id, postId),
+            user.type === "NORMAL"
+              ? eq(jobFindingPostTable.jobSeekerId, user.id)
+              : eq(jobFindingPostTable.oauthJobSeekerId, user.id)
+          )
+        )
+        .returning();
+
+      if (!deletedPost) {
+        return {
+          success: false,
+          status: 404,
+          msg: "Job finding post not found or unauthorized",
+          data: {} as TJobFindingPost,
+        };
+      }
+
+      return {
+        success: true,
+        status: 200,
+        msg: "Successfully deleted job finding post",
+        data: deletedPost as TJobFindingPost,
+      };
+    } catch (error) {
+      console.error("Error in deleteJobFindingPost:", error);
+      return {
+        success: false,
+        status: 500,
+        msg: "Failed to delete job finding post",
+        data: {} as TJobFindingPost,
+      };
     }
   }
 } 

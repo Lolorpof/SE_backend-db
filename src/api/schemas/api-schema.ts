@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { provinces } from "../utilities/province";
-import { jobPostTypeEnum } from "../../db/schema";
+import { jobPostTypeEnum, jobSeekerTypeEnum } from "../../db/schema";
 
 // Empty schemas for job posts
 export const dummySchema = z.object({});
@@ -80,3 +80,43 @@ export const validUidSchema = z.object({
   id: z.string().uuid("Invalid ID")
 })
 export type validUidType = z.infer<typeof validUidSchema>;
+
+// Schema for job finding posts
+export const jobFindingPostSchema = z.object({
+  title: z
+    .string()
+    .max(255, "Title must be less than 255 characters")
+    .min(1, "Title is required"),
+  description: z
+    .string()
+    .max(540, "Description must be less than 540 characters")
+    .optional(),
+  jobLocation: z
+    .string()
+    .max(255, "Job location must be less than 255 characters")
+    .min(1, "Job location is required"),
+  expectedSalary: z
+    .number()
+    .int("Expected salary must be an integer")
+    .positive("Expected salary must be a positive number")
+    .min(1, "Expected salary is required"),
+  workDates: z
+    .string()
+    .max(1024, "Work dates must be less than 1024 characters")
+    .min(1, "Work dates are required"),
+  workHoursRange: z
+    .string()
+    .max(255, "Work hours range must be less than 255 characters")
+    .min(1, "Work hours range is required"),
+  jobPostType: z.enum(jobPostTypeEnum.enumValues, {
+    required_error: "Job post type is required",
+    invalid_type_error: "Invalid job post type",
+  }),
+  jobSeekerType: z.enum(jobSeekerTypeEnum.enumValues, {
+    required_error: "Job seeker type is required",
+    invalid_type_error: "Invalid job seeker type",
+  }),
+  skills: z.array(z.string().uuid("Invalid skill ID")).optional(),
+  jobCategories: z.array(z.string().uuid("Invalid category ID")).optional(),
+});
+export type jobFindingPostType = z.infer<typeof jobFindingPostSchema>;
