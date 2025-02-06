@@ -6,17 +6,12 @@ import { Controllers } from "./controllers";
 type TSkill = BaseEntity;
 
 class SkillControllers extends Controllers<TSkill, skillType, skillServices> {
-  private static instance_: SkillControllers;
-
-  private constructor() {
+  protected constructor() {
     super(skillServices.instance());
   }
 
   static instance(): SkillControllers {
-    if (!SkillControllers.instance_) {
-      SkillControllers.instance_ = new SkillControllers();
-    }
-    return SkillControllers.instance_;
+    return Controllers.getInstance.call(SkillControllers);
   }
 }
 

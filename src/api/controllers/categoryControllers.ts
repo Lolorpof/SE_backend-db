@@ -6,17 +6,12 @@ import { Controllers } from "./controllers";
 type TJobCategory = BaseEntity;
 
 class CategoryControllers extends Controllers<TJobCategory, categoryType, categoryServices> {
-  private static instance_: CategoryControllers;
-
-  private constructor() {
+  protected constructor() {
     super(categoryServices.instance());
   }
 
   static instance(): CategoryControllers {
-    if (!CategoryControllers.instance_) {
-      CategoryControllers.instance_ = new CategoryControllers();
-    }
-    return CategoryControllers.instance_;
+    return Controllers.getInstance.call(CategoryControllers);
   }
 }
 
