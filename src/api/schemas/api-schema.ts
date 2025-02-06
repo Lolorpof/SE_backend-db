@@ -41,6 +41,8 @@ export const jobPostSchema = z.object({
     required_error: "Job post type is required",
     invalid_type_error: "Invalid job post type",
   }),
+  skills: z.array(z.string().uuid("Invalid skill ID")).optional(),
+  jobCategories: z.array(z.string().uuid("Invalid category ID")).optional(),
 });
 export type jobPostType = z.infer<typeof jobPostSchema>;
 
