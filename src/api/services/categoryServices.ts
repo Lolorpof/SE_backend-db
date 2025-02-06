@@ -2,7 +2,7 @@ import { eq } from "drizzle-orm";
 import { drizzlePool as db } from "../../db/conn";
 import { jobCategoryTable } from "../../db/schema";
 import { categoryType } from "../schemas/requestBodySchema";
-
+import { SerivcesResponse } from "../types/responseTypes";
 type TJobCategory = {
   id: string;
   name: string;
@@ -10,6 +10,7 @@ type TJobCategory = {
   createdAt: Date;
   updatedAt: Date;
 };
+
 
 export class categoryServices {
   private static categoryService: categoryServices | undefined;

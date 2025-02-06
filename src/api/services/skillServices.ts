@@ -1,4 +1,5 @@
 import { drizzlePool } from "../../db/conn";
+import { SerivcesResponse } from "../types/responseTypes";
 import { skillTable } from "../../db/schema";
 import { eq } from "drizzle-orm";
 import { skillType } from "../schemas/requestBodySchema";

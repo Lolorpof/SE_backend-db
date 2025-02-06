@@ -16,7 +16,7 @@ import {
 } from "../../db/schema";
 import { jobPostType, jobFindingPostType, validUidType } from "../schemas/requestBodySchema";
 import { TPost, TPostResponse, TPostsResponse, TJobFindingPost } from "../types/postTypes";
-
+import { SerivcesResponse } from "../types/responseTypes";
 
 export class postServices {
   // singleton design

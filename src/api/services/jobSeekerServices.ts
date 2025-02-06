@@ -12,6 +12,7 @@ import {
   userServiceInterfaces,
 } from "../interfaces/userServiceInterfaces";
 import { Profile, VerifyCallback } from "passport-google-oauth20";
+import { SerivcesResponse } from "../types/responseTypes";
 
 export class jobSeekerServices implements userOauthServiceInterfaces {
   // singleton design

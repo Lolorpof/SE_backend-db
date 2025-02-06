@@ -13,6 +13,7 @@ import { registrationApprovalModels } from "../models/registrationApprovalModels
 import { jobSeekerModels } from "../models/jobSeekerModels";
 import { employerModels } from "../models/employerModels";
 import { companyModels } from "../models/companyModels";
+import { SerivcesResponse } from "../types/responseTypes";
 
 export class adminServices implements adminServiceInterfaces {
   static adminService: adminServices | undefined;

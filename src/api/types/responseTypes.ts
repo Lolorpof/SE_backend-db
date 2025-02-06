@@ -1,4 +1,4 @@
-type SerivcesResponse<T> = {
+export type SerivcesResponse<T> = {
   success: boolean;
   msg: string;
   data?: T;

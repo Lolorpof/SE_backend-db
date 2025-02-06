@@ -9,7 +9,7 @@ import bcrypt from "bcryptjs";
 import { userServiceInterfaces } from "../interfaces/userServiceInterfaces";
 import { IVerifyOptions } from "passport-local";
 import "../types/usersTypes";
-
+import { SerivcesResponse } from "../types/responseTypes";
 export class companyServices implements userServiceInterfaces {
   // singleton design
   private static companyService: companyServices | undefined;
@@ -151,7 +151,7 @@ export class companyServices implements userServiceInterfaces {
       const matched = await bcrypt.compare(password, user.password);
 
       if (matched) {
-        exactUser = user;
+          exactUser = user;
         break;
       }
     }

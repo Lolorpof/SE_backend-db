@@ -13,6 +13,7 @@ import {
 import { IVerifyOptions } from "passport-local";
 import "../types/usersTypes";
 import { Profile, VerifyCallback } from "passport-google-oauth20";
+import { SerivcesResponse } from "../types/responseTypes";
 
 export class employerServices implements userOauthServiceInterfaces {
   // singleton design
