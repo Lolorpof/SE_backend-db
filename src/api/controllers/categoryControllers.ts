@@ -6,13 +6,18 @@ import { Controllers } from "./controllers";
 
 type TJobCategory = BaseEntity;
 
-export class categoryControllers extends Controllers<TJobCategory, categoryType, categoryServices> {
+class CategoryControllers extends Controllers<TJobCategory, categoryType, categoryServices> {
+  private static instance_: CategoryControllers;
+
   private constructor() {
     super(categoryServices.instance());
   }
 
-  static instance(): categoryControllers {
-    return Controllers.getInstance.call(categoryControllers);
+  static instance(): CategoryControllers {
+    if (!CategoryControllers.instance_) {
+      CategoryControllers.instance_ = new CategoryControllers();
+    }
+    return CategoryControllers.instance_;
   }
 
   async getAllCategories(req: Request, res: Response) {
@@ -36,10 +41,12 @@ export class categoryControllers extends Controllers<TJobCategory, categoryType,
   }
 }
 
-export const {
-  getAllCategories,
-  getCategoryById,
-  createCategory,
-  updateCategory,
-  deleteCategory
-} = categoryControllers.instance(); 
+// Create a single instance
+const controller = CategoryControllers.instance();
+
+// Export bound methods
+export const getAllCategories = controller.getAll.bind(controller);
+export const getCategoryById = controller.getById.bind(controller);
+export const createCategory = controller.create.bind(controller);
+export const updateCategory = controller.update.bind(controller);
+export const deleteCategory = controller.delete.bind(controller); 

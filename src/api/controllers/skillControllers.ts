@@ -6,43 +6,30 @@ import { Controllers } from "./controllers";
 
 type TSkill = BaseEntity;
 
-export class skillControllers extends Controllers<TSkill, skillType, skillServices> {
+class SkillControllers extends Controllers<TSkill, skillType, skillServices> {
+  private static instance_: SkillControllers;
+
   private constructor() {
     super(skillServices.instance());
   }
 
-  static instance(): skillControllers {
-    return Controllers.getInstance.call(skillControllers);
-  }
-
-  async getAllSkills(req: Request, res: Response) {
-    return this.getAll(req, res);
-  }
-
-  async getSkillById(req: Request, res: Response) {
-    return this.getById(req, res);
-  }
-
-  async createSkill(req: Request, res: Response) {
-    return this.create(req, res);
-  }
-
-  async updateSkill(req: Request, res: Response) {
-    return this.update(req, res);
-  }
-
-  async deleteSkill(req: Request, res: Response) {
-    return this.delete(req, res);
+  static instance(): SkillControllers {
+    if (!SkillControllers.instance_) {
+      SkillControllers.instance_ = new SkillControllers();
+    }
+    return SkillControllers.instance_;
   }
 }
 
-export const {
-  getAllSkills,
-  getSkillById,
-  createSkill,
-  updateSkill,
-  deleteSkill
-} = skillControllers.instance();
+// Create a single instance
+const controller = SkillControllers.instance();
+
+// Export bound methods
+export const getAllSkills = controller.getAll.bind(controller);
+export const getSkillById = controller.getById.bind(controller);
+export const createSkill = controller.create.bind(controller);
+export const updateSkill = controller.update.bind(controller);
+export const deleteSkill = controller.delete.bind(controller);
 
 
 
