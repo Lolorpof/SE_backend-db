@@ -135,4 +135,8 @@ export const categorySchema = z.object({
 });
 export type categoryType = z.infer<typeof categorySchema>;
 
-
+export const vulnerabilitySchema = z.object({
+  name: z.string().min(1, "Name is required"),
+  description: z.string().optional(),
+});
+export type vulnerabilityType = z.infer<typeof vulnerabilitySchema>;
