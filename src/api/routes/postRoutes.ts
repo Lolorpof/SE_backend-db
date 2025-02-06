@@ -1017,6 +1017,137 @@ postRoutes.route('/user/finding-posts')
 /**
  * @openapi
  * /api/post/finding-posts:
+ *   get:
+ *     tags:
+ *       - Job Finding Post from Job Seeker
+ *     summary: Get all job finding posts with filtering, sorting, and pagination
+ *     security:
+ *       - sessionAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: title
+ *         schema:
+ *           type: string
+ *         description: Filter by job title (case-insensitive partial match)
+ *       - in: query
+ *         name: provinces
+ *         schema:
+ *           type: array
+ *           items:
+ *             type: string
+ *         style: form
+ *         explode: true
+ *         description: Filter by multiple provinces
+ *       - in: query
+ *         name: jobCategories
+ *         schema:
+ *           type: array
+ *           items:
+ *             type: string
+ *             format: uuid
+ *         style: form
+ *         explode: true
+ *         description: Filter by job category IDs
+ *       - in: query
+ *         name: salaryRange
+ *         schema:
+ *           type: number
+ *         description: Filter jobs with expected salary less than or equal to this value
+ *       - in: query
+ *         name: sortBy
+ *         schema:
+ *           type: string
+ *           enum: [asc, desc]
+ *         default: desc
+ *         description: Sort by creation date
+ *       - in: query
+ *         name: salarySort
+ *         schema:
+ *           type: string
+ *           enum: [high-low, low-high]
+ *         description: Sort by expected salary
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *           minimum: 1
+ *         default: 1
+ *         description: Page number for pagination
+ *     responses:
+ *       200:
+ *         description: Successfully retrieved job finding posts
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/MultipleJobFindingPostsResponse'
+ *       401:
+ *         description: Unauthorized
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 message:
+ *                   type: string
+ *                   example: "Unauthorized"
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     jobPosts:
+ *                       type: array
+ *                       items: []
+ *                     pagination:
+ *                       type: object
+ *                       properties:
+ *                         currentPage:
+ *                           type: integer
+ *                           example: 0
+ *                         totalPages:
+ *                           type: integer
+ *                           example: 0
+ *                         totalItems:
+ *                           type: integer
+ *                           example: 0
+ *                         itemsPerPage:
+ *                           type: integer
+ *                           example: 0
+ *       500:
+ *         description: Server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 message:
+ *                   type: string
+ *                   example: "Failed to fetch job finding posts"
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     jobPosts:
+ *                       type: array
+ *                       items: []
+ *                     pagination:
+ *                       type: object
+ *                       properties:
+ *                         currentPage:
+ *                           type: integer
+ *                           example: 0
+ *                         totalPages:
+ *                           type: integer
+ *                           example: 0
+ *                         totalItems:
+ *                           type: integer
+ *                           example: 0
+ *                         itemsPerPage:
+ *                           type: integer
+ *                           example: 0
  *   post:
  *     tags:
  *       - Job Finding Post from Job Seeker
@@ -1045,8 +1176,8 @@ postRoutes.route('/user/finding-posts')
  */
 postRoutes
   .route('/finding-posts')
-  .post(validateData(jobFindingPostSchema), checkAuthenticated, handleCreateJobFindingPost)
-  .get(validateData(getAllJobPostsSchema), checkAuthenticated, handleGetAllJobFindingPosts);
+  .get(validateData(getAllJobPostsSchema), checkAuthenticated, handleGetAllJobFindingPosts)
+  .post(validateData(jobFindingPostSchema), checkAuthenticated, handleCreateJobFindingPost);
 
 /**
  * @openapi
