@@ -20,6 +20,9 @@ import {
   handleGetJobFindingPost,
   handleUpdateJobFindingPost,
   handleDeleteJobFindingPost,
+  handleGetEmployerJobPosts,
+  handleGetCompanyJobPosts,
+  handleGetUserJobFindingPosts,
 } from "../controllers/postController";
 import { checkAuthenticated } from "../middlewares/auth";
 import { checkEmployer, checkCompany } from "../middlewares/rolesChecker";
@@ -751,6 +754,144 @@ postRoutes
   .get(checkAuthenticated, handleGetJobPost)
   .put(validateData(jobPostSchema),checkAuthenticated, handleUpdateJobPost)
   .delete(validateData(dummySchema),checkAuthenticated, handleDeleteJobPost);
+
+/**
+ * @openapi
+ * /api/post/user/job-posts:
+ *   get:
+ *     tags:
+ *       - User Posts
+ *     summary: Get all job posts created by the authenticated employer
+ *     security:
+ *       - sessionAuth: []
+ *     responses:
+ *       200:
+ *         description: Successfully retrieved employer's job posts
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/MultiplePostsResponse'
+ *       401:
+ *         description: Unauthorized
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 message:
+ *                   type: string
+ *                   example: "Unauthorized"
+ *       500:
+ *         description: Server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 message:
+ *                   type: string
+ *                   example: "Failed to fetch employer's job posts"
+ */
+postRoutes.route('/user/job-posts')
+  .get(checkAuthenticated, checkEmployer, handleGetEmployerJobPosts);
+
+/**
+ * @openapi
+ * /api/post/company/job-posts:
+ *   get:
+ *     tags:
+ *       - User Posts
+ *     summary: Get all job posts created by the authenticated company
+ *     security:
+ *       - sessionAuth: []
+ *     responses:
+ *       200:
+ *         description: Successfully retrieved company's job posts
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/MultiplePostsResponse'
+ *       401:
+ *         description: Unauthorized
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 message:
+ *                   type: string
+ *                   example: "Unauthorized"
+ *       500:
+ *         description: Server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 message:
+ *                   type: string
+ *                   example: "Failed to fetch company's job posts"
+ */
+postRoutes.route('/company/job-posts')
+  .get(checkAuthenticated, checkCompany, handleGetCompanyJobPosts);
+
+/**
+ * @openapi
+ * /api/post/user/finding-posts:
+ *   get:
+ *     tags:
+ *       - User Posts
+ *     summary: Get all job finding posts created by the authenticated job seeker
+ *     security:
+ *       - sessionAuth: []
+ *     responses:
+ *       200:
+ *         description: Successfully retrieved user's job finding posts
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/MultipleJobFindingPostsResponse'
+ *       401:
+ *         description: Unauthorized
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 message:
+ *                   type: string
+ *                   example: "Unauthorized"
+ *       500:
+ *         description: Server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 message:
+ *                   type: string
+ *                   example: "Failed to fetch user's job finding posts"
+ */
+postRoutes.route('/user/finding-posts')
+  .get(checkAuthenticated, handleGetUserJobFindingPosts);
 
 /**
  * @openapi

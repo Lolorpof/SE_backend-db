@@ -297,3 +297,84 @@ export async function handleDeleteJobFindingPost(req: Request, res: Response) {
     });
   }
 }
+
+export async function handleGetUserJobFindingPosts(req: Request, res: Response) {
+  try {
+    const user = req.user as TJobSeekerSession;
+    if (!user) {
+      res.status(401).json({
+        success: false,
+        message: "Unauthorized",
+      });
+      return;
+    }
+
+    const result = await postServices.instance().getJobFindingPostsByUser(user.id, user.type === "OAUTH");
+    
+    res.status(result.status).json({
+      success: result.success,
+      data: result.data,
+      message: result.msg,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Failed to fetch user's job finding posts",
+      error: error.message,
+    });
+  }
+}
+
+export async function handleGetEmployerJobPosts(req: Request, res: Response) {
+  try {
+    const user = req.user as TEmployerSession;
+    if (!user) {
+      res.status(401).json({
+        success: false,
+        message: "Unauthorized",
+      });
+      return;
+    }
+
+    const result = await postServices.instance().getJobPostsByEmployer(user.id, user.isOauth);
+    
+    res.status(result.status).json({
+      success: result.success,
+      data: result.data,
+      message: result.msg,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Failed to fetch employer's job posts",
+      error: error.message,
+    });
+  }
+}
+
+export async function handleGetCompanyJobPosts(req: Request, res: Response) {
+  try {
+    const user = req.user as TCompanySession;
+    if (!user) {
+      res.status(401).json({
+        success: false,
+        message: "Unauthorized",
+      });
+      return;
+    }
+
+    const result = await postServices.instance().getJobPostsByCompany(user.id);
+    
+    res.status(result.status).json({
+      success: result.success,
+      data: result.data,
+      message: result.msg,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Failed to fetch company's job posts",
+      error: error.message,
+    });
+  }
+}

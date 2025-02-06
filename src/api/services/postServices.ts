@@ -1166,4 +1166,219 @@ export class postServices {
       };
     }
   }
+
+  public async getJobFindingPostsByUser(userId: string, isOauth: boolean): Promise<TPostsResponse<TJobFindingPost>> {
+    try {
+      const posts = await drizzlePool
+        .select({
+          id: jobFindingPostTable.id,
+          title: jobFindingPostTable.title,
+          description: jobFindingPostTable.description,
+          jobLocation: jobFindingPostTable.jobLocation,
+          expectedSalary: jobFindingPostTable.expectedSalary,
+          workDates: jobFindingPostTable.workDates,
+          workHoursRange: jobFindingPostTable.workHoursRange,
+          status: jobFindingPostTable.status,
+          jobPostType: jobFindingPostTable.jobPostType,
+          jobSeekerType: jobFindingPostTable.jobSeekerType,
+          jobSeekerId: jobFindingPostTable.jobSeekerId,
+          oauthJobSeekerId: jobFindingPostTable.oauthJobSeekerId,
+          createdAt: jobFindingPostTable.createdAt,
+          updatedAt: jobFindingPostTable.updatedAt,
+        })
+        .from(jobFindingPostTable)
+        .where(
+          isOauth 
+            ? eq(jobFindingPostTable.oauthJobSeekerId, userId)
+            : eq(jobFindingPostTable.jobSeekerId, userId)
+        );
+
+      const postsWithRelations = await Promise.all(
+        posts.map(async (post) => {
+          const [skills, categories] = await Promise.all([
+            this.getJobPostSkills(post.id, "finding"),
+            this.getJobPostCategories(post.id, "finding"),
+          ]);
+          return { ...post, skills, jobCategories: categories } as TJobFindingPost;
+        })
+      );
+
+      return {
+        success: true,
+        status: 200,
+        msg: "Successfully retrieved user's job finding posts",
+        data: {
+          jobPosts: postsWithRelations,
+          pagination: {
+            currentPage: 1,
+            totalPages: 1,
+            totalItems: postsWithRelations.length,
+            itemsPerPage: postsWithRelations.length,
+          },
+        },
+      };
+    } catch (error) {
+      console.error("Error in getJobFindingPostsByUser:", error);
+      return {
+        success: false,
+        status: 500,
+        msg: "Failed to retrieve user's job finding posts",
+        data: {
+          jobPosts: [],
+          pagination: {
+            currentPage: 0,
+            totalPages: 0,
+            totalItems: 0,
+            itemsPerPage: 0,
+          },
+        },
+      };
+    }
+  }
+
+  public async getJobPostsByEmployer(userId: string, isOauth: boolean): Promise<TPostsResponse> {
+    try {
+      const posts = await drizzlePool
+        .select({
+          id: jobHiringPostTable.id,
+          title: jobHiringPostTable.title,
+          description: jobHiringPostTable.description,
+          jobLocation: jobHiringPostTable.jobLocation,
+          salary: jobHiringPostTable.salary,
+          workDates: jobHiringPostTable.workDates,
+          workHoursRange: jobHiringPostTable.workHoursRange,
+          hiredAmount: jobHiringPostTable.hiredAmount,
+          status: jobHiringPostTable.status,
+          jobHirerType: jobHiringPostTable.jobHirerType,
+          jobPostType: jobHiringPostTable.jobPostType,
+          employerId: jobHiringPostTable.employerId,
+          oauthEmployerId: jobHiringPostTable.oauthEmployerId,
+          companyId: jobHiringPostTable.companyId,
+          createdAt: jobHiringPostTable.createdAt,
+          updatedAt: jobHiringPostTable.updatedAt,
+        })
+        .from(jobHiringPostTable)
+        .where(
+          isOauth 
+            ? eq(jobHiringPostTable.oauthEmployerId, userId)
+            : eq(jobHiringPostTable.employerId, userId)
+        );
+
+      const postsWithRelations = await Promise.all(
+        posts.map(async (post) => {
+          const [skills, categories] = await Promise.all([
+            this.getJobPostSkills(post.id, "hiring"),
+            this.getJobPostCategories(post.id, "hiring"),
+          ]);
+          return { ...post, skills, jobCategories: categories } as TPost;
+        })
+      );
+
+      return {
+        success: true,
+        status: 200,
+        msg: "Successfully retrieved employer's job posts",
+        data: {
+          jobPosts: postsWithRelations,
+          pagination: {
+            currentPage: 1,
+            totalPages: 1,
+            totalItems: postsWithRelations.length,
+            itemsPerPage: postsWithRelations.length,
+          },
+        },
+      };
+    } catch (error) {
+      console.error("Error in getJobPostsByEmployer:", error);
+      return {
+        success: false,
+        status: 500,
+        msg: "Failed to retrieve employer's job posts",
+        data: {
+          jobPosts: [],
+          pagination: {
+            currentPage: 0,
+            totalPages: 0,
+            totalItems: 0,
+            itemsPerPage: 0,
+          },
+        },
+      };
+    }
+  }
+
+  public async getJobPostsByCompany(companyId: string): Promise<TPostsResponse> {
+    try {
+      const posts = await drizzlePool
+        .select({
+          id: jobHiringPostTable.id,
+          title: jobHiringPostTable.title,
+          description: jobHiringPostTable.description,
+          jobLocation: jobHiringPostTable.jobLocation,
+          salary: jobHiringPostTable.salary,
+          workDates: jobHiringPostTable.workDates,
+          workHoursRange: jobHiringPostTable.workHoursRange,
+          hiredAmount: jobHiringPostTable.hiredAmount,
+          status: jobHiringPostTable.status,
+          jobHirerType: jobHiringPostTable.jobHirerType,
+          jobPostType: jobHiringPostTable.jobPostType,
+          employerId: jobHiringPostTable.employerId,
+          oauthEmployerId: jobHiringPostTable.oauthEmployerId,
+          companyId: jobHiringPostTable.companyId,
+          createdAt: jobHiringPostTable.createdAt,
+          updatedAt: jobHiringPostTable.updatedAt,
+        })
+        .from(jobHiringPostTable)
+        .where(eq(jobHiringPostTable.companyId, companyId));
+
+      // Get company name
+      const [company] = await drizzlePool
+        .select({ officialName: companyTable.officialName })
+        .from(companyTable)
+        .where(eq(companyTable.id, companyId));
+
+      const companyName = company ? company.officialName : null;
+
+      const postsWithRelations = await Promise.all(
+        posts.map(async (post) => {
+          const [skills, categories] = await Promise.all([
+            this.getJobPostSkills(post.id, "hiring"),
+            this.getJobPostCategories(post.id, "hiring"),
+          ]);
+          return { ...post, companyName, skills, jobCategories: categories } as TPost;
+        })
+      );
+
+      return {
+        success: true,
+        status: 200,
+        msg: "Successfully retrieved company's job posts",
+        data: {
+          jobPosts: postsWithRelations,
+          pagination: {
+            currentPage: 1,
+            totalPages: 1,
+            totalItems: postsWithRelations.length,
+            itemsPerPage: postsWithRelations.length,
+          },
+        },
+      };
+    } catch (error) {
+      console.error("Error in getJobPostsByCompany:", error);
+      return {
+        success: false,
+        status: 500,
+        msg: "Failed to retrieve company's job posts",
+        data: {
+          jobPosts: [],
+          pagination: {
+            currentPage: 0,
+            totalPages: 0,
+            totalItems: 0,
+            itemsPerPage: 0,
+          },
+        },
+      };
+    }
+  }
 } 
