@@ -1,4 +1,5 @@
 import { jobHirerTypeEnum, postStatusEnum, jobPostTypeEnum, jobSeekerTypeEnum } from "../../db/schema";
+import { SerivcesResponse } from "./responseTypes";
 
 // Base type for job hiring post data
 export type TPost = {
