@@ -1,6 +1,7 @@
 import { drizzlePool } from "../../db/conn";
 import { eq } from "drizzle-orm";
 import { SerivcesResponse } from "../types/responseTypes";
+import { errorServices } from "./errorServices";
 import { Table } from "drizzle-orm";
 
 export interface BaseEntity {
@@ -46,11 +47,7 @@ export abstract class Services<T extends BaseEntity, TInput extends BaseEntityIn
       };
     } catch (error) {
       console.error("Error fetching items:", error);
-      return {
-        success: false,
-        status: 500,
-        msg: "Failed to fetch items"
-      };
+      throw errorServices.handleServerError(error);
     }
   }
 
@@ -62,11 +59,7 @@ export abstract class Services<T extends BaseEntity, TInput extends BaseEntityIn
         .where(eq((this.table as any).id, id));
 
       if (!item) {
-        return {
-          success: false,
-          status: 404,
-          msg: "Item not found"
-        };
+        throw errorServices.handleNotFoundError('Item');
       }
 
       return {
@@ -77,11 +70,7 @@ export abstract class Services<T extends BaseEntity, TInput extends BaseEntityIn
       };
     } catch (error) {
       console.error("Error fetching item by id:", error);
-      return {
-        success: false,
-        status: 500,
-        msg: "Failed to fetch item"
-      };
+      throw errorServices.handleServerError(error);
     }
   }
 
@@ -104,17 +93,9 @@ export abstract class Services<T extends BaseEntity, TInput extends BaseEntityIn
     } catch (error) {
       console.error("Error creating item:", error);
       if (error.code === "23505") {
-        return {
-          success: false,
-          status: 400,
-          msg: "Item with this name already exists"
-        };
+        throw errorServices.handleValidationError("Item with this name already exists");
       }
-      return {
-        success: false,
-        status: 500,
-        msg: "Failed to create item"
-      };
+      throw errorServices.handleServerError(error);
     }
   }
 
@@ -131,11 +112,7 @@ export abstract class Services<T extends BaseEntity, TInput extends BaseEntityIn
         .returning();
 
       if (!updatedItem) {
-        return {
-          success: false,
-          status: 404,
-          msg: "Item not found"
-        };
+        throw errorServices.handleNotFoundError('Item');
       }
 
       return {
@@ -147,17 +124,9 @@ export abstract class Services<T extends BaseEntity, TInput extends BaseEntityIn
     } catch (error) {
       console.error("Error updating item:", error);
       if (error.code === "23505") {
-        return {
-          success: false,
-          status: 400,
-          msg: "Item with this name already exists"
-        };
+        throw errorServices.handleValidationError("Item with this name already exists");
       }
-      return {
-        success: false,
-        status: 500,
-        msg: "Failed to update item"
-      };
+      throw errorServices.handleServerError(error);
     }
   }
 
@@ -169,11 +138,7 @@ export abstract class Services<T extends BaseEntity, TInput extends BaseEntityIn
         .returning();
 
       if (!deletedItem) {
-        return {
-          success: false,
-          status: 404,
-          msg: "Item not found"
-        };
+        throw errorServices.handleNotFoundError('Item');
       }
 
       return {
@@ -184,11 +149,7 @@ export abstract class Services<T extends BaseEntity, TInput extends BaseEntityIn
       };
     } catch (error) {
       console.error("Error deleting item:", error);
-      return {
-        success: false,
-        status: 500,
-        msg: "Failed to delete item"
-      };
+      throw errorServices.handleServerError(error);
     }
   }
 }

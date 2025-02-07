@@ -123,13 +123,24 @@ export async function dummyHandler(req: Request, res: Response) {
 }
 
 export async function handleGetAllJobFindingPosts(req: Request, res: Response) {
-  const result = await postServices.instance().getAllJobFindingPosts(req.query);
-  res.status(result.status).json({
-    success: result.success,
-    data: result.data,  
-    message: result.msg,
-  });
+  // const result = await postServices.instance().getAllJobFindingPosts(req.query);
+  // res.status(result.status).json({
+  //   success: result.success,
+  //   data: result.data,  
+  //   message: result.msg,
+  // });
+  try {
+    const result = await postServices.instance().getAllJobFindingPosts(req.query);
+    res.status(result.status).json({
+      success: result.success,
+      data: result.data,
+      message: result.msg,
+    });
+  } catch (error) { 
+    handleControllerError(error, res);
+  }
 }
+
 
 export async function handleCreateJobFindingPost(req: Request, res: Response) {
   try {

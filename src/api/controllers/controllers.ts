@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import { BaseEntity, BaseEntityInput, Services } from "../services/services";
 import { SerivcesResponse } from "../types/responseTypes";
+import { handleControllerError } from "../utilities/controllerUtils";
 
 export abstract class Controllers<
   T extends BaseEntity,
@@ -26,87 +27,67 @@ export abstract class Controllers<
   }
 
   async getAll(req: Request, res: Response) {
-    const result = await this.service.getAll();
-    if (!result.success || !result.data) {
+    try {
+      const result = await this.service.getAll();
       res.status(result.status).json({
         success: result.success,
-        msg: result.msg
+        message: result.msg,
+        data: result.data
       });
-      return;
+    } catch (error) {
+      handleControllerError(error, res);
     }
-
-    res.status(result.status).json({
-      success: result.success,
-      msg: result.msg,
-      data: result.data
-    });
   }
 
   async getById(req: Request, res: Response) {
-    const result = await this.service.getById(req.params.id);
-    if (!result.success || !result.data) {
+    try {
+      const result = await this.service.getById(req.params.id);
       res.status(result.status).json({
         success: result.success,
-        msg: result.msg
+        message: result.msg,
+        data: result.data
       });
-      return;
+    } catch (error) {
+      handleControllerError(error, res);
     }
-
-    res.status(result.status).json({
-      success: result.success,
-      msg: result.msg,
-      data: result.data
-    });
   }
 
   async create(req: Request, res: Response) {
-    const result = await this.service.create(req.body);
-    if (!result.success || !result.data) {
+    try {
+      const result = await this.service.create(req.body);
       res.status(result.status).json({
         success: result.success,
-        msg: result.msg
+        message: result.msg,
+        data: result.data
       });
-      return;
+    } catch (error) {
+      handleControllerError(error, res);
     }
-
-    res.status(result.status).json({
-      success: result.success,
-      msg: result.msg,
-      data: result.data
-    });
   }
 
   async update(req: Request, res: Response) {
-    const result = await this.service.update(req.params.id, req.body);
-    if (!result.success || !result.data) {
+    try {
+      const result = await this.service.update(req.params.id, req.body);
       res.status(result.status).json({
         success: result.success,
-        msg: result.msg
+        message: result.msg,
+        data: result.data
       });
-      return;
+    } catch (error) {
+      handleControllerError(error, res);
     }
-
-    res.status(result.status).json({
-      success: result.success,
-      msg: result.msg,
-      data: result.data
-    });
   }
 
   async delete(req: Request, res: Response) {
-    const result = await this.service.delete(req.params.id);
-    if (!result.success || !result.data) {
+    try {
+      const result = await this.service.delete(req.params.id);
       res.status(result.status).json({
         success: result.success,
-        msg: result.msg
+        message: result.msg,
+        data: result.data
       });
-      return;
+    } catch (error) {
+      handleControllerError(error, res);
     }
-
-    res.status(result.status).json({
-      success: result.success,
-      msg: result.msg,
-      data: result.data
-    });
   }
 }
