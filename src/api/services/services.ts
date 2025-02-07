@@ -4,17 +4,16 @@ import { SerivcesResponse } from "../types/responseTypes";
 import { errorServices } from "./errorServices";
 import { Table } from "drizzle-orm";
 
+// Base type for database records
 export interface BaseEntity {
   id: string;
-  name: string;
-  description: string | null;
   createdAt: Date;
   updatedAt: Date;
 }
 
-export interface BaseEntityInput {
-  name: string;
-  description?: string | null;
+// Base type for input data
+export interface BaseEntityInput<T = any> {
+  [key: string]: T;
 }
 
 export abstract class Services<T extends BaseEntity, TInput extends BaseEntityInput = BaseEntityInput> {
@@ -78,10 +77,7 @@ export abstract class Services<T extends BaseEntity, TInput extends BaseEntityIn
     try {
       const [newItem] = await drizzlePool
         .insert(this.table)
-        .values({
-          ...data,
-          description: data.description || null
-        })
+        .values(data)
         .returning();
 
       return {
@@ -105,9 +101,9 @@ export abstract class Services<T extends BaseEntity, TInput extends BaseEntityIn
         .update(this.table)
         .set({
           ...data,
-          description: data.description || null,
           updatedAt: new Date()
         })
+
         .where(eq((this.table as any).id, id))
         .returning();
 
