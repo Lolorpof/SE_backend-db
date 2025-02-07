@@ -17,7 +17,6 @@ import {
 import { jobPostType, jobFindingPostType, validUidType } from "../schemas/requestBodySchema";
 import { TPost, TPostResponse, TPostsResponse, TJobFindingPost } from "../types/postTypes";
 import { SerivcesResponse } from "../types/responseTypes";
-
 export class postServices {
   // singleton design
   private static postService: postServices | undefined;
@@ -348,11 +347,37 @@ export class postServices {
         })
         .returning();
 
+      // Insert skills if provided
+      if (jobPostData.skills && jobPostData.skills.length > 0) {
+        await drizzlePool.insert(jobHiringPostSkillTable).values(
+          jobPostData.skills.map((skillId) => ({
+            jobHiringPostId: jobPost.id,
+            skillId,
+          }))
+        );
+      }
+
+      // Insert categories if provided
+      if (jobPostData.jobCategories && jobPostData.jobCategories.length > 0) {
+        await drizzlePool.insert(jobHireCategoryTable).values(
+          jobPostData.jobCategories.map((categoryId) => ({
+            jobHiringPostId: jobPost.id,
+            jobCategoryId: categoryId,
+          }))
+        );
+      }
+
+      // Get the skills and categories for the response
+      const [skills, categories] = await Promise.all([
+        this.getJobPostSkills(jobPost.id, "hiring"),
+        this.getJobPostCategories(jobPost.id, "hiring"),
+      ]);
+
       return {
         success: true,
         status: 201,
         msg: "Job hiring post created successfully",
-        data: jobPost as TPost,
+        data: { ...jobPost, skills, jobCategories: categories } as TPost,
       };
     } catch (error) {
       console.error("Error creating job hiring post:", error);
@@ -399,11 +424,48 @@ export class postServices {
         })
         .returning();
 
+      // Insert skills if provided
+      if (jobPostData.skills && jobPostData.skills.length > 0) {
+        await drizzlePool.insert(jobHiringPostSkillTable).values(
+          jobPostData.skills.map((skillId) => ({
+            jobHiringPostId: jobPost.id,
+            skillId,
+          }))
+        );
+      }
+
+      // Insert categories if provided
+      if (jobPostData.jobCategories && jobPostData.jobCategories.length > 0) {
+        await drizzlePool.insert(jobHireCategoryTable).values(
+          jobPostData.jobCategories.map((categoryId) => ({
+            jobHiringPostId: jobPost.id,
+            jobCategoryId: categoryId,
+          }))
+        );
+      }
+
+      // Get the skills and categories for the response
+      const [skills, categories] = await Promise.all([
+        this.getJobPostSkills(jobPost.id, "hiring"),
+        this.getJobPostCategories(jobPost.id, "hiring"),
+      ]);
+
+      // Get company name
+      const [company] = await drizzlePool
+        .select({ officialName: companyTable.officialName })
+        .from(companyTable)
+        .where(eq(companyTable.id, user.id));
+
       return {
         success: true,
         status: 201,
         msg: "Job hiring post created successfully",
-        data: jobPost as TPost,
+        data: { 
+          ...jobPost, 
+          companyName: company?.officialName || null,
+          skills, 
+          jobCategories: categories 
+        } as TPost,
       };
     } catch (error) {
       console.error("Error creating job hiring post:", error);
