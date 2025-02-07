@@ -54,11 +54,11 @@ export type TJobFindingPost = TBasePost & {
 };
 
 // Type for single job post response
-export type TPostResponse = {
+export type TPostResponse<T extends TBasePost = TPost | TJobFindingPost> = {
   success: boolean;
   status: number;
   msg: string;
-  data: TPost | TJobFindingPost;
+  data: T;
 };
 
 // Type for paginated job posts response
