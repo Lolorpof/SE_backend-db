@@ -17,6 +17,8 @@ import {
 import { jobPostType, jobFindingPostType, validUidType } from "../schemas/requestBodySchema";
 import { TPost, TPostResponse, TPostsResponse, TJobFindingPost } from "../types/postTypes";
 import { SerivcesResponse } from "../types/responseTypes";
+import { errorServices } from "./errorServices";
+
 export class postServices {
   // singleton design
   private static postService: postServices | undefined;
@@ -294,20 +296,7 @@ export class postServices {
       };
     } catch (error) {
       console.error("Error fetching job posts:", error);
-      return {
-        success: false,
-        status: 500,
-        msg: "Failed to fetch job posts",
-        data: {
-          jobPosts: [],
-          pagination: {
-            currentPage: 0,
-            totalPages: 0,
-            totalItems: 0,
-            itemsPerPage: 0,
-          },
-        },
-      };
+      throw errorServices.handleServerError(error);
     }
   }
 
@@ -317,12 +306,7 @@ export class postServices {
   ): Promise<TPostResponse> {
     try {
       if (!user) {
-        return {
-          success: false,
-          status: 401,
-          msg: "Unauthorized",
-          data: null as unknown as TPost,
-        };
+        throw errorServices.handleAuthError();
       }
 
       // Create the job hiring post
@@ -381,12 +365,7 @@ export class postServices {
       };
     } catch (error) {
       console.error("Error creating job hiring post:", error);
-      return {
-        success: false,
-        status: 500,
-        msg: "Failed to create job hiring post",
-        data: null as unknown as TPost,
-      };
+      throw errorServices.handleServerError(error);
     }
   }
 
@@ -396,12 +375,7 @@ export class postServices {
   ): Promise<TPostResponse> {
     try {
       if (!user) {
-        return {
-          success: false,
-          status: 401,
-          msg: "Unauthorized",
-          data: null as unknown as TPost,
-        };
+        throw errorServices.handleAuthError();
       }
 
       // Create the job hiring post
@@ -469,12 +443,7 @@ export class postServices {
       };
     } catch (error) {
       console.error("Error creating job hiring post:", error);
-      return {
-        success: false,
-        status: 500,
-        msg: "Failed to create job hiring post",
-        data: null as unknown as TPost,
-      };
+      throw errorServices.handleServerError(error);
     }
   }
 
@@ -485,12 +454,7 @@ export class postServices {
   ): Promise<TPostResponse> {
     try {
       if (!user) {
-        return {
-          success: false,
-          status: 401,
-          msg: "Unauthorized",
-          data: null as unknown as TPost,
-        };
+        throw errorServices.handleAuthError();
       }
 
       // Get the job post and check if it exists
@@ -500,12 +464,7 @@ export class postServices {
         .where(eq(jobHiringPostTable.id, id));
 
       if (!jobPost) {
-        return {
-          success: false,
-          status: 404,
-          msg: "Job post not found",
-          data: null as unknown as TPost,
-        };
+        throw errorServices.handleNotFoundError('Job post');
       }
 
       // Check if the user is the owner of the post
@@ -521,12 +480,7 @@ export class postServices {
       }
 
       if (!isOwner) {
-        return {
-          success: false,
-          status: 403,
-          msg: "You are not authorized to update this job post",
-          data: null as unknown as TPost,
-        };
+        throw errorServices.handleForbiddenError('You are not authorized to update this job post');
       }
 
       // Update the job post
@@ -554,12 +508,7 @@ export class postServices {
       };
     } catch (error) {
       console.error("Error updating job post:", error);
-      return {
-        success: false,
-        status: 500,
-        msg: "Failed to update job post",
-        data: null as unknown as TPost,
-      };
+      throw errorServices.handleServerError(error);
     }
   }
 
@@ -588,12 +537,7 @@ export class postServices {
         .where(eq(jobHiringPostTable.id, id));
 
       if (!jobPost || jobPost.length === 0) {
-        return {
-          success: false,
-          status: 404,
-          msg: "Job post not found",
-          data: null as unknown as TPost,
-        };
+        throw errorServices.handleNotFoundError('Job post');
       }
 
       // Fetch company name if companyId exists
@@ -630,12 +574,7 @@ export class postServices {
       };
     } catch (error) {
       console.error("Error fetching job post:", error);
-      return {
-        success: false,
-        status: 500,
-        msg: "Failed to fetch job post",
-        data: null as unknown as TPost,
-      };
+      throw errorServices.handleServerError(error);
     }
   }
 
@@ -645,12 +584,7 @@ export class postServices {
   ): Promise<TPostResponse> {
     try {
       if (!user) {
-        return {
-          success: false,
-          status: 401,
-          msg: "Unauthorized",
-          data: null as unknown as TPost,
-        };
+        throw errorServices.handleAuthError();
       }
 
       // Get the job post and check if it exists
@@ -660,12 +594,7 @@ export class postServices {
         .where(eq(jobHiringPostTable.id, id));
 
       if (!jobPost) {
-        return {
-          success: false,
-          status: 404,
-          msg: "Job post not found",
-          data: null as unknown as TPost,
-        };
+        throw errorServices.handleNotFoundError('Job post');
       }
 
       // Check if the user is the owner of the post
@@ -681,12 +610,7 @@ export class postServices {
       }
 
       if (!isOwner) {
-        return {
-          success: false,
-          status: 403,
-          msg: "You are not authorized to delete this job post",
-          data: null as unknown as TPost,
-        };
+        throw errorServices.handleForbiddenError('You are not authorized to delete this job post');
       }
 
       // Delete the job post
@@ -703,12 +627,7 @@ export class postServices {
       };
     } catch (error) {
       console.error("Error deleting job post:", error);
-      return {
-        success: false,
-        status: 500,
-        msg: "Failed to delete job post",
-        data: null as unknown as TPost,
-      };
+      throw errorServices.handleServerError(error);
     }
   }
 
@@ -965,20 +884,7 @@ export class postServices {
       };
     } catch (error) {
       console.error("Error in getAllJobFindingPosts:", error);
-      return {
-        success: false,
-        status: 500,
-        msg: "Failed to retrieve job finding posts",
-        data: {
-          jobPosts: [],
-          pagination: {
-            currentPage: 0,
-            totalPages: 0,
-            totalItems: 0,
-            itemsPerPage: 0,
-          },
-        },
-      };
+      throw errorServices.handleServerError(error);
     }
   }
 
@@ -1035,12 +941,7 @@ export class postServices {
       };
     } catch (error) {
       console.error("Error in createJobFindingPost:", error);
-      return {
-        success: false,
-        status: 500,
-        msg: "Failed to create job finding post",
-        data: {} as TJobFindingPost,
-      };
+      throw errorServices.handleServerError(error);
     }
   }
 
@@ -1064,12 +965,7 @@ export class postServices {
         .limit(1);
 
       if (!existingPost.length) {
-        return {
-          success: false,
-          status: 404,
-          msg: "Job finding post not found or unauthorized",
-          data: {} as TJobFindingPost,
-        };
+        throw errorServices.handleNotFoundError('Job finding post');
       }
 
       const [updatedPost] = await drizzlePool
@@ -1123,12 +1019,7 @@ export class postServices {
       };
     } catch (error) {
       console.error("Error in updateJobFindingPost:", error);
-      return {
-        success: false,
-        status: 500,
-        msg: "Failed to update job finding post",
-        data: {} as TJobFindingPost,
-      };
+      throw errorServices.handleServerError(error);
     }
   }
 
@@ -1156,12 +1047,7 @@ export class postServices {
         .limit(1);
 
       if (!post) {
-        return {
-          success: false,
-          status: 404,
-          msg: "Job finding post not found",
-          data: {} as TJobFindingPost,
-        };
+        throw errorServices.handleNotFoundError('Job finding post');
       }
 
       const [skills, categories] = await Promise.all([
@@ -1177,12 +1063,7 @@ export class postServices {
       };
     } catch (error) {
       console.error("Error in getJobFindingPost:", error);
-      return {
-        success: false,
-        status: 500,
-        msg: "Failed to retrieve job finding post",
-        data: {} as TJobFindingPost,
-      };
+      throw errorServices.handleServerError(error);
     }
   }
 
@@ -1204,12 +1085,7 @@ export class postServices {
         .returning();
 
       if (!deletedPost) {
-        return {
-          success: false,
-          status: 404,
-          msg: "Job finding post not found or unauthorized",
-          data: {} as TJobFindingPost,
-        };
+        throw errorServices.handleNotFoundError('Job finding post');
       }
 
       return {
@@ -1220,12 +1096,7 @@ export class postServices {
       };
     } catch (error) {
       console.error("Error in deleteJobFindingPost:", error);
-      return {
-        success: false,
-        status: 500,
-        msg: "Failed to delete job finding post",
-        data: {} as TJobFindingPost,
-      };
+      throw errorServices.handleServerError(error);
     }
   }
 
@@ -1281,20 +1152,7 @@ export class postServices {
       };
     } catch (error) {
       console.error("Error in getJobFindingPostsByUser:", error);
-      return {
-        success: false,
-        status: 500,
-        msg: "Failed to retrieve user's job finding posts",
-        data: {
-          jobPosts: [],
-          pagination: {
-            currentPage: 0,
-            totalPages: 0,
-            totalItems: 0,
-            itemsPerPage: 0,
-          },
-        },
-      };
+      throw errorServices.handleServerError(error);
     }
   }
 
@@ -1352,20 +1210,7 @@ export class postServices {
       };
     } catch (error) {
       console.error("Error in getJobPostsByEmployer:", error);
-      return {
-        success: false,
-        status: 500,
-        msg: "Failed to retrieve employer's job posts",
-        data: {
-          jobPosts: [],
-          pagination: {
-            currentPage: 0,
-            totalPages: 0,
-            totalItems: 0,
-            itemsPerPage: 0,
-          },
-        },
-      };
+      throw errorServices.handleServerError(error);
     }
   }
 
@@ -1427,20 +1272,7 @@ export class postServices {
       };
     } catch (error) {
       console.error("Error in getJobPostsByCompany:", error);
-      return {
-        success: false,
-        status: 500,
-        msg: "Failed to retrieve company's job posts",
-        data: {
-          jobPosts: [],
-          pagination: {
-            currentPage: 0,
-            totalPages: 0,
-            totalItems: 0,
-            itemsPerPage: 0,
-          },
-        },
-      };
+      throw errorServices.handleServerError(error);
     }
   }
 } 

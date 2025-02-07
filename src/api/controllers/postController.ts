@@ -9,17 +9,26 @@ import {
   getAllJobPostsType,
 } from "../schemas/requestBodySchema";
 import { postServices } from "../services/postServices";
+import { ServerError } from "../types/errorTypes";
+import { errorServices } from "../services/errorServices";
+import { ZodError } from "zod";
+import { handleControllerError } from "../utilities/controllerUtils";
+
 export async function handleGetAllJobPosts(req: Request, res: Response) {
-  const result = await postServices.instance().getAllJobPosts(req.query);
-  res.status(result.status).json({
-    success: result.success,
-    data: result.data,  
-    message: result.msg,
-  });
+  try {
+    const result = await postServices.instance().getAllJobPosts(req.query);
+    res.status(result.status).json({
+      success: result.success,
+      data: result.data,  
+      message: result.msg,
+    });
+  } catch (error) {
+    handleControllerError(error, res);
+  }
 }
+
 export async function handleCreateJobPostFromEmp(req: Request, res: Response) {
   try {
-    // Validate request body against schema
     const validatedData = jobPostSchema.parse(req.body);
     const user = req.user as TEmployerSession;
     
@@ -31,21 +40,10 @@ export async function handleCreateJobPostFromEmp(req: Request, res: Response) {
       message: result.msg,
     });
   } catch (error) {
-    if (error.name === "ZodError") {
-      res.status(400).json({
-        success: false,
-        message: "Invalid request data",
-        errors: error.errors,
-      });
-      return;
-    }
-
-    res.status(500).json({
-      success: false,
-      message: "Failed to create job hiring post",
-    });
+    handleControllerError(error, res);
   }
 }
+
 export async function handleCreateJobPostFromCompany(req: Request, res: Response) {
   try {
     // Validate request body against schema
@@ -60,21 +58,10 @@ export async function handleCreateJobPostFromCompany(req: Request, res: Response
       message: result.msg,
     });
   } catch (error) {
-    if (error.name === "ZodError") {
-      res.status(400).json({
-        success: false,
-        message: "Invalid request data",
-        errors: error.errors,
-      });
-      return;
-    }
-
-    res.status(500).json({
-      success: false,
-      message: "Failed to create job hiring post",
-    });
+    handleControllerError(error, res);
   }
 }
+
 export async function handleUpdateJobPost(req: Request, res: Response) {
   try {
     // Validate request params (job post ID)
@@ -91,22 +78,10 @@ export async function handleUpdateJobPost(req: Request, res: Response) {
       message: result.msg,
     });
   } catch (error) {
-    if (error.name === "ZodError") {
-      res.status(400).json({
-        success: false,
-        message: "Invalid request data",
-        errors: error.errors,
-      });
-      return;
-    }
-
-    res.status(500).json({
-      success: false,
-      message: "Failed to update job hiring post",
-      error: error.message,
-    });
+    handleControllerError(error, res);
   }
 }
+
 export async function handleGetJobPost(req: Request, res: Response) {
   try {
     const validatedId = validUidSchema.parse(req.params);
@@ -118,22 +93,10 @@ export async function handleGetJobPost(req: Request, res: Response) {
       message: result.msg,
     });
   } catch (error) {
-    if (error.name === "ZodError") {
-      res.status(400).json({
-        success: false,
-        message: "Invalid request data",
-        errors: error.errors,
-      });
-      return;
-    }
-
-    res.status(500).json({
-      success: false,
-      message: "Failed to fetch job post",
-      error: error.message,
-    });
+    handleControllerError(error, res);
   }
 }
+
 export async function handleDeleteJobPost(req: Request, res: Response) {
   try {
     const validatedId = validUidSchema.parse(req.params);
@@ -147,22 +110,10 @@ export async function handleDeleteJobPost(req: Request, res: Response) {
       message: result.msg,
     });
   } catch (error) {
-    if (error.name === "ZodError") {
-      res.status(400).json({
-        success: false,
-        message: "Invalid request data",
-        errors: error.errors,
-      });
-      return;
-    }
-
-    res.status(500).json({
-      success: false,
-      message: "Failed to delete job hiring post",
-      error: error.message,
-    });
+    handleControllerError(error, res);
   }
 }
+
 // Empty handlers for job posts
 export async function dummyHandler(req: Request, res: Response) {
   res.json({
@@ -193,21 +144,10 @@ export async function handleCreateJobFindingPost(req: Request, res: Response) {
       message: result.msg,
     });
   } catch (error) {
-    if (error.name === "ZodError") {
-      res.status(400).json({
-        success: false,
-        message: "Invalid request data",
-        errors: error.errors,
-      });
-      return;
-    }
-
-    res.status(500).json({
-      success: false,
-      message: "Failed to create job finding post",
-    });
+    handleControllerError(error, res);
   }
 }
+
 
 export async function handleUpdateJobFindingPost(req: Request, res: Response) {
   try {
@@ -223,20 +163,7 @@ export async function handleUpdateJobFindingPost(req: Request, res: Response) {
       message: result.msg,
     });
   } catch (error) {
-    if (error.name === "ZodError") {
-      res.status(400).json({
-        success: false,
-        message: "Invalid request data",
-        errors: error.errors,
-      });
-      return;
-    }
-
-    res.status(500).json({
-      success: false,
-      message: "Failed to update job finding post",
-      error: error.message,
-    });
+    handleControllerError(error, res);
   }
 }
 
@@ -251,20 +178,7 @@ export async function handleGetJobFindingPost(req: Request, res: Response) {
       message: result.msg,
     });
   } catch (error) {
-    if (error.name === "ZodError") {
-      res.status(400).json({
-        success: false,
-        message: "Invalid request data",
-        errors: error.errors,
-      });
-      return;
-    }
-
-    res.status(500).json({
-      success: false,
-      message: "Failed to fetch job finding post",
-      error: error.message,
-    });
+    handleControllerError(error, res);
   }
 }
 
@@ -281,20 +195,7 @@ export async function handleDeleteJobFindingPost(req: Request, res: Response) {
       message: result.msg,
     });
   } catch (error) {
-    if (error.name === "ZodError") {
-      res.status(400).json({
-        success: false,
-        message: "Invalid request data",
-        errors: error.errors,
-      });
-      return;
-    }
-
-    res.status(500).json({
-      success: false,
-      message: "Failed to delete job finding post",
-      error: error.message,
-    });
+    handleControllerError(error, res);
   }
 }
 
@@ -302,11 +203,7 @@ export async function handleGetUserJobFindingPosts(req: Request, res: Response) 
   try {
     const user = req.user as TJobSeekerSession;
     if (!user) {
-      res.status(401).json({
-        success: false,
-        message: "Unauthorized",
-      });
-      return;
+      throw errorServices.handleAuthError();
     }
 
     const result = await postServices.instance().getJobFindingPostsByUser(user.id, user.type === "OAUTH");
@@ -317,11 +214,7 @@ export async function handleGetUserJobFindingPosts(req: Request, res: Response) 
       message: result.msg,
     });
   } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: "Failed to fetch user's job finding posts",
-      error: error.message,
-    });
+    handleControllerError(error, res);
   }
 }
 
@@ -329,11 +222,7 @@ export async function handleGetEmployerJobPosts(req: Request, res: Response) {
   try {
     const user = req.user as TEmployerSession;
     if (!user) {
-      res.status(401).json({
-        success: false,
-        message: "Unauthorized",
-      });
-      return;
+      throw errorServices.handleAuthError();
     }
 
     const result = await postServices.instance().getJobPostsByEmployer(user.id, user.isOauth);
@@ -344,11 +233,7 @@ export async function handleGetEmployerJobPosts(req: Request, res: Response) {
       message: result.msg,
     });
   } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: "Failed to fetch employer's job posts",
-      error: error.message,
-    });
+    handleControllerError(error, res);
   }
 }
 
@@ -356,11 +241,7 @@ export async function handleGetCompanyJobPosts(req: Request, res: Response) {
   try {
     const user = req.user as TCompanySession;
     if (!user) {
-      res.status(401).json({
-        success: false,
-        message: "Unauthorized",
-      });
-      return;
+      throw errorServices.handleAuthError();
     }
 
     const result = await postServices.instance().getJobPostsByCompany(user.id);
@@ -371,10 +252,6 @@ export async function handleGetCompanyJobPosts(req: Request, res: Response) {
       message: result.msg,
     });
   } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: "Failed to fetch company's job posts",
-      error: error.message,
-    });
+    handleControllerError(error, res);
   }
 }
