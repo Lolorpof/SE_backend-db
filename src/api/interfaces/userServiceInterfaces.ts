@@ -33,6 +33,11 @@ export interface adminServiceInterfaces extends baseUserServiceInterfaces {
 
 export interface userServiceInterfaces extends baseUserServiceInterfaces {
   register(userForm: any): Promise<SerivcesResponse<any>>;
+
+  uploadRegistrationImage(
+    approvalId: string,
+    image: Express.Multer.File
+  ): Promise<SerivcesResponse<TRegisterImage>>;
 }
 
 export interface userOauthServiceInterfaces extends userServiceInterfaces {

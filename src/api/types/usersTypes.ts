@@ -91,8 +91,19 @@ type TAdminSession = TAdmin & {
   type: string;
 };
 
+type TGenericUserSession =
+  | TJobSeekerSession
+  | TEmployerSession
+  | TCompanySession;
+
 // register return
 type TRegisterUser = {
+  userId: string;
+  approvalId: string;
+};
+
+// some id
+type TGetId = {
   id: string;
 };
 
@@ -163,4 +174,10 @@ type TFormattedCompanyRegister = {
   officialName: string;
   email: string;
   hashedPassword: string;
+};
+
+// register approve image upload
+type TRegisterImage = {
+  approvalId: string;
+  url: string;
 };

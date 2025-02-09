@@ -84,7 +84,7 @@ export class employerModels implements userOauthModelInterfaces {
     // insert into registration approval
     await drizzlePool
       .insert(registrationApprovalTable)
-      .values({ userType: "OAUTHEMPLOYER", oauthEmployerId: user[0].id });
+      .values({ userType: "OAUTHEMPLOYER", oauthEmployerId: user[0].userId });
 
     return user[0];
   }

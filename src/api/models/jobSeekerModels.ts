@@ -13,7 +13,6 @@ import {
 } from "../interfaces/userModelInterfaces";
 import { Profile as GoogleProfile } from "passport-google-oauth20";
 import { TApprovedRequest } from "../validators/usersValidator";
-import { minioClient } from "../utilities/minio/minio";
 
 export class jobSeekerModels implements userOauthModelInterfaces {
   // singleton design
@@ -64,11 +63,18 @@ export class jobSeekerModels implements userOauthModelInterfaces {
       .returning({ id: jobSeekerTable.id });
 
     //registration approval
-    await drizzlePool
+    const registeredApproval = await drizzlePool
       .insert(registrationApprovalTable)
-      .values({ userType: "JOBSEEKER", jobSeekerId: registeredUser[0].id });
+      .values({ userType: "JOBSEEKER", jobSeekerId: registeredUser[0].id })
+      .returning({ id: registrationApprovalTable.id });
 
-    return registeredUser[0];
+    // format return data
+    const registered: TRegisterUser = {
+      userId: registeredUser[0].id,
+      approvalId: registeredApproval[0].id,
+    };
+
+    return registered;
   }
 
   // oauth first time
@@ -76,29 +82,31 @@ export class jobSeekerModels implements userOauthModelInterfaces {
     profile: GoogleProfile,
     provider: "GOOGLE" | "LINE"
   ): Promise<TRegisterUser> {
-    let user: TRegisterUser[];
-    // ***remove true***
-    if (provider === "GOOGLE" || true) {
-      user = await drizzlePool
-        .insert(oauthJobSeekerTable)
-        .values({
-          firstName: profile._json.given_name as string,
-          lastName: profile._json.family_name as string,
-          email: profile._json.email as string,
-          provider: "GOOGLE",
-          providerId: profile.id,
-          username: profile._json.given_name as string,
-        })
-        .returning({ id: oauthJobSeekerTable.id });
-    } else {
-    }
+    const loginUser = await drizzlePool
+      .insert(oauthJobSeekerTable)
+      .values({
+        firstName: profile._json.given_name as string,
+        lastName: profile._json.family_name as string,
+        email: profile._json.email as string,
+        provider: "GOOGLE",
+        providerId: profile.id,
+        username: profile._json.given_name as string,
+      })
+      .returning({ id: oauthJobSeekerTable.id });
 
     // insert into registration approval
-    await drizzlePool
+    const registeredApproval = await drizzlePool
       .insert(registrationApprovalTable)
-      .values({ userType: "OAUTHJOBSEEKER", oauthJobSeekerId: user[0].id });
+      .values({ userType: "OAUTHJOBSEEKER", oauthJobSeekerId: loginUser[0].id })
+      .returning({ id: registrationApprovalTable.id });
 
-    return user[0];
+    // format return data
+    const registered: TRegisterUser = {
+      userId: loginUser[0].id,
+      approvalId: registeredApproval[0].id,
+    };
+
+    return registered;
   }
 
   // update oauth profile
@@ -136,6 +144,20 @@ export class jobSeekerModels implements userOauthModelInterfaces {
 
     const user: TJobSeeker = updateUser[0] as TJobSeeker;
     return user;
+  }
+
+  // get approval id for oauth
+  async oauthGetApprovalId(userId: string): Promise<TGetId> {
+    const approvalId =
+      await drizzlePool.query.registrationApprovalTable.findFirst({
+        columns: { id: true },
+        where: eq(registrationApprovalTable.oauthJobSeekerId, userId),
+      });
+    if (!approvalId) {
+      throw Error("No approval id existed");
+    }
+
+    return approvalId;
   }
 
   // {login}
@@ -244,6 +266,7 @@ export class jobSeekerModels implements userOauthModelInterfaces {
     return user;
   }
 
+  // user approved by admin
   async approved(
     user: TApprovingUser,
     isOauth: boolean
@@ -278,5 +301,19 @@ export class jobSeekerModels implements userOauthModelInterfaces {
     }
 
     return result[0];
+  }
+
+  // upload registration image into approval table
+  async uploadRegistrationImage(
+    approvalId: string,
+    imageUrl: string
+  ): Promise<TRegisterImage> {
+    // update approval table at approvalId with image
+    await drizzlePool
+      .update(registrationApprovalTable)
+      .set({ imageUrl: imageUrl })
+      .where(eq(registrationApprovalTable.id, approvalId));
+
+    return { approvalId, url: imageUrl };
   }
 }

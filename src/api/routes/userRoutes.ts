@@ -6,11 +6,13 @@ import {
   checkAuthenticated,
   checkUnauthenticated,
   checkUnauthenticatedOauth,
+  checkUploadedSingleFile,
 } from "../middlewares/auth";
 import "../types/usersTypes";
 import "../validators/usersValidator";
 import { TSingleUserRegister } from "../validators/usersValidator";
 import { companyControllers } from "../controllers/companyControllers";
+import { uploadRegisterImageMiddleware } from "../utilities/multer";
 
 const userRouter = express.Router();
 
@@ -67,7 +69,7 @@ const userRouter = express.Router();
  *                data:
  *                  type: object
  *                  description: response data
- *                  example: {id: 69}
+ *                  example: {userId: 69, approvalId: 123}
  */
 userRouter
   .route("/job-seeker")
@@ -248,6 +250,15 @@ userRouter
   .post(checkUnauthenticated, jobSeekerControllers.instance().login)
   .get(checkAuthenticated, jobSeekerControllers.instance().getCurrent)
   .delete(checkAuthenticated, jobSeekerControllers.instance().logout);
+
+userRouter
+  .route("/job-seeker/registrationImage/:approvalId")
+  .post(
+    checkUnauthenticated,
+    uploadRegisterImageMiddleware,
+    checkUploadedSingleFile,
+    jobSeekerControllers.instance().uploadRegistrationImage
+  );
 
 // job seeker, google oauth login(GET)
 /**
