@@ -676,6 +676,7 @@ export const jobHiringPostSkillTable = pgTable(
 export const registrationApprovalTable = pgTable("registration_approval", {
   id: uuid("id").primaryKey().defaultRandom(),
   status: approvalStatusEnum("status").notNull().default("UNAPPROVED"),
+  imageUrl: varchar("image_url").notNull().default(undef),
   userType: normalUserTypeEnum("user_type").notNull(), // user's approved
   jobSeekerId: uuid("job_seeker_id").references(() => jobSeekerTable.id, {
     onDelete: "cascade",

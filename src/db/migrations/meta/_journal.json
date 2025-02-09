@@ -15,6 +15,13 @@
       "when": 1738695066730,
       "tag": "0001_petite_klaw",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1738941594976,
+      "tag": "0002_heavy_stature",
+      "breakpoints": true
     }
   ]
 }

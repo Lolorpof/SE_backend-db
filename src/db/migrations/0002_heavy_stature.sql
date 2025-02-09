@@ -1,0 +1,1 @@
+ALTER TABLE "registration_approval" ADD COLUMN "image_url" varchar DEFAULT 'UNDEFINED' NOT NULL;
