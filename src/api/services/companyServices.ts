@@ -9,6 +9,13 @@ import bcrypt from "bcryptjs";
 import { userServiceInterfaces } from "../interfaces/userServiceInterfaces";
 import { IVerifyOptions } from "passport-local";
 import "../types/usersTypes";
+import {
+  createBucketIfNotExisted,
+  minioClient,
+  registrationApprovalImageBucket,
+} from "../utilities/minio";
+import { minioUrlExpire } from "../utilities/env";
+import { catchError } from "../utilities/utilFunctions";
 
 export class companyServices implements userServiceInterfaces {
   // singleton design
@@ -102,7 +109,7 @@ export class companyServices implements userServiceInterfaces {
     };
 
     // insert into database
-    let registeredUser;
+    let registeredUser: TRegisterUser;
     try {
       registeredUser = await companyModels.instance().register(formattedUser);
     } catch (error) {
@@ -225,6 +232,50 @@ export class companyServices implements userServiceInterfaces {
       status: 200,
       msg: "Successfully retrieve user",
       data: user as TCompanySession,
+    };
+  }
+
+  // upload register proof image
+  async uploadRegistrationImage(
+    approvalId: string,
+    image: Express.Multer.File
+  ): Promise<SerivcesResponse<TRegisterImage>> {
+    // upload iamge to minio and get image url
+    await createBucketIfNotExisted(registrationApprovalImageBucket);
+    await minioClient.putObject(
+      registrationApprovalImageBucket,
+      `${approvalId}_register`,
+      image.buffer,
+      image.size,
+      { "Content-Type": image.mimetype }
+    );
+
+    const imageUrl = await minioClient.presignedUrl(
+      "GET",
+      registrationApprovalImageBucket,
+      `${approvalId}_register`,
+      minioUrlExpire // url is valid for 3 hours
+    );
+
+    // insert into approval table
+    const [error, result] = await catchError(
+      companyModels.instance().uploadRegistrationImage(approvalId, imageUrl)
+    );
+
+    if (error) {
+      console.error(error);
+      return {
+        success: false,
+        status: 400,
+        msg: "Something went wrong",
+      };
+    }
+
+    return {
+      success: true,
+      status: 201,
+      msg: "Successfully upload and insert registraion approval image",
+      data: result,
     };
   }
 

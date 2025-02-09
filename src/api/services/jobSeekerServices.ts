@@ -18,6 +18,7 @@ import {
   minioClient,
 } from "../utilities/minio/minio";
 import { registrationApprovalImageBucket } from "../utilities/minio";
+import { minioUrlExpire } from "../utilities/env";
 
 export class jobSeekerServices implements userOauthServiceInterfaces {
   // singleton design
@@ -404,7 +405,7 @@ export class jobSeekerServices implements userOauthServiceInterfaces {
       "GET",
       registrationApprovalImageBucket,
       `${approvalId}_register`,
-      60 * 60 * 3 // url is valid for 3 hours
+      minioUrlExpire // url is valid for 3 hours
     );
 
     // insert into approval table

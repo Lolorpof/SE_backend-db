@@ -64,29 +64,31 @@ export class employerModels implements userOauthModelInterfaces {
     profile: Profile,
     provider: "GOOGLE" | "LINE"
   ): Promise<TRegisterUser> {
-    let user: TRegisterUser[];
-    // ***remove true***
-    if (provider === "GOOGLE" || true) {
-      user = await drizzlePool
-        .insert(oauthEmployerTable)
-        .values({
-          firstName: profile._json.given_name as string,
-          lastName: profile._json.family_name as string,
-          email: profile._json.email as string,
-          provider: "GOOGLE",
-          providerId: profile.id,
-          username: profile._json.given_name as string,
-        })
-        .returning({ id: oauthEmployerTable.id });
-    } else {
-    }
+    const loginUser = await drizzlePool
+      .insert(oauthEmployerTable)
+      .values({
+        firstName: profile._json.given_name as string,
+        lastName: profile._json.family_name as string,
+        email: profile._json.email as string,
+        provider: "GOOGLE",
+        providerId: profile.id,
+        username: profile._json.given_name as string,
+      })
+      .returning({ id: oauthEmployerTable.id });
 
     // insert into registration approval
-    await drizzlePool
+    const registeredApproval = await drizzlePool
       .insert(registrationApprovalTable)
-      .values({ userType: "OAUTHEMPLOYER", oauthEmployerId: user[0].userId });
+      .values({ userType: "OAUTHEMPLOYER", oauthEmployerId: loginUser[0].id })
+      .returning({ id: registrationApprovalTable.id });
 
-    return user[0];
+    // format registered user
+    const registered: TRegisterUser = {
+      userId: loginUser[0].id,
+      approvalId: registeredApproval[0].id,
+    };
+
+    return registered;
   }
 
   // update oauth employer, if profile is changed
@@ -140,11 +142,18 @@ export class employerModels implements userOauthModelInterfaces {
       .returning({ id: employerTable.id });
 
     //registration approval
-    await drizzlePool
+    const registeredApproval = await drizzlePool
       .insert(registrationApprovalTable)
-      .values({ userType: "EMPLOYER", employerId: registeredUser[0].id });
+      .values({ userType: "EMPLOYER", employerId: registeredUser[0].id })
+      .returning({ id: registrationApprovalTable.id });
 
-    return registeredUser[0];
+    // format registered user
+    const registered: TRegisterUser = {
+      userId: registeredUser[0].id,
+      approvalId: registeredApproval[0].id,
+    };
+
+    return registered;
   }
 
   //get by id
@@ -177,6 +186,21 @@ export class employerModels implements userOauthModelInterfaces {
     return user;
   }
 
+  // upload register image
+  async uploadRegistrationImage(
+    approvalId: string,
+    imageUrl: string
+  ): Promise<TRegisterImage> {
+    // update approval table at approvalId with image
+    await drizzlePool
+      .update(registrationApprovalTable)
+      .set({ imageUrl: imageUrl })
+      .where(eq(registrationApprovalTable.id, approvalId));
+
+    return { approvalId, url: imageUrl };
+  }
+
+  // user approved by admin
   async approved(
     user: TApprovingUser,
     isOauth: boolean

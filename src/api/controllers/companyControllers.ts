@@ -2,6 +2,7 @@ import { Request, Response } from "express";
 import { companyServices } from "../services/companyServices";
 import { userControllerInterfaces } from "../interfaces/userControllerInterfaces";
 import passport from "../middlewares/passport";
+import { catchError } from "../utilities/utilFunctions";
 
 export class companyControllers implements userControllerInterfaces {
   // singleton design
@@ -101,6 +102,38 @@ export class companyControllers implements userControllerInterfaces {
   // get current company route handler
   async getCurrent(req: Request, res: Response): Promise<void> {
     const result = await companyServices.instance().getCurrent(req.user);
+    if (!result.success || !result.data) {
+      res
+        .status(result.status)
+        .json({ success: result.success, msg: result.msg });
+      return;
+    }
+
+    res
+      .status(result.status)
+      .json({ success: result.success, msg: result.msg, data: result.data });
+  }
+
+  // upload register image route handler
+  async uploadRegistrationImage(req: Request, res: Response): Promise<void> {
+    if (!req.params || !req.params.approvalId) {
+      res.status(400).json({ success: false, msg: "Credential is missing" });
+      console.error("params missing");
+      return;
+    }
+    const { approvalId } = req.params;
+    const [error, result] = await catchError(
+      companyServices
+        .instance()
+        .uploadRegistrationImage(approvalId, req.file as Express.Multer.File)
+    );
+
+    if (error) {
+      console.log(error);
+      res.status(403).json({ success: false, msg: "Credential is missing" });
+      return;
+    }
+
     if (!result.success || !result.data) {
       res
         .status(result.status)

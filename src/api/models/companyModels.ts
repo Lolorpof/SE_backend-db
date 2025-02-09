@@ -1,6 +1,10 @@
 import { eq, or } from "drizzle-orm";
 import { drizzlePool } from "../../db/conn";
-import { companyTable, registrationApprovalTable } from "../../db/schema";
+import {
+  companyTable,
+  registrationApprovalRelation,
+  registrationApprovalTable,
+} from "../../db/schema";
 import { userModelInterfaces } from "../interfaces/userModelInterfaces";
 import { TApprovedRequest } from "../validators/usersValidator";
 
@@ -57,11 +61,18 @@ export class companyModels implements userModelInterfaces {
       .returning({ id: companyTable.id });
 
     //registration approval
-    await drizzlePool
+    const registeredApproval = await drizzlePool
       .insert(registrationApprovalTable)
-      .values({ userType: "COMPANY", companyId: registeredUser[0].id });
+      .values({ userType: "COMPANY", companyId: registeredUser[0].id })
+      .returning({ id: registrationApprovalTable.id });
 
-    return registeredUser[0];
+    // format registered user
+    const registered: TRegisterUser = {
+      userId: registeredUser[0].id,
+      approvalId: registeredApproval[0].id,
+    };
+
+    return registered;
   }
 
   // get by id
@@ -74,6 +85,21 @@ export class companyModels implements userModelInterfaces {
     return user as TCompany | undefined;
   }
 
+  // upload register image
+  async uploadRegistrationImage(
+    approvalId: string,
+    imageUrl: string
+  ): Promise<TRegisterImage> {
+    // update approval table at approvalId with image
+    await drizzlePool
+      .update(registrationApprovalTable)
+      .set({ imageUrl: imageUrl })
+      .where(eq(registrationApprovalTable.id, approvalId));
+
+    return { approvalId, url: imageUrl };
+  }
+
+  // user approved by admin
   async approved(user: TApprovingUser): Promise<TApproveUser> {
     let result: TApproveUser[];
     if (user.status === "APPROVED") {

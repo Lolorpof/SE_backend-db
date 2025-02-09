@@ -5,6 +5,7 @@ import {
   userOauthControllerInterfaces,
 } from "../interfaces/userControllerInterfaces";
 import passport from "../middlewares/passport";
+import { catchError } from "../utilities/utilFunctions";
 
 export class employerControllers implements userOauthControllerInterfaces {
   // singleton design
@@ -140,8 +141,41 @@ export class employerControllers implements userOauthControllerInterfaces {
     });
   }
 
+  // get logged in controller
   async getCurrent(req: Request, res: Response): Promise<void> {
     const result = await employerServices.instance().getCurrent(req.user);
+    if (!result.success || !result.data) {
+      res
+        .status(result.status)
+        .json({ success: result.success, msg: result.msg });
+      return;
+    }
+
+    res
+      .status(result.status)
+      .json({ success: result.success, msg: result.msg, data: result.data });
+  }
+
+  // upload register image
+  async uploadRegistrationImage(req: Request, res: Response): Promise<void> {
+    if (!req.params || !req.params.approvalId) {
+      res.status(400).json({ success: false, msg: "Credential is missing" });
+      console.error("params missing");
+      return;
+    }
+    const { approvalId } = req.params;
+    const [error, result] = await catchError(
+      employerServices
+        .instance()
+        .uploadRegistrationImage(approvalId, req.file as Express.Multer.File)
+    );
+
+    if (error) {
+      console.log(error);
+      res.status(403).json({ success: false, msg: "Credential is missing" });
+      return;
+    }
+
     if (!result.success || !result.data) {
       res
         .status(result.status)
