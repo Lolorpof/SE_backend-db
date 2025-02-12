@@ -27,6 +27,11 @@ export interface userModelInterfaces extends baseUserModelInterfaces {
   ): Promise<TDuplicateNameEmail1 | TDuplicateNameEmail2 | undefined>;
 
   approved(user: TApprovingUser, isOauth?: boolean): Promise<TApproveUser>;
+
+  uploadRegistrationImage(
+    approvalId: string,
+    imageUrl: string
+  ): Promise<TRegisterImage>;
 }
 
 export interface userOauthModelInterfaces extends userModelInterfaces {

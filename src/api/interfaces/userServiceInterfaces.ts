@@ -2,6 +2,7 @@ import { IVerifyOptions } from "passport-local";
 import { Profile, VerifyCallback } from "passport-google-oauth20";
 
 import "../types/responseTypes";
+import { SerivcesResponse } from "../types/responseTypes";
 
 export interface baseUserServiceInterfaces {
   // passport strategy, so response is not <ServiceResponse>
@@ -33,6 +34,11 @@ export interface adminServiceInterfaces extends baseUserServiceInterfaces {
 
 export interface userServiceInterfaces extends baseUserServiceInterfaces {
   register(userForm: any): Promise<SerivcesResponse<any>>;
+
+  uploadRegistrationImage(
+    approvalId: string,
+    image: Express.Multer.File
+  ): Promise<SerivcesResponse<TRegisterImage>>;
 }
 
 export interface userOauthServiceInterfaces extends userServiceInterfaces {

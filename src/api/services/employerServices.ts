@@ -14,6 +14,13 @@ import { IVerifyOptions } from "passport-local";
 import "../types/usersTypes";
 import { Profile, VerifyCallback } from "passport-google-oauth20";
 import { SerivcesResponse } from "../types/responseTypes";
+import {
+  createBucketIfNotExisted,
+  minioClient,
+  registrationApprovalImageBucket,
+} from "../utilities/minio";
+import { minioUrlExpire } from "../utilities/env";
+import { catchError } from "../utilities/utilFunctions";
 
 export class employerServices implements userOauthServiceInterfaces {
   // singleton design
@@ -91,9 +98,9 @@ export class employerServices implements userOauthServiceInterfaces {
     let hashedPassword: string | undefined;
     try {
       hashedPassword = await bcrypt.hash(
-              validatedUserForm.password,
-              Number(process.env.BCRYPT_SALTROUNDS)
-            );
+        validatedUserForm.password,
+        Number(process.env.BCRYPT_SALTROUNDS)
+      );
     } catch (error) {
       console.log(error);
       return { success: false, msg: "Something went wrong", status: 403 };
@@ -316,6 +323,50 @@ export class employerServices implements userOauthServiceInterfaces {
       success: true,
       msg: "Successfully retrieve user",
       data: user as TEmployerSession,
+    };
+  }
+
+  // upload register image service
+  async uploadRegistrationImage(
+    approvalId: string,
+    image: Express.Multer.File
+  ): Promise<SerivcesResponse<TRegisterImage>> {
+    // upload iamge to minio and get image url
+    await createBucketIfNotExisted(registrationApprovalImageBucket);
+    await minioClient.putObject(
+      registrationApprovalImageBucket,
+      `${approvalId}_register`,
+      image.buffer,
+      image.size,
+      { "Content-Type": image.mimetype }
+    );
+
+    const imageUrl = await minioClient.presignedUrl(
+      "GET",
+      registrationApprovalImageBucket,
+      `${approvalId}_register`,
+      minioUrlExpire // url is valid for 3 hours
+    );
+
+    // insert into approval table
+    const [error, result] = await catchError(
+      employerModels.instance().uploadRegistrationImage(approvalId, imageUrl)
+    );
+
+    if (error) {
+      console.error(error);
+      return {
+        success: false,
+        status: 400,
+        msg: "Something went wrong",
+      };
+    }
+
+    return {
+      success: true,
+      status: 201,
+      msg: "Successfully upload and insert registraion approval image",
+      data: result,
     };
   }
 

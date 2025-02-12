@@ -13,6 +13,13 @@ import {
 } from "../interfaces/userServiceInterfaces";
 import { Profile, VerifyCallback } from "passport-google-oauth20";
 import { SerivcesResponse } from "../types/responseTypes";
+import { catchError } from "../utilities/utilFunctions";
+import {
+  createBucketIfNotExisted,
+  minioClient,
+} from "../utilities/minio/minio";
+import { registrationApprovalImageBucket } from "../utilities/minio";
+import { minioUrlExpire } from "../utilities/env";
 
 export class jobSeekerServices implements userOauthServiceInterfaces {
   // singleton design
@@ -90,9 +97,9 @@ export class jobSeekerServices implements userOauthServiceInterfaces {
     let hashedPassword: string | undefined;
     try {
       hashedPassword = await bcrypt.hash(
-              validatedUserForm.password,
-              Number(process.env.BCRYPT_SALTROUNDS)
-            );
+        validatedUserForm.password,
+        Number(process.env.BCRYPT_SALTROUNDS)
+      );
     } catch (error) {
       console.log(error);
       return { success: false, msg: "Something went wrong", status: 403 };
@@ -107,7 +114,7 @@ export class jobSeekerServices implements userOauthServiceInterfaces {
     };
 
     // insert job seeker into database
-    let registeredUser;
+    let registeredUser: TRegisterUser;
     try {
       registeredUser = await jobSeekerModels.instance().register(formattedUser);
     } catch (error) {
@@ -210,7 +217,7 @@ export class jobSeekerServices implements userOauthServiceInterfaces {
     }
 
     // first time oauth login
-    let insertUser: TRegisterUser;
+    let insertUser: TRegisterUser | undefined;
     if (!user) {
       try {
         insertUser = await jobSeekerModels
@@ -226,6 +233,7 @@ export class jobSeekerServices implements userOauthServiceInterfaces {
       return done(null, false, {
         message:
           "Detecting that you have logged in for the first time, please wait until your account is approved",
+        approvalId: insertUser.approvalId,
       });
     }
 
@@ -243,9 +251,22 @@ export class jobSeekerServices implements userOauthServiceInterfaces {
         });
       }
 
+      // get registration approval id of oauth job seeker
+      const [err, res] = await catchError(
+        jobSeekerModels.instance().oauthGetApprovalId(user.id)
+      );
+      if (err) {
+        return done(err, false, {
+          message: "Something went wrong",
+        });
+      }
+
       // user isn't approved yet
       if (user.approvalStatus === "UNAPPROVED") {
-        return done(null, false, { message: "User isn't approved yet" });
+        return done(null, false, {
+          message: "User isn't approved yet",
+          approvalId: res.id,
+        });
       }
 
       // format user
@@ -363,6 +384,50 @@ export class jobSeekerServices implements userOauthServiceInterfaces {
       msg: "Successfully retrieve current user",
       data: user as TJobSeekerSession,
       status: 200,
+    };
+  }
+
+  // upload registration image for approval
+  async uploadRegistrationImage(
+    approvalId: string,
+    image: Express.Multer.File
+  ): Promise<SerivcesResponse<TRegisterImage>> {
+    // upload iamge to minio and get image url
+    await createBucketIfNotExisted(registrationApprovalImageBucket);
+    await minioClient.putObject(
+      registrationApprovalImageBucket,
+      `${approvalId}_register`,
+      image.buffer,
+      image.size,
+      { "Content-Type": image.mimetype }
+    );
+
+    const imageUrl = await minioClient.presignedUrl(
+      "GET",
+      registrationApprovalImageBucket,
+      `${approvalId}_register`,
+      minioUrlExpire // url is valid for 3 hours
+    );
+
+    // insert into approval table
+    const [error, result] = await catchError(
+      jobSeekerModels.instance().uploadRegistrationImage(approvalId, imageUrl)
+    );
+
+    if (error) {
+      console.error(error);
+      return {
+        success: false,
+        status: 400,
+        msg: "Something went wrong",
+      };
+    }
+
+    return {
+      success: true,
+      status: 201,
+      msg: "Successfully upload and insert registraion approval image",
+      data: result,
     };
   }
 }

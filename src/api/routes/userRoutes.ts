@@ -6,11 +6,13 @@ import {
   checkAuthenticated,
   checkUnauthenticated,
   checkUnauthenticatedOauth,
+  checkUploadedSingleFile,
 } from "../middlewares/auth";
 import "../types/usersTypes";
 import "../validators/usersValidator";
 import { TSingleUserRegister } from "../validators/usersValidator";
 import { companyControllers } from "../controllers/companyControllers";
+import { uploadRegisterImageMiddleware } from "../utilities/multer";
 
 const userRouter = express.Router();
 
@@ -67,11 +69,68 @@ const userRouter = express.Router();
  *                data:
  *                  type: object
  *                  description: response data
- *                  example: {id: 69}
+ *                  example: {userId: 69, approvalId: 123}
  */
 userRouter
   .route("/job-seeker")
   .post(checkUnauthenticated, jobSeekerControllers.instance().register);
+
+// job seeker, upload registration image
+/**
+ * @openapi
+ * /api/user/job-seeker/registration-image/{approvalId}:
+ *   post:
+ *     summary: upload register proof image
+ *     tags: [Job Seeker]
+ *     parameters:
+ *       - in: path
+ *         name: approvalId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: registration approval id from registering
+ *     consumes:
+ *       - multipart/form-data
+ *     requestBody:
+ *       required: true
+ *       content:
+ *        multipart/form-data:
+ *          schema:
+ *            type: object
+ *            properties:
+ *              name:
+ *                type: string
+ *                format: binary
+ *                description: image file
+ *     responses:
+ *       201:
+ *         description: Return the job seeker id.
+ *         content:
+ *          application/json:
+ *            schema:
+ *              type: object
+ *              properties:
+ *                success:
+ *                  type: boolean
+ *                  description: is fetch successful
+ *                  example: true
+ *                msg:
+ *                  type: string
+ *                  description: response message
+ *                  example: Successfully fetch api
+ *                data:
+ *                  type: object
+ *                  description: response data
+ *                  example: {approvalId: 123, url: image's presignedUrl}
+ */
+userRouter
+  .route("/job-seeker/registration-image/:approvalId")
+  .post(
+    checkUnauthenticated,
+    uploadRegisterImageMiddleware,
+    checkUploadedSingleFile,
+    jobSeekerControllers.instance().uploadRegistrationImage
+  );
 
 // job seeker, login(POST), get current user(GET), edit current user(PUT), logout current user(DELETE)
 /**
@@ -329,6 +388,63 @@ userRouter
   .route("/employer")
   .post(checkUnauthenticated, employerControllers.instance().register);
 
+// employer, upload register image proof
+/**
+ * @openapi
+ * /api/user/employer/registration-image/{approvalId}:
+ *   post:
+ *     summary: upload register proof image
+ *     tags: [Employer]
+ *     parameters:
+ *       - in: path
+ *         name: approvalId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: registration approval id from registering
+ *     consumes:
+ *       - multipart/form-data
+ *     requestBody:
+ *       required: true
+ *       content:
+ *        multipart/form-data:
+ *          schema:
+ *            type: object
+ *            properties:
+ *              name:
+ *                type: string
+ *                format: binary
+ *                description: image file
+ *     responses:
+ *       201:
+ *         description: Return the job seeker id.
+ *         content:
+ *          application/json:
+ *            schema:
+ *              type: object
+ *              properties:
+ *                success:
+ *                  type: boolean
+ *                  description: is fetch successful
+ *                  example: true
+ *                msg:
+ *                  type: string
+ *                  description: response message
+ *                  example: Successfully fetch api
+ *                data:
+ *                  type: object
+ *                  description: response data
+ *                  example: {approvalId: 123, url: image's presignedUrl}
+ */
+userRouter
+  .route("/employer/registration-image/:approvalId")
+  .post(
+    checkUnauthenticated,
+    uploadRegisterImageMiddleware,
+    checkUploadedSingleFile,
+    employerControllers.instance().uploadRegistrationImage
+  );
+
 // employer, login(POST), get current user(GET)
 /**
  * @openapi
@@ -548,6 +664,63 @@ userRouter.get(
 userRouter
   .route("/company")
   .post(checkUnauthenticated, companyControllers.instance().register);
+
+// company, upload register image proof
+/**
+ * @openapi
+ * /api/user/company/registration-image/{approvalId}:
+ *   post:
+ *     summary: upload register proof image
+ *     tags: [Company]
+ *     parameters:
+ *       - in: path
+ *         name: approvalId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: registration approval id from registering
+ *     consumes:
+ *       - multipart/form-data
+ *     requestBody:
+ *       required: true
+ *       content:
+ *        multipart/form-data:
+ *          schema:
+ *            type: object
+ *            properties:
+ *              name:
+ *                type: string
+ *                format: binary
+ *                description: image file
+ *     responses:
+ *       201:
+ *         description: Return the job seeker id.
+ *         content:
+ *          application/json:
+ *            schema:
+ *              type: object
+ *              properties:
+ *                success:
+ *                  type: boolean
+ *                  description: is fetch successful
+ *                  example: true
+ *                msg:
+ *                  type: string
+ *                  description: response message
+ *                  example: Successfully fetch api
+ *                data:
+ *                  type: object
+ *                  description: response data
+ *                  example: {approvalId: 123, url: image's presignedUrl}
+ */
+userRouter
+  .route("/company/registration-image/:approvalId")
+  .post(
+    checkUnauthenticated,
+    uploadRegisterImageMiddleware,
+    checkUploadedSingleFile,
+    companyControllers.instance().uploadRegistrationImage
+  );
 
 // company, login(POST), get current user(GET)
 /**

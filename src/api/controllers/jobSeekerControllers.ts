@@ -6,6 +6,7 @@ import {
   userControllerInterfaces,
   userOauthControllerInterfaces,
 } from "../interfaces/userControllerInterfaces";
+import { catchError } from "../utilities/utilFunctions";
 
 export class jobSeekerControllers implements userOauthControllerInterfaces {
   // singleton design
@@ -75,7 +76,7 @@ export class jobSeekerControllers implements userOauthControllerInterfaces {
         }
         if (!user) {
           return res.redirect(
-            `${process.env.FRONTEND_URL}:${process.env.FRONTEND_PORT}/login?msg=${info.message}`
+            `${process.env.FRONTEND_URL}:${process.env.FRONTEND_PORT}/login?msg=Not+approved+yet&approvalId=${info.approvalId}`
           );
         }
 
@@ -179,5 +180,37 @@ export class jobSeekerControllers implements userOauthControllerInterfaces {
       msg: responseUser.msg,
       data: responseUser.data,
     });
+  }
+
+  // upload registration image
+  async uploadRegistrationImage(req: Request, res: Response): Promise<void> {
+    if (!req.params || !req.params.approvalId) {
+      res.status(400).json({ success: false, msg: "Credential is missing" });
+      console.error("params missing");
+      return;
+    }
+    const { approvalId } = req.params;
+    const [error, result] = await catchError(
+      jobSeekerServices
+        .instance()
+        .uploadRegistrationImage(approvalId, req.file as Express.Multer.File)
+    );
+
+    if (error) {
+      console.log(error);
+      res.status(403).json({ success: false, msg: "Credential is missing" });
+      return;
+    }
+
+    if (!result.success || !result.data) {
+      res
+        .status(result.status)
+        .json({ success: result.success, msg: result.msg });
+      return;
+    }
+
+    res
+      .status(result.status)
+      .json({ success: result.success, msg: result.msg, data: result.data });
   }
 }

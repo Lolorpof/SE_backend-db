@@ -17,6 +17,8 @@ export interface adminControllerInterfaces
 
 export interface userControllerInterfaces extends baseUserControllerInterfaces {
   register(req: Request, res: Response): Promise<void>;
+
+  uploadRegistrationImage(req: Request, res: Response): Promise<void>;
 }
 
 export interface userOauthControllerInterfaces

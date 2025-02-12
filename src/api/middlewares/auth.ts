@@ -64,6 +64,19 @@ export const checkUnauthenticatedOauth = async (
   next();
 };
 
+export const checkUploadedSingleFile = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  if (!req.file) {
+    res.status(400).json({ success: false, msg: "No picture was uploaded" });
+    return;
+  }
+
+  next();
+};
+
 export const checkPermissionHeader = async (
   req: Request,
   res: Response,
