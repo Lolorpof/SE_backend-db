@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import { BaseEntity, BaseEntityInput, Services } from "../services/services";
-import { SerivcesResponse } from "../types/responseTypes";
+import { ServicesResponse } from "../types/responseTypes";
 import { handleControllerError } from "../utilities/controllerUtils";
 
 export abstract class Controllers<
@@ -8,7 +8,8 @@ export abstract class Controllers<
   TInput extends BaseEntityInput,
   TService extends Services<T, TInput>
 > {
-  private static ControllersInstances: Map<string, Controllers<any, any, any>> = new Map();
+  private static ControllersInstances: Map<string, Controllers<any, any, any>> =
+    new Map();
   protected service: TService;
 
   protected constructor(service: TService) {
@@ -32,7 +33,7 @@ export abstract class Controllers<
       res.status(result.status).json({
         success: result.success,
         message: result.msg,
-        data: result.data
+        data: result.data,
       });
     } catch (error) {
       handleControllerError(error, res);
@@ -45,7 +46,7 @@ export abstract class Controllers<
       res.status(result.status).json({
         success: result.success,
         message: result.msg,
-        data: result.data
+        data: result.data,
       });
     } catch (error) {
       handleControllerError(error, res);
@@ -58,7 +59,7 @@ export abstract class Controllers<
       res.status(result.status).json({
         success: result.success,
         message: result.msg,
-        data: result.data
+        data: result.data,
       });
     } catch (error) {
       handleControllerError(error, res);
@@ -71,7 +72,7 @@ export abstract class Controllers<
       res.status(result.status).json({
         success: result.success,
         message: result.msg,
-        data: result.data
+        data: result.data,
       });
     } catch (error) {
       handleControllerError(error, res);
@@ -84,7 +85,7 @@ export abstract class Controllers<
       res.status(result.status).json({
         success: result.success,
         message: result.msg,
-        data: result.data
+        data: result.data,
       });
     } catch (error) {
       handleControllerError(error, res);

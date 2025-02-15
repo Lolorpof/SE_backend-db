@@ -5,10 +5,13 @@ import {
   registrationApprovalRelation,
   registrationApprovalTable,
 } from "../../db/schema";
-import { userModelInterfaces } from "../interfaces/userModelInterfaces";
+import {
+  companyModelInterfaces,
+  userModelInterfaces,
+} from "../interfaces/userModelInterfaces";
 import { TApprovedRequest } from "../validators/usersValidator";
 
-export class companyModels implements userModelInterfaces {
+export class companyModels implements companyModelInterfaces {
   // singleton design
   private static companyModel: companyModels | undefined;
   static instance() {

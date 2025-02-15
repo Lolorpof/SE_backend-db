@@ -7,13 +7,14 @@ import {
 } from "../../db/schema";
 import "../types/usersTypes";
 import {
+  employerModelInterfaces,
   userModelInterfaces,
   userOauthModelInterfaces,
 } from "../interfaces/userModelInterfaces";
 import { Profile } from "passport-google-oauth20";
 import { TApprovedRequest } from "../validators/usersValidator";
 
-export class employerModels implements userOauthModelInterfaces {
+export class employerModels implements employerModelInterfaces {
   // singleton design
   private static employerModel: employerModels | undefined;
   static instance() {

@@ -8,6 +8,7 @@ import "../types/usersTypes";
 import "../types/responseTypes";
 import { companyServices } from "../services/companyServices";
 import { adminServices } from "../services/adminsServices";
+import { ServicesResponse } from "../types/responseTypes";
 
 // Serializer (turn into session when logging in)
 passport.serializeUser(async (user, done) => {
@@ -17,7 +18,7 @@ passport.serializeUser(async (user, done) => {
 // Deserializer (get user's data from session to 'req.user')
 passport.deserializeUser(async (userSession: TUserSession, done) => {
   let responseUser:
-    | SerivcesResponse<TJobSeeker | TCompany | TEmployer>
+    | ServicesResponse<TJobSeeker | TCompany | TEmployer>
     | undefined;
   if (
     userSession.type === "JOBSEEKER" ||

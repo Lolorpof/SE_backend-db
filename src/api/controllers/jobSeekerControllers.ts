@@ -3,12 +3,13 @@ import { Request, Response } from "express";
 import passport from "../middlewares/passport";
 import "../interfaces/userControllerInterfaces";
 import {
+  jobSeekerControllerInterfaces,
   userControllerInterfaces,
   userOauthControllerInterfaces,
 } from "../interfaces/userControllerInterfaces";
 import { catchError } from "../utilities/utilFunctions";
 
-export class jobSeekerControllers implements userOauthControllerInterfaces {
+export class jobSeekerControllers implements jobSeekerControllerInterfaces {
   // singleton design
   private static userController: jobSeekerControllers | undefined;
   static instance() {

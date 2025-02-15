@@ -1,6 +1,13 @@
 import { Profile as GoogleProfile } from "passport-google-oauth20";
 import "../types/usersTypes";
 import { TApprovedRequest } from "../validators/usersValidator";
+import {
+  TEditEmailResponse,
+  TEditFullNameResponse,
+  TEditOfficialNameResponse,
+  TEditPasswordResponse,
+  TEditUsernameResponse,
+} from "../types/editUserProfile";
 
 export interface baseUserModelInterfaces {
   // login
@@ -32,9 +39,39 @@ export interface userModelInterfaces extends baseUserModelInterfaces {
     approvalId: string,
     imageUrl: string
   ): Promise<TRegisterImage>;
+
+  editEmail(
+    email: string,
+    user: TGenericUserSession
+  ): Promise<TEditEmailResponse>;
+
+  editPassword(
+    password: string,
+    oldPassword: string,
+    user: TGenericUserSession
+  ): Promise<TEditPasswordResponse>;
+
+  uploadProfilePicture(
+    image: Express.Multer.File,
+    userId: string,
+    provider?: string
+  ): Promise<TProfileImage>;
 }
 
-export interface userOauthModelInterfaces extends userModelInterfaces {
+export interface singleUserModelInterfaces extends userModelInterfaces {
+  editUsername(
+    username: string,
+    user: TGenericUserSession
+  ): Promise<TEditUsernameResponse>;
+
+  editFullName(
+    firstName: string,
+    lastName: string,
+    user: TGenericUserSession
+  ): Promise<TEditFullNameResponse>;
+}
+
+export interface userOauthModelInterfaces extends singleUserModelInterfaces {
   oauthUserInsert(
     profile: GoogleProfile,
     provider: "GOOGLE" | "LINE"
@@ -51,4 +88,20 @@ export interface userOauthModelInterfaces extends userModelInterfaces {
     getByProviderId?: boolean,
     provider?: "GOOGLE" | "LINE"
   ): Promise<TJobSeeker | TEmployer | TCompany | undefined>;
+}
+
+export interface jobSeekerModelInterfaces extends userOauthModelInterfaces {
+  uploadResume(
+    image: Express.Multer.File,
+    user: TGenericUserSession
+  ): Promise<TResumeImage>;
+}
+
+export interface employerModelInterfaces extends userOauthModelInterfaces {}
+
+export interface companyModelInterfaces extends userModelInterfaces {
+  editOfficialName(
+    officialName: string,
+    user: TGenericUserSession
+  ): Promise<TEditOfficialNameResponse>;
 }

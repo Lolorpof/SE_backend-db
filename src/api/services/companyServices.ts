@@ -6,7 +6,10 @@ import {
 } from "../validators/usersValidator";
 import { fromError } from "zod-validation-error";
 import bcrypt from "bcryptjs";
-import { userServiceInterfaces } from "../interfaces/userServiceInterfaces";
+import {
+  companyServiceInterfaces,
+  userServiceInterfaces,
+} from "../interfaces/userServiceInterfaces";
 import { IVerifyOptions } from "passport-local";
 import "../types/usersTypes";
 import {
@@ -16,9 +19,9 @@ import {
 } from "../utilities/minio";
 import { minioUrlExpire } from "../utilities/env";
 import { catchError } from "../utilities/utilFunctions";
-import { SerivcesResponse } from "../types/responseTypes";
+import { ServicesResponse } from "../types/responseTypes";
 
-export class companyServices implements userServiceInterfaces {
+export class companyServices implements companyServiceInterfaces {
   // singleton design
   private static companyService: companyServices | undefined;
   static instance() {
@@ -30,7 +33,7 @@ export class companyServices implements userServiceInterfaces {
 
   // {Business Logic}
   // register company
-  async register(userForm: any): Promise<SerivcesResponse<any>> {
+  async register(userForm: any): Promise<ServicesResponse<any>> {
     // user form validation
     try {
       companyRegisterSchema.parse(userForm);
@@ -186,7 +189,7 @@ export class companyServices implements userServiceInterfaces {
   async checkCurrent(
     user: Express.User | undefined,
     type: string
-  ): Promise<SerivcesResponse<any>> {
+  ): Promise<ServicesResponse<any>> {
     if (!user) {
       return { success: false, status: 403, msg: "Something went wrong" };
     }
@@ -214,7 +217,7 @@ export class companyServices implements userServiceInterfaces {
   // get current user
   async getCurrent(
     user: Express.User | undefined
-  ): Promise<SerivcesResponse<TCompanySession>> {
+  ): Promise<ServicesResponse<TCompanySession>> {
     if (!user) {
       return { success: false, status: 403, msg: "Something went wrong" };
     }
@@ -240,7 +243,7 @@ export class companyServices implements userServiceInterfaces {
   async uploadRegistrationImage(
     approvalId: string,
     image: Express.Multer.File
-  ): Promise<SerivcesResponse<TRegisterImage>> {
+  ): Promise<ServicesResponse<TRegisterImage>> {
     // upload iamge to minio and get image url
     await createBucketIfNotExisted(registrationApprovalImageBucket);
     await minioClient.putObject(
@@ -281,7 +284,7 @@ export class companyServices implements userServiceInterfaces {
   }
 
   // deserialized user (passport calls)
-  async deserializer(id: string): Promise<SerivcesResponse<TCompany>> {
+  async deserializer(id: string): Promise<ServicesResponse<TCompany>> {
     let user: TCompany | undefined;
     // getting user
     try {

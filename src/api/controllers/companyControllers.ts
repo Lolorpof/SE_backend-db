@@ -1,10 +1,13 @@
 import { Request, Response } from "express";
 import { companyServices } from "../services/companyServices";
-import { userControllerInterfaces } from "../interfaces/userControllerInterfaces";
+import {
+  companyControllerInterfaces,
+  userControllerInterfaces,
+} from "../interfaces/userControllerInterfaces";
 import passport from "../middlewares/passport";
 import { catchError } from "../utilities/utilFunctions";
 
-export class companyControllers implements userControllerInterfaces {
+export class companyControllers implements companyControllerInterfaces {
   // singleton design
   private static companyController: companyControllers | undefined;
   static instance() {

@@ -1,13 +1,14 @@
 import { Request, Response } from "express";
 import { employerServices } from "../services/employerServices";
 import {
+  employerControllerInterfaces,
   userControllerInterfaces,
   userOauthControllerInterfaces,
 } from "../interfaces/userControllerInterfaces";
 import passport from "../middlewares/passport";
 import { catchError } from "../utilities/utilFunctions";
 
-export class employerControllers implements userOauthControllerInterfaces {
+export class employerControllers implements employerControllerInterfaces {
   // singleton design
   private static employerController: employerControllers | undefined;
   static instance() {

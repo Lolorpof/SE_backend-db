@@ -7,13 +7,14 @@ import {
 } from "../validators/usersValidator";
 import bcrypt from "bcryptjs";
 import {
+  employerServiceInterfaces,
   userOauthServiceInterfaces,
   userServiceInterfaces,
 } from "../interfaces/userServiceInterfaces";
 import { IVerifyOptions } from "passport-local";
 import "../types/usersTypes";
 import { Profile, VerifyCallback } from "passport-google-oauth20";
-import { SerivcesResponse } from "../types/responseTypes";
+import { ServicesResponse } from "../types/responseTypes";
 import {
   createBucketIfNotExisted,
   minioClient,
@@ -22,7 +23,7 @@ import {
 import { minioUrlExpire } from "../utilities/env";
 import { catchError } from "../utilities/utilFunctions";
 
-export class employerServices implements userOauthServiceInterfaces {
+export class employerServices implements employerServiceInterfaces {
   // singleton design
   private static employerService: employerServices | undefined;
   static instance() {
@@ -33,7 +34,7 @@ export class employerServices implements userOauthServiceInterfaces {
   }
 
   // register employer
-  async register(userForm: any): Promise<SerivcesResponse<any>> {
+  async register(userForm: any): Promise<ServicesResponse<any>> {
     // {Business Logic}
     // user form validation
     try {
@@ -277,7 +278,7 @@ export class employerServices implements userOauthServiceInterfaces {
     user: Express.User | undefined,
     type: string,
     isOauth: boolean
-  ): Promise<SerivcesResponse<any>> {
+  ): Promise<ServicesResponse<any>> {
     if (!user) {
       return { success: false, status: 403, msg: "Something went wrong" };
     }
@@ -304,7 +305,7 @@ export class employerServices implements userOauthServiceInterfaces {
   // get current user (passport calls)
   async getCurrent(
     user: Express.User | undefined
-  ): Promise<SerivcesResponse<TEmployerSession>> {
+  ): Promise<ServicesResponse<TEmployerSession>> {
     if (!user) {
       return { status: 403, success: false, msg: "Something went wrong" };
     }
@@ -330,7 +331,7 @@ export class employerServices implements userOauthServiceInterfaces {
   async uploadRegistrationImage(
     approvalId: string,
     image: Express.Multer.File
-  ): Promise<SerivcesResponse<TRegisterImage>> {
+  ): Promise<ServicesResponse<TRegisterImage>> {
     // upload iamge to minio and get image url
     await createBucketIfNotExisted(registrationApprovalImageBucket);
     await minioClient.putObject(
@@ -374,7 +375,7 @@ export class employerServices implements userOauthServiceInterfaces {
   async deserializer(
     id: string,
     provider?: "GOOGLE" | "LINE"
-  ): Promise<SerivcesResponse<any>> {
+  ): Promise<ServicesResponse<any>> {
     let user: TEmployer | undefined;
     // getting user
     try {

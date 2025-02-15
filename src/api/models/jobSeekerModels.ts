@@ -8,13 +8,14 @@ import {
 import "../types/usersTypes";
 import { and, eq, or } from "drizzle-orm";
 import {
+  jobSeekerModelInterfaces,
   userModelInterfaces,
   userOauthModelInterfaces,
 } from "../interfaces/userModelInterfaces";
 import { Profile as GoogleProfile } from "passport-google-oauth20";
 import { TApprovedRequest } from "../validators/usersValidator";
 
-export class jobSeekerModels implements userOauthModelInterfaces {
+export class jobSeekerModels implements jobSeekerModelInterfaces {
   // singleton design
   private static jobSeekerModel: jobSeekerModels | undefined;
   static instance() {
