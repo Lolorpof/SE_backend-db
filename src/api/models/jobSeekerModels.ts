@@ -14,6 +14,8 @@ import {
 } from "../interfaces/userModelInterfaces";
 import { Profile as GoogleProfile } from "passport-google-oauth20";
 import { TApprovedRequest } from "../validators/usersValidator";
+import { TEditUsernameResponse } from "../types/editUserProfile";
+import { catchError } from "../utilities/utilFunctions";
 
 export class jobSeekerModels implements jobSeekerModelInterfaces {
   // singleton design
@@ -316,5 +318,23 @@ export class jobSeekerModels implements jobSeekerModelInterfaces {
       .where(eq(registrationApprovalTable.id, approvalId));
 
     return { approvalId, url: imageUrl };
+  }
+
+  // credentials auth only
+  async editUsername(
+    username: string,
+    user: TGenericUserSession
+  ): Promise<TEditUsernameResponse> {
+    // check for true duplicate
+    const currentUserPassword =
+      await drizzlePool.query.jobSeekerTable.findFirst({
+        columns: { password: true },
+        where: eq(jobSeekerTable.id, user.id),
+      });
+
+    const dupedUsername = await drizzlePool.query.jobSeekerTable.findMany({
+      columns: { username: true, password: true },
+      where: eq(jobSeekerTable.username, username),
+    });
   }
 }

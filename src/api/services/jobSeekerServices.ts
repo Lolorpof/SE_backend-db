@@ -21,6 +21,11 @@ import {
 } from "../utilities/minio/minio";
 import { registrationApprovalImageBucket } from "../utilities/minio";
 import { minioUrlExpire } from "../utilities/env";
+import { TEditUsernameResponse } from "../types/editUserProfile";
+import {
+  editUsernameSchema,
+  TEditUsernameSchema,
+} from "../validators/profileValidator";
 
 export class jobSeekerServices implements jobSeekerServiceInterfaces {
   // singleton design
@@ -428,6 +433,40 @@ export class jobSeekerServices implements jobSeekerServiceInterfaces {
       success: true,
       status: 201,
       msg: "Successfully upload and insert registraion approval image",
+      data: result,
+    };
+  }
+
+  // edit username
+  async editUsername(
+    body: any,
+    user: Express.User
+  ): Promise<ServicesResponse<TEditUsernameResponse>> {
+    let parsedBody: TEditUsernameSchema;
+    try {
+      parsedBody = editUsernameSchema.parse(body);
+    } catch (error) {
+      console.error(error);
+      return { status: 400, success: false, msg: "Not authenticated" };
+    }
+
+    const formattedUser: TJobSeekerSession = user as TJobSeekerSession;
+
+    const [error, result] = await catchError(
+      jobSeekerModels
+        .instance()
+        .editUsername(parsedBody.username, formattedUser)
+    );
+
+    if (error) {
+      console.error(error);
+      return { status: 403, success: false, msg: "Something went wrong" };
+    }
+
+    return {
+      status: 200,
+      success: true,
+      msg: "Successfully editted username",
       data: result,
     };
   }

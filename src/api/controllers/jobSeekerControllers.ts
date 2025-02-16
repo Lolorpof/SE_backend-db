@@ -214,4 +214,9 @@ export class jobSeekerControllers implements jobSeekerControllerInterfaces {
       .status(result.status)
       .json({ success: result.success, msg: result.msg, data: result.data });
   }
+
+  async editUsername(req: Request, res: Response): Promise<void> {
+    // get response
+    const [error, result] = await catchError(jobSeekerServices.instance().ed);
+  }
 }
