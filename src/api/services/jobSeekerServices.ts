@@ -21,9 +21,14 @@ import {
 } from "../utilities/minio/minio";
 import { registrationApprovalImageBucket } from "../utilities/minio";
 import { minioUrlExpire } from "../utilities/env";
-import { TEditUsernameResponse } from "../types/editUserProfile";
 import {
+  TEditEmailResponse,
+  TEditUsernameResponse,
+} from "../types/editUserProfile";
+import {
+  editEmailSchema,
   editUsernameSchema,
+  TEditEmailSchema,
   TEditUsernameSchema,
 } from "../validators/profileValidator";
 
@@ -447,15 +452,20 @@ export class jobSeekerServices implements jobSeekerServiceInterfaces {
       parsedBody = editUsernameSchema.parse(body);
     } catch (error) {
       console.error(error);
-      return { status: 400, success: false, msg: "Not authenticated" };
+      return { status: 400, success: false, msg: "Wrong credentials format" };
     }
 
     const formattedUser: TJobSeekerSession = user as TJobSeekerSession;
 
+    // wrong user type
+    if (formattedUser.type !== "JOBSEEKER" || formattedUser.isOauth) {
+      return { status: 400, success: false, msg: "User isn't logged in" };
+    }
+
     const [error, result] = await catchError(
       jobSeekerModels
         .instance()
-        .editUsername(parsedBody.username, formattedUser)
+        .editUsername(parsedBody.username, parsedBody.password, formattedUser)
     );
 
     if (error) {
@@ -463,10 +473,90 @@ export class jobSeekerServices implements jobSeekerServiceInterfaces {
       return { status: 403, success: false, msg: "Something went wrong" };
     }
 
+    // wrong password
+    if (!result) {
+      return {
+        status: 400,
+        success: false,
+        msg: "Wrong password",
+      };
+    }
+
+    // special case
+    if (result.case) {
+      if (result.case === "same username") {
+        return {
+          status: 400,
+          success: false,
+          msg: "New username is the same",
+        };
+      } else if (result.case === "exact dupe") {
+        return {
+          status: 400,
+          success: false,
+          msg: "Username can't be used",
+        };
+      }
+      delete result.case;
+    }
+
+    const { case: _, ...formattedResult } = result;
+
     return {
       status: 200,
       success: true,
       msg: "Successfully editted username",
+      data: formattedResult,
+    };
+  }
+
+  async editEmail(
+    body: any,
+    user: Express.User
+  ): Promise<ServicesResponse<TEditEmailResponse>> {
+    // validate body
+    let parsedBody: TEditEmailSchema;
+    try {
+      parsedBody = editEmailSchema.parse(body);
+    } catch (error) {
+      console.error(error);
+      return {
+        status: 400,
+        success: false,
+        msg: "Wrong credentials format",
+      };
+    }
+
+    const formattedUser = user as TJobSeekerSession;
+
+    // wrong user type
+    if (formattedUser.type !== "JOBSEEKER" || formattedUser.isOauth) {
+      return { status: 400, success: false, msg: "User isn't logged in" };
+    }
+
+    // check dupe email
+    const [error, result] = await catchError(
+      jobSeekerModels.instance().editEmail(parsedBody.email, formattedUser)
+    );
+
+    if (error) {
+      console.error(error);
+      return {
+        status: 403,
+        success: false,
+        msg: "Something went wrong",
+      };
+    }
+
+    // dupe email
+    if (!result) {
+      return { status: 400, success: false, msg: "Email is already used" };
+    }
+
+    return {
+      status: 200,
+      success: true,
+      msg: "Successfully updated email",
       data: result,
     };
   }

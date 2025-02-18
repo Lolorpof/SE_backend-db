@@ -43,7 +43,7 @@ export interface userModelInterfaces extends baseUserModelInterfaces {
   editEmail(
     email: string,
     user: TGenericUserSession
-  ): Promise<TEditEmailResponse>;
+  ): Promise<TEditEmailResponse | null>;
 
   editPassword(
     password: string,
@@ -61,8 +61,9 @@ export interface userModelInterfaces extends baseUserModelInterfaces {
 export interface singleUserModelInterfaces extends userModelInterfaces {
   editUsername(
     username: string,
+    password: string,
     user: TGenericUserSession
-  ): Promise<TEditUsernameResponse>;
+  ): Promise<TEditUsernameResponse | null>;
 
   editFullName(
     firstName: string,

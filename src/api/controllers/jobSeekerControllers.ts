@@ -215,8 +215,48 @@ export class jobSeekerControllers implements jobSeekerControllerInterfaces {
       .json({ success: result.success, msg: result.msg, data: result.data });
   }
 
+  // edit username
   async editUsername(req: Request, res: Response): Promise<void> {
     // get response
-    const [error, result] = await catchError(jobSeekerServices.instance().ed);
+    const result = await jobSeekerServices
+      .instance()
+      .editUsername(req.body, req.user as Express.User);
+
+    if (!result.success) {
+      res
+        .status(result.status)
+        .json({ success: result.success, msg: result.msg });
+      return;
+    }
+
+    const { case: _, ...formattedResultData } = result.data;
+
+    res.status(result.status).json({
+      success: result.success,
+      msg: result.msg,
+      data: formattedResultData,
+    });
+  }
+
+  // edit email
+  async editEmail(req: Request, res: Response): Promise<void> {
+    const result = await jobSeekerServices
+      .instance()
+      .editEmail(req.body, req.user as Express.User);
+
+    if (!result.success) {
+      res
+        .status(result.status)
+        .json({ success: result.success, msg: result.msg });
+      return;
+    }
+
+    // const { case: _, ...formattedResultData } = result.data;
+
+    res.status(result.status).json({
+      success: result.success,
+      msg: result.msg,
+      data: result.data,
+    });
   }
 }

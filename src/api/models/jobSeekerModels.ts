@@ -14,8 +14,12 @@ import {
 } from "../interfaces/userModelInterfaces";
 import { Profile as GoogleProfile } from "passport-google-oauth20";
 import { TApprovedRequest } from "../validators/usersValidator";
-import { TEditUsernameResponse } from "../types/editUserProfile";
+import {
+  TEditEmailResponse,
+  TEditUsernameResponse,
+} from "../types/editUserProfile";
 import { catchError } from "../utilities/utilFunctions";
+import bcrypt from "bcryptjs";
 
 export class jobSeekerModels implements jobSeekerModelInterfaces {
   // singleton design
@@ -323,8 +327,10 @@ export class jobSeekerModels implements jobSeekerModelInterfaces {
   // credentials auth only
   async editUsername(
     username: string,
+    password: string,
     user: TGenericUserSession
-  ): Promise<TEditUsernameResponse> {
+  ): Promise<TEditUsernameResponse | null> {
+    const formattedUser = user as TJobSeekerSession;
     // check for true duplicate
     const currentUserPassword =
       await drizzlePool.query.jobSeekerTable.findFirst({
@@ -332,9 +338,73 @@ export class jobSeekerModels implements jobSeekerModelInterfaces {
         where: eq(jobSeekerTable.id, user.id),
       });
 
-    const dupedUsername = await drizzlePool.query.jobSeekerTable.findMany({
+    // password check
+    if (!currentUserPassword) {
+      return null;
+    }
+    const passwordMatched = await bcrypt.compare(
+      password,
+      currentUserPassword.password
+    );
+    if (!passwordMatched) {
+      return null;
+    }
+
+    // input same username
+    if (formattedUser.username === username) {
+      return { userId: user.id, username: username, case: "same username" };
+    }
+
+    // duplicate username check
+    const dupedUsernames = await drizzlePool.query.jobSeekerTable.findMany({
       columns: { username: true, password: true },
       where: eq(jobSeekerTable.username, username),
     });
+
+    // exact dupe check
+    for (const dupedUsername of dupedUsernames) {
+      const exactDuped = await bcrypt.compare(password, dupedUsername.password);
+
+      if (exactDuped) {
+        return {
+          userId: user.id,
+          username: dupedUsername.username,
+          case: "exact dupe",
+        };
+      }
+    }
+
+    // no dupe
+    await drizzlePool
+      .update(jobSeekerTable)
+      .set({ username: username })
+      .where(eq(jobSeekerTable.id, user.id));
+    return {
+      userId: user.id,
+      username: username,
+    };
+  }
+
+  async editEmail(
+    email: string,
+    user: TGenericUserSession
+  ): Promise<TEditEmailResponse | null> {
+    // duplicate email check
+    const dupeEmail = await drizzlePool.query.jobSeekerTable.findFirst({
+      columns: { email: true },
+      where: eq(jobSeekerTable.email, email),
+    });
+
+    if (dupeEmail) {
+      return null;
+    }
+
+    // editable email
+    await drizzlePool
+      .update(jobSeekerTable)
+      .set({ email: email })
+      .where(eq(jobSeekerTable.id, user.id));
+
+    return { email: email, userId: user.id };
   }
 }

@@ -308,6 +308,95 @@ userRouter
   .get(checkAuthenticated, jobSeekerControllers.instance().getCurrent)
   .delete(checkAuthenticated, jobSeekerControllers.instance().logout);
 
+// job seeker, edit username(put)
+/**
+ * @openapi
+ * /api/user/job-seeker/auth/edit/username:
+ *   post:
+ *     summary: edit job seeker's username
+ *     tags: [Job Seeker]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *        application/json:
+ *          schema:
+ *            type: object
+ *            properties:
+ *              username:
+ *                type: string
+ *                description: new username of job seeker
+ *                example: New Username
+ *              password:
+ *                type: string
+ *                description: job seeker's current password
+ *                example: secret123
+ *     responses:
+ *       200:
+ *         description: Return the job seeker id.
+ *         content:
+ *          application/json:
+ *            schema:
+ *              type: object
+ *              properties:
+ *                success:
+ *                  type: boolean
+ *                  description: is fetch successful
+ *                  example: true
+ *                msg:
+ *                  type: string
+ *                  description: response message
+ *                  example: Successfully fetch api
+ *                data:
+ *                  type: object
+ *                  description: response data
+ *                  example: {userId: 123, username: New Username}
+ */
+userRouter
+  .route("/job-seeker/auth/edit/username")
+  .put(checkAuthenticated, jobSeekerControllers.instance().editUsername);
+// job seeker, edit username(put)
+/**
+ * @openapi
+ * /api/user/job-seeker/auth/edit/email:
+ *   post:
+ *     summary: edit job seeker's email
+ *     tags: [Job Seeker]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *        application/json:
+ *          schema:
+ *            type: object
+ *            properties:
+ *              email:
+ *                type: string
+ *                description: new email of job seeker
+ *                example: newemail@gmail.com
+ *     responses:
+ *       200:
+ *         description: Return the job seeker id.
+ *         content:
+ *          application/json:
+ *            schema:
+ *              type: object
+ *              properties:
+ *                success:
+ *                  type: boolean
+ *                  description: is fetch successful
+ *                  example: true
+ *                msg:
+ *                  type: string
+ *                  description: response message
+ *                  example: Successfully fetch api
+ *                data:
+ *                  type: object
+ *                  description: response data
+ *                  example: {userId: 123, email: newemail@gmail.com}
+ */
+userRouter
+  .route("/job-seeker/auth/edit/email")
+  .put(checkAuthenticated, jobSeekerControllers.instance().editEmail);
+
 // job seeker, google oauth login(GET)
 /**
  * @openapi

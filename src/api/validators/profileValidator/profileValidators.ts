@@ -6,7 +6,10 @@ export const specificUserSchema = z.object({
   provider: z.string().nullable(),
 });
 
-export const editUsernameSchema = z.object({ username: z.string() });
+export const editUsernameSchema = z.object({
+  username: z.string(),
+  password: z.string(),
+});
 
 export const editFullNameSchema = z.object({
   firstName: z.string(),

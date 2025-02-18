@@ -10,8 +10,11 @@ import {
 } from "../../validators/profileValidator";
 
 type userId = { userId: string };
+type Case = { case?: string };
 
-export type TEditUsernameResponse = TEditUsernameSchema & userId;
+export type TEditUsernameResponse = Omit<TEditUsernameSchema, "password"> &
+  userId &
+  Case;
 
 export type TEditPasswordResponse = TEditPasswordSchema & userId;
 
