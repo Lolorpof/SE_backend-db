@@ -16,6 +16,7 @@ import { Profile as GoogleProfile } from "passport-google-oauth20";
 import { TApprovedRequest } from "../validators/usersValidator";
 import {
   TEditEmailResponse,
+  TEditFullNameResponse,
   TEditUsernameResponse,
 } from "../types/editUserProfile";
 import { catchError } from "../utilities/utilFunctions";
@@ -406,5 +407,33 @@ export class jobSeekerModels implements jobSeekerModelInterfaces {
       .where(eq(jobSeekerTable.id, user.id));
 
     return { email: email, userId: user.id };
+  }
+
+  async editFullName(
+    firstName: string,
+    lastName: string,
+    user: TGenericUserSession
+  ): Promise<TEditFullNameResponse | null> {
+    const formattedUser = user as TJobSeekerSession;
+
+    // check dupe
+    const dupedName = await drizzlePool.query.jobSeekerTable.findFirst({
+      columns: { firstName: true, lastName: true },
+      where: and(
+        eq(jobSeekerTable.firstName, firstName),
+        eq(jobSeekerTable.lastName, lastName)
+      ),
+    });
+    if (dupedName) {
+      return null;
+    }
+
+    // no dupe
+    await drizzlePool
+      .update(jobSeekerTable)
+      .set({ firstName: firstName, lastName: lastName })
+      .where(eq(jobSeekerTable.id, user.id));
+
+    return { userId: user.id, firstName: firstName, lastName: lastName };
   }
 }

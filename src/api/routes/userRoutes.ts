@@ -332,7 +332,7 @@ userRouter
  *                example: secret123
  *     responses:
  *       200:
- *         description: Return the job seeker id.
+ *         description: Return the job seeker id, and username.
  *         content:
  *          application/json:
  *            schema:
@@ -354,7 +354,7 @@ userRouter
 userRouter
   .route("/job-seeker/auth/edit/username")
   .put(checkAuthenticated, jobSeekerControllers.instance().editUsername);
-// job seeker, edit username(put)
+// job seeker, edit email(put)
 /**
  * @openapi
  * /api/user/job-seeker/auth/edit/email:
@@ -374,7 +374,7 @@ userRouter
  *                example: newemail@gmail.com
  *     responses:
  *       200:
- *         description: Return the job seeker id.
+ *         description: Return the job seeker id, and email.
  *         content:
  *          application/json:
  *            schema:
@@ -396,6 +396,52 @@ userRouter
 userRouter
   .route("/job-seeker/auth/edit/email")
   .put(checkAuthenticated, jobSeekerControllers.instance().editEmail);
+// job seeker, edit full name(put)
+/**
+ * @openapi
+ * /api/user/job-seeker/auth/edit/full-name:
+ *   post:
+ *     summary: edit job seeker's full name
+ *     tags: [Job Seeker]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *        application/json:
+ *          schema:
+ *            type: object
+ *            properties:
+ *              firstName:
+ *                type: string
+ *                description: new first name of job seeker
+ *                example: Wut
+ *              lastName:
+ *                type: string
+ *                description: new last name of job seeker
+ *                example: TheHeck
+ *     responses:
+ *       200:
+ *         description: Return the job seeker id, and full name.
+ *         content:
+ *          application/json:
+ *            schema:
+ *              type: object
+ *              properties:
+ *                success:
+ *                  type: boolean
+ *                  description: is fetch successful
+ *                  example: true
+ *                msg:
+ *                  type: string
+ *                  description: response message
+ *                  example: Successfully fetch api
+ *                data:
+ *                  type: object
+ *                  description: response data
+ *                  example: {userId: 123, firstName: Wut, lastName: TheHeck}
+ */
+userRouter
+  .route("/job-seeker/auth/edit/full-name")
+  .put(checkAuthenticated, jobSeekerControllers.instance().editFullName);
 
 // job seeker, google oauth login(GET)
 /**

@@ -2,6 +2,9 @@ import { Profile as GoogleProfile } from "passport-google-oauth20";
 import "../types/usersTypes";
 import { TApprovedRequest } from "../validators/usersValidator";
 import {
+  TEditAboutResponse,
+  TEditAddressResponse,
+  TEditContactResponse,
   TEditEmailResponse,
   TEditFullNameResponse,
   TEditOfficialNameResponse,
@@ -45,6 +48,18 @@ export interface userModelInterfaces extends baseUserModelInterfaces {
     user: TGenericUserSession
   ): Promise<TEditEmailResponse | null>;
 
+  editAbout(
+    about: string,
+    user: TGenericUserSession
+  ): Promise<TEditAboutResponse | null>;
+
+  editContact(
+    contact: string,
+    user: TGenericUserSession
+  ): Promise<TEditContactResponse | null>;
+
+  editAddress(address: string): Promise<TEditAddressResponse>;
+
   editPassword(
     password: string,
     oldPassword: string,
@@ -69,7 +84,7 @@ export interface singleUserModelInterfaces extends userModelInterfaces {
     firstName: string,
     lastName: string,
     user: TGenericUserSession
-  ): Promise<TEditFullNameResponse>;
+  ): Promise<TEditFullNameResponse | null>;
 }
 
 export interface userOauthModelInterfaces extends singleUserModelInterfaces {

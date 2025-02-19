@@ -22,13 +22,17 @@ import {
 import { registrationApprovalImageBucket } from "../utilities/minio";
 import { minioUrlExpire } from "../utilities/env";
 import {
+  TEditAboutResponse,
   TEditEmailResponse,
+  TEditFullNameResponse,
   TEditUsernameResponse,
 } from "../types/editUserProfile";
 import {
   editEmailSchema,
+  editFullNameSchema,
   editUsernameSchema,
   TEditEmailSchema,
+  TEditFullNameSchema,
   TEditUsernameSchema,
 } from "../validators/profileValidator";
 
@@ -442,7 +446,7 @@ export class jobSeekerServices implements jobSeekerServiceInterfaces {
     };
   }
 
-  // edit username
+  // edit username, no oauth
   async editUsername(
     body: any,
     user: Express.User
@@ -510,6 +514,7 @@ export class jobSeekerServices implements jobSeekerServiceInterfaces {
     };
   }
 
+  // edit email, no oauth
   async editEmail(
     body: any,
     user: Express.User
@@ -560,4 +565,53 @@ export class jobSeekerServices implements jobSeekerServiceInterfaces {
       data: result,
     };
   }
+
+  // edit fullname, no oauth
+  async editFullName(
+    body: any,
+    user: Express.User
+  ): Promise<ServicesResponse<TEditFullNameResponse>> {
+    let parsedBody: TEditFullNameSchema;
+    try {
+      parsedBody = editFullNameSchema.parse(body);
+    } catch (error) {
+      console.error(error);
+      return { status: 400, success: false, msg: "Wrong credential format" };
+    }
+
+    const formattedUser = user as TJobSeekerSession;
+
+    // wrong user type
+    if (formattedUser.type !== "JOBSEEKER" || formattedUser.isOauth) {
+      return { status: 400, success: false, msg: "User isn't logged in" };
+    }
+
+    // call models
+    const [error, result] = await catchError(
+      jobSeekerModels
+        .instance()
+        .editFullName(parsedBody.firstName, parsedBody.lastName, formattedUser)
+    );
+    if (error) {
+      console.error(error);
+      return { status: 403, msg: "Something went wrong", success: false };
+    }
+
+    if (!result) {
+      return { status: 400, msg: "Name is already used", success: false };
+    }
+
+    return {
+      status: 200,
+      msg: "Successfully updated full name",
+      success: true,
+      data: result,
+    };
+  }
+
+  // edit about
+  // async editAbout(
+  //   body: any,
+  //   user: Express.User
+  // ): Promise<ServicesResponse<TEditAboutResponse>> {}
 }

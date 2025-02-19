@@ -156,7 +156,7 @@ export class jobSeekerControllers implements jobSeekerControllerInterfaces {
       .json({ success: result.success, msg: result.msg });
   }
 
-  // get current user
+  // get current user route handler
   async getCurrent(req: Request, res: Response): Promise<void> {
     const responseUser = await jobSeekerServices
       .instance()
@@ -183,7 +183,7 @@ export class jobSeekerControllers implements jobSeekerControllerInterfaces {
     });
   }
 
-  // upload registration image
+  // upload registration image route handler
   async uploadRegistrationImage(req: Request, res: Response): Promise<void> {
     if (!req.params || !req.params.approvalId) {
       res.status(400).json({ success: false, msg: "Credential is missing" });
@@ -215,7 +215,7 @@ export class jobSeekerControllers implements jobSeekerControllerInterfaces {
       .json({ success: result.success, msg: result.msg, data: result.data });
   }
 
-  // edit username
+  // edit username route handler
   async editUsername(req: Request, res: Response): Promise<void> {
     // get response
     const result = await jobSeekerServices
@@ -238,7 +238,7 @@ export class jobSeekerControllers implements jobSeekerControllerInterfaces {
     });
   }
 
-  // edit email
+  // edit email route handler
   async editEmail(req: Request, res: Response): Promise<void> {
     const result = await jobSeekerServices
       .instance()
@@ -259,4 +259,29 @@ export class jobSeekerControllers implements jobSeekerControllerInterfaces {
       data: result.data,
     });
   }
+
+  // edit full name route handler
+  async editFullName(req: Request, res: Response): Promise<void> {
+    const result = await jobSeekerServices
+      .instance()
+      .editFullName(req.body, req.user as Express.User);
+
+    if (!result.success) {
+      res
+        .status(result.status)
+        .json({ success: result.success, msg: result.msg });
+      return;
+    }
+
+    // const { case: _, ...formattedResultData } = result.data;
+
+    res.status(result.status).json({
+      success: result.success,
+      msg: result.msg,
+      data: result.data,
+    });
+  }
+
+  // edit about route handler
+  // async editAbout(req: Request, res: Response): Promise<void> {}
 }
