@@ -283,5 +283,27 @@ export class jobSeekerControllers implements jobSeekerControllerInterfaces {
   }
 
   // edit about route handler
-  async editAbout(req: Request, res: Response): Promise<void> {}
+  async editAbout(req: Request, res: Response): Promise<void> {
+    const result = await jobSeekerServices
+      .instance()
+      .editAbout(req.body, req.user as Express.User);
+
+    if (!result.success) {
+      res
+        .status(result.status)
+        .json({ success: result.success, msg: result.msg });
+      return;
+    }
+
+    // const { case: _, ...formattedResultData } = result.data;
+
+    res.status(result.status).json({
+      success: result.success,
+      msg: result.msg,
+      data: result.data,
+    });
+  }
+
+  // edit address
+  async editAddress(req: Request, res: Response): Promise<void> {}
 }

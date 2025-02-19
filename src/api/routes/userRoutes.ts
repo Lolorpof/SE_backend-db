@@ -442,6 +442,48 @@ userRouter
 userRouter
   .route("/job-seeker/auth/edit/full-name")
   .put(checkAuthenticated, jobSeekerControllers.instance().editFullName);
+// job seeker, edit about(put)
+/**
+ * @openapi
+ * /api/user/job-seeker/auth/edit/about:
+ *   post:
+ *     summary: edit job seeker's about
+ *     tags: [Job Seeker]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *        application/json:
+ *          schema:
+ *            type: object
+ *            properties:
+ *              about:
+ *                type: string
+ *                description: new about of job seeker
+ *                example: This is my profile bro
+ *     responses:
+ *       200:
+ *         description: Return the job seeker id, and full name.
+ *         content:
+ *          application/json:
+ *            schema:
+ *              type: object
+ *              properties:
+ *                success:
+ *                  type: boolean
+ *                  description: is fetch successful
+ *                  example: true
+ *                msg:
+ *                  type: string
+ *                  description: response message
+ *                  example: Successfully fetch api
+ *                data:
+ *                  type: object
+ *                  description: response data
+ *                  example: {userId: 123, about: This is my profile bro}
+ */
+userRouter
+  .route("/job-seeker/auth/edit/about")
+  .put(checkAuthenticated, jobSeekerControllers.instance().editAbout);
 
 // job seeker, google oauth login(GET)
 /**

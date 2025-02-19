@@ -28,9 +28,13 @@ import {
   TEditUsernameResponse,
 } from "../types/editUserProfile";
 import {
+  editAboutSchema,
+  editAddressSchema,
   editEmailSchema,
   editFullNameSchema,
   editUsernameSchema,
+  TEditAboutSchema,
+  TEditAddressSchema,
   TEditEmailSchema,
   TEditFullNameSchema,
   TEditUsernameSchema,
@@ -463,7 +467,7 @@ export class jobSeekerServices implements jobSeekerServiceInterfaces {
 
     // wrong user type
     if (formattedUser.type !== "JOBSEEKER" || formattedUser.isOauth) {
-      return { status: 400, success: false, msg: "User isn't logged in" };
+      return { status: 401, success: false, msg: "User isn't logged in" };
     }
 
     const [error, result] = await catchError(
@@ -536,7 +540,7 @@ export class jobSeekerServices implements jobSeekerServiceInterfaces {
 
     // wrong user type
     if (formattedUser.type !== "JOBSEEKER" || formattedUser.isOauth) {
-      return { status: 400, success: false, msg: "User isn't logged in" };
+      return { status: 401, success: false, msg: "User isn't logged in" };
     }
 
     // check dupe email
@@ -583,7 +587,7 @@ export class jobSeekerServices implements jobSeekerServiceInterfaces {
 
     // wrong user type
     if (formattedUser.type !== "JOBSEEKER" || formattedUser.isOauth) {
-      return { status: 400, success: false, msg: "User isn't logged in" };
+      return { status: 401, success: false, msg: "User isn't logged in" };
     }
 
     // call models
@@ -610,8 +614,42 @@ export class jobSeekerServices implements jobSeekerServiceInterfaces {
   }
 
   // edit about
-  // async editAbout(
-  //   body: any,
-  //   user: Express.User
-  // ): Promise<ServicesResponse<TEditAboutResponse>> {}
+  async editAbout(
+    body: any,
+    user: Express.User
+  ): Promise<ServicesResponse<TEditAboutResponse>> {
+    let parsedBody: TEditAboutSchema;
+    try {
+      parsedBody = editAboutSchema.parse(body);
+    } catch (error) {
+      console.error(error);
+      return { status: 400, success: false, msg: "Wrong credential format" };
+    }
+
+    const formattedUser = user as TGenericUserSession;
+
+    if (formattedUser.type !== "JOBSEEKER") {
+      return { status: 401, success: false, msg: "User isn't logged in" };
+    }
+
+    const [error, result] = await catchError(
+      jobSeekerModels.instance().editAbout(parsedBody.about, formattedUser)
+    );
+    if (error) {
+      console.error(error);
+      return { status: 403, success: false, msg: "Something went wrong" };
+    }
+
+    // about is empty string
+    if (!result) {
+      return { status: 400, success: false, msg: "Field is empty" };
+    }
+
+    return {
+      status: 200,
+      success: true,
+      msg: "Successfully updated about user",
+      data: result,
+    };
+  }
 }

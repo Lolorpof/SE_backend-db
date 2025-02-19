@@ -29,7 +29,10 @@ export const editAboutSchema = z.object({ about: z.string() });
 
 export const editContactSchema = z.object({ contact: z.string() });
 
-export const editAddressSchema = z.object({ address: z.string() });
+export const editAddressSchema = z.object({
+  address: z.string(),
+  provinceAddress: z.string(),
+});
 
 // Infer Type
 

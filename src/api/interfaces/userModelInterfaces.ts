@@ -58,7 +58,10 @@ export interface userModelInterfaces extends baseUserModelInterfaces {
     user: TGenericUserSession
   ): Promise<TEditContactResponse | null>;
 
-  editAddress(address: string): Promise<TEditAddressResponse>;
+  editAddress(
+    address: string,
+    provinceAddress: string
+  ): Promise<TEditAddressResponse>;
 
   editPassword(
     password: string,

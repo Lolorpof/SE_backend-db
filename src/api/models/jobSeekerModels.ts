@@ -15,6 +15,7 @@ import {
 import { Profile as GoogleProfile } from "passport-google-oauth20";
 import { TApprovedRequest } from "../validators/usersValidator";
 import {
+  TEditAboutResponse,
   TEditEmailResponse,
   TEditFullNameResponse,
   TEditUsernameResponse,
@@ -432,8 +433,38 @@ export class jobSeekerModels implements jobSeekerModelInterfaces {
     await drizzlePool
       .update(jobSeekerTable)
       .set({ firstName: firstName, lastName: lastName })
-      .where(eq(jobSeekerTable.id, user.id));
+      .where(eq(jobSeekerTable.id, formattedUser.id));
 
-    return { userId: user.id, firstName: firstName, lastName: lastName };
+    return {
+      userId: formattedUser.id,
+      firstName: firstName,
+      lastName: lastName,
+    };
+  }
+
+  async editAbout(
+    about: string,
+    user: TGenericUserSession
+  ): Promise<TEditAboutResponse | null> {
+    const formattedUser = user as TJobSeekerSession;
+    // new about is empty
+    if (about.length === 0) {
+      return null;
+    }
+
+    // oauth check
+    if (formattedUser.isOauth) {
+      await drizzlePool
+        .update(oauthJobSeekerTable)
+        .set({ aboutMe: about })
+        .where(eq(oauthJobSeekerTable.id, formattedUser.id));
+    } else {
+      await drizzlePool
+        .update(jobSeekerTable)
+        .set({ aboutMe: about })
+        .where(eq(jobSeekerTable.id, formattedUser.id));
+    }
+
+    return { userId: formattedUser.id, about: about };
   }
 }
