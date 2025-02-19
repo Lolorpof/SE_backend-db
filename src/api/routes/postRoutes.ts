@@ -36,32 +36,32 @@ postRoutes.route('/job-posts/company')
   .post(validateData(jobPostSchema), checkAuthenticated,checkCompany, handleCreateJobPostFromCompany);
 
 postRoutes.route('/job-posts')
-  .get(validateData(getAllJobPostsSchema), checkAuthenticated, handleGetAllJobPosts);
+  .get(validateData(getAllJobPostsSchema), handleGetAllJobPosts);
 
 postRoutes
   .route('/job-posts/:id')
-  .get(checkAuthenticated, handleGetJobPost)
+  .get(handleGetJobPost)
   .put(validateData(jobPostSchema),checkAuthenticated, handleUpdateJobPost)
   .delete(validateData(dummySchema),checkAuthenticated, handleDeleteJobPost);
 
 postRoutes.route('/user/job-posts')
-  .get(checkAuthenticated, checkEmployer, handleGetEmployerJobPosts);
+  .get(checkEmployer, handleGetEmployerJobPosts);
 
 postRoutes.route('/company/job-posts')
-  .get(checkAuthenticated, checkCompany, handleGetCompanyJobPosts);
+  .get(checkCompany, handleGetCompanyJobPosts);
 
 postRoutes.route('/user/finding-posts')
-  .get(checkAuthenticated, handleGetUserJobFindingPosts);
+  .get(handleGetUserJobFindingPosts);
 
 postRoutes
   .route('/finding-posts')
-  .get(validateData(getAllJobPostsSchema), checkAuthenticated, handleGetAllJobFindingPosts)
+  .get(validateData(getAllJobPostsSchema), handleGetAllJobFindingPosts)
   .post(validateData(jobFindingPostSchema), checkAuthenticated, handleCreateJobFindingPost);
 
 postRoutes
   .route('/finding-posts/:id')
-  .get(checkAuthenticated, handleGetJobFindingPost)
+  .get(handleGetJobFindingPost)
   .put(validateData(jobFindingPostSchema), checkAuthenticated, handleUpdateJobFindingPost)
   .delete(checkAuthenticated, handleDeleteJobFindingPost);
 
-export default postRoutes;
+export default postRoutes; 
