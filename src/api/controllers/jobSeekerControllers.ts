@@ -283,5 +283,5 @@ export class jobSeekerControllers implements jobSeekerControllerInterfaces {
   }
 
   // edit about route handler
-  // async editAbout(req: Request, res: Response): Promise<void> {}
+  async editAbout(req: Request, res: Response): Promise<void> {}
 }
