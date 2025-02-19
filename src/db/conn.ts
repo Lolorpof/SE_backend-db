@@ -15,3 +15,5 @@ export const drizzleSuperPool = drizzle(superPool, {
   schema: schema,
   logger: true,
 });
+
+console.log("✅ Database connected successfully!");
