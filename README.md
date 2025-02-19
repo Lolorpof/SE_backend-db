@@ -2,27 +2,35 @@
 
 - run `npm i` or `pnpm i`
 - create your own `.env` file and set it up
+- run `docker compose up --build` for first time setup
+- for subsequent runs, just use `docker compose up`
+
+To reset the database completely:
+
+```bash
+docker compose down -v  # This will remove all data
+docker compose up --build  # This will recreate and reseed the database
+```
 
 # Database
 
-- run `npm run db:migrate` or `pnpm run db:migrate`
-- run `docker exec -it t10-database bash`
-- run `psql -U postgres -d t10_db`
+The database setup is now automated through Docker. The entrypoint script will:
 
-- run these commands in db
+1. Create necessary users and permissions
+2. Run migrations
+3. Seed the database with initial data
 
-```
-REVOKE CONNECT ON DATABASE t10_db FROM public;
-REVOKE ALL ON SCHEMA public FROM PUBLIC;
-CREATE USER appuser WITH PASSWORD 'FHJK3PT_secret';
-CREATE SCHEMA drizzle;
-GRANT ALL ON DATABASE t10_db TO appuser;
-GRANT ALL ON SCHEMA public TO appuser;
-GRANT ALL ON SCHEMA drizzle TO appuser;
-GRANT ALL ON ALL TABLES IN SCHEMA public TO appuser;
-```
+# pgAdmin
 
-- run `pnpm db:seed` to seed the whole database
+- go to `http://localhost:5050/`
+- login with `PGADMIN_DEFAULT_EMAIL` and `PGADMIN_DEFAULT_PASSWORD`
+- add server
+  - name: anything you want
+  - host: `database`
+  - port: `5432`
+  - Maintenance database: `POSTGRES_DB`
+  - Username: `POSTGRES_SUPERUSER`
+  - Password: `POSTGRES_SUPERPASSWORD`
 
 # GitFlow
 
@@ -52,16 +60,3 @@ git branch -d feature/new-feature
 ```
 
 Gitflow https://www.borntodev.com/2024/10/22/git-flow/
-
-# pgAdmin
-
-- run `docker compose up -d`
-- go to `http://localhost:5050/`
-- login with `PGADMIN_DEFAULT_EMAIL` and `PGADMIN_DEFAULT_PASSWORD`
-- add server
-  - name: anything you want
-  - host: `database`
-  - port: `5432`
-  - Maintenance database: `POSTGRES_DB`
-  - Username: `POSTGRES_SUPERUSER`
-  - Password: `POSTGRES_SUPERPASSWORD`
