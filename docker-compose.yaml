@@ -9,6 +9,11 @@ services:
       - POSTGRES_DB=${POSTGRES_DB}
     ports:
       - ${POSTGRES_PORT}:5432
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
     volumes:
       - database_data:/var/lib/postgresql/data
     networks:
@@ -63,10 +68,14 @@ services:
     ports:
       - ${PORT-6977}:${PORT-6977}
     depends_on:
-      - database
-      - minio
+      database:
+        condition: service_healthy
+      minio:
+        condition: service_started
     env_file:
       - .env
+    volumes:
+      - init_flags:/usr/src/app/backend/.init
     networks:
       - t10-network
 
@@ -75,3 +84,4 @@ networks:
 volumes:
   database_data:
   minio_data:
+  init_flags:
