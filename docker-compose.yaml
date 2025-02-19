@@ -53,6 +53,23 @@ services:
   #     - minio
   #   networks:
   #     - t10-network
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        - PORT=${PORT-6977}
+    container_name: t10-backend
+    ports:
+      - ${PORT-6977}:${PORT-6977}
+    depends_on:
+      - database
+      - minio
+    env_file:
+      - .env
+    networks:
+      - t10-network
+
 networks:
   t10-network:
 volumes:
