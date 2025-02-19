@@ -44,7 +44,7 @@ export interface adminServiceInterfaces extends baseUserServiceInterfaces {
 }
 
 export interface userServiceInterfaces extends baseUserServiceInterfaces {
-  register(userForm: any): Promise<ServicesResponse<any>>;
+  register(userForm: any): Promise<ServicesResponse<TRegisterUser>>;
 
   uploadRegistrationImage(
     approvalId: string,

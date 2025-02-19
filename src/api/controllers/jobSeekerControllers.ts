@@ -24,16 +24,16 @@ export class jobSeekerControllers implements jobSeekerControllerInterfaces {
     const userForm = req.body; // frontend sent in body user object
     const result = await jobSeekerServices.instance().register(userForm);
 
-    if (result.data) {
+    if (!result.success) {
       res
         .status(result.status)
-        .json({ success: result.success, msg: result.msg, data: result.data });
+        .json({ success: result.success, msg: result.msg });
       return;
     }
 
     res
       .status(result.status)
-      .json({ success: result.success, msg: result.msg });
+      .json({ success: result.success, msg: result.msg, data: result.data });
   }
 
   // login route handler
@@ -140,20 +140,20 @@ export class jobSeekerControllers implements jobSeekerControllerInterfaces {
     });
   }
 
-  // get all
+  // get all route handler
   async getAll(req: Request, res: Response): Promise<void> {
     const result = await jobSeekerServices.instance().getAll();
 
-    if (result.data) {
+    if (!result.success) {
       res
         .status(result.status)
-        .json({ success: result.success, msg: result.msg, data: result.data });
+        .json({ success: result.success, msg: result.msg });
       return;
     }
 
     res
       .status(result.status)
-      .json({ success: result.success, msg: result.msg });
+      .json({ success: result.success, msg: result.msg, data: result.data });
   }
 
   // get current user route handler
@@ -183,7 +183,7 @@ export class jobSeekerControllers implements jobSeekerControllerInterfaces {
     });
   }
 
-  // upload registration image route handler
+  // upload registration image route handler (not done)
   async uploadRegistrationImage(req: Request, res: Response): Promise<void> {
     if (!req.params || !req.params.approvalId) {
       res.status(400).json({ success: false, msg: "Credential is missing" });
@@ -214,6 +214,12 @@ export class jobSeekerControllers implements jobSeekerControllerInterfaces {
       .status(result.status)
       .json({ success: result.success, msg: result.msg, data: result.data });
   }
+
+  // upload profile picture route handler (not done)
+  // async uploadProfilePicture(req: Request, res: Response): Promise<void> {}
+
+  // // upload resume image route handler
+  // async uploadResume(req: Request, res: Response): Promise<void> {}
 
   // edit username route handler
   async editUsername(req: Request, res: Response): Promise<void> {
@@ -304,6 +310,69 @@ export class jobSeekerControllers implements jobSeekerControllerInterfaces {
     });
   }
 
-  // edit address
-  async editAddress(req: Request, res: Response): Promise<void> {}
+  // edit address route handler
+  async editAddress(req: Request, res: Response): Promise<void> {
+    const result = await jobSeekerServices
+      .instance()
+      .editAddress(req.body, req.user as Express.User);
+
+    if (!result.success) {
+      res
+        .status(result.status)
+        .json({ success: result.success, msg: result.msg });
+      return;
+    }
+
+    // const { case: _, ...formattedResultData } = result.data;
+
+    res.status(result.status).json({
+      success: result.success,
+      msg: result.msg,
+      data: result.data,
+    });
+  }
+
+  // edit contact route handler
+  async editContact(req: Request, res: Response): Promise<void> {
+    const result = await jobSeekerServices
+      .instance()
+      .editContact(req.body, req.user as Express.User);
+
+    if (!result.success) {
+      res
+        .status(result.status)
+        .json({ success: result.success, msg: result.msg });
+      return;
+    }
+
+    // const { case: _, ...formattedResultData } = result.data;
+
+    res.status(result.status).json({
+      success: result.success,
+      msg: result.msg,
+      data: result.data,
+    });
+  }
+
+  // edit password route handler
+  async editPassword(req: Request, res: Response): Promise<void> {
+    const result = await jobSeekerServices
+      .instance()
+      .editPassword(req.body, req.user as Express.User);
+
+    if (!result.success) {
+      res
+        .status(result.status)
+        .json({ success: result.success, msg: result.msg });
+      return;
+    }
+
+    // const { case: _, ...formattedResultData } = result.data;
+
+    res.status(result.status).json({
+      success: result.success,
+      msg: result.msg,
+      data: result.data,
+    });
+  }
 }

@@ -16,12 +16,16 @@ import { Profile as GoogleProfile } from "passport-google-oauth20";
 import { TApprovedRequest } from "../validators/usersValidator";
 import {
   TEditAboutResponse,
+  TEditAddressResponse,
+  TEditContactResponse,
   TEditEmailResponse,
   TEditFullNameResponse,
+  TEditPasswordResponse,
   TEditUsernameResponse,
 } from "../types/editUserProfile";
 import { catchError } from "../utilities/utilFunctions";
 import bcrypt from "bcryptjs";
+import { saltRounds } from "../utilities/env";
 
 export class jobSeekerModels implements jobSeekerModelInterfaces {
   // singleton design
@@ -352,9 +356,9 @@ export class jobSeekerModels implements jobSeekerModelInterfaces {
       return null;
     }
 
-    // input same username
-    if (formattedUser.username === username) {
-      return { userId: user.id, username: username, case: "same username" };
+    // username is empty string
+    if (username.length === 0) {
+      return { userId: user.id, username: username, case: "empty username" };
     }
 
     // duplicate username check
@@ -466,5 +470,122 @@ export class jobSeekerModels implements jobSeekerModelInterfaces {
     }
 
     return { userId: formattedUser.id, about: about };
+  }
+
+  async editAddress(
+    address: string,
+    provinceAddress: string,
+    user: TGenericUserSession
+  ): Promise<TEditAddressResponse | null> {
+    const formattedUser = user as TJobSeekerSession;
+
+    // check empty string
+    if (address.length === 0 || provinceAddress.length === 0) {
+      return null;
+    }
+
+    // oauth check
+    if (formattedUser.isOauth) {
+      await drizzlePool
+        .update(oauthJobSeekerTable)
+        .set({ address: address, provinceAddress: provinceAddress })
+        .where(eq(oauthJobSeekerTable.id, formattedUser.id));
+    } else {
+      await drizzlePool
+        .update(jobSeekerTable)
+        .set({ address: address, provinceAddress: provinceAddress })
+        .where(eq(jobSeekerTable.id, formattedUser.id));
+    }
+
+    return {
+      userId: formattedUser.id,
+      address: address,
+      provinceAddress: provinceAddress,
+    };
+  }
+
+  async editContact(
+    contact: string,
+    user: TGenericUserSession
+  ): Promise<TEditContactResponse | null> {
+    const formattedUser = user as TJobSeekerSession;
+
+    // contact empty string
+    if (contact.length === 0) {
+      return null;
+    }
+
+    // oauth check
+    if (formattedUser.isOauth) {
+      await drizzlePool
+        .update(oauthJobSeekerTable)
+        .set({ contact: contact })
+        .where(eq(oauthJobSeekerTable.id, formattedUser.id));
+    } else {
+      await drizzlePool
+        .update(jobSeekerTable)
+        .set({ contact: contact })
+        .where(eq(jobSeekerTable.id, formattedUser.id));
+    }
+
+    return { userId: formattedUser.id, contact: contact };
+  }
+
+  async editPassword(
+    password: string,
+    oldPassword: string,
+    user: TGenericUserSession
+  ): Promise<TEditPasswordResponse | null> {
+    const formattedUser = user as TJobSeekerSession;
+
+    // empty string check
+    if (password.length === 0) {
+      return null;
+    }
+
+    // old password check
+    const userPassword = await drizzlePool.query.jobSeekerTable.findFirst({
+      columns: { password: true },
+      where: eq(jobSeekerTable.id, formattedUser.id),
+    });
+    if (!userPassword) {
+      console.error("***No user found***");
+      return {
+        userId: formattedUser.id,
+        case: "no user",
+      };
+    }
+    const correct = await bcrypt.compare(oldPassword, userPassword.password);
+    if (!correct) {
+      return {
+        userId: formattedUser.id,
+        case: "wrong password",
+      };
+    }
+
+    // dupe check
+    const dupedUsernames = await drizzlePool.query.jobSeekerTable.findMany({
+      columns: { username: true, password: true },
+      where: eq(jobSeekerTable.username, formattedUser.username),
+    });
+    for (const du of dupedUsernames) {
+      const exactMatch = await bcrypt.compare(password, du.password);
+
+      if (exactMatch) {
+        return {
+          userId: formattedUser.id,
+          case: "exactDupe",
+        };
+      }
+    }
+
+    // password changeable
+    const hashedPassword = await bcrypt.hash(password, saltRounds);
+    await drizzlePool
+      .update(jobSeekerTable)
+      .set({ password: hashedPassword })
+      .where(eq(jobSeekerTable.id, formattedUser.id));
+
+    return { userId: formattedUser.id };
   }
 }

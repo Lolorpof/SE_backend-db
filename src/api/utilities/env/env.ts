@@ -10,3 +10,6 @@ export const minioAccessKey = process.env.MINIO_ROOT_USER as string;
 export const minioSecretKey = process.env.MINIO_ROOT_PASSWORD as string;
 
 export const minioUrlExpire = Number(process.env.MINIO_URL_EXPIRED as string);
+
+// bcryp
+export const saltRounds = Number(process.env.BCRYPT_SALTROUNDS as string);

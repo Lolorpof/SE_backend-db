@@ -462,7 +462,7 @@ userRouter
  *                example: This is my profile bro
  *     responses:
  *       200:
- *         description: Return the job seeker id, and full name.
+ *         description: Return the job seeker id, and about.
  *         content:
  *          application/json:
  *            schema:
@@ -484,6 +484,135 @@ userRouter
 userRouter
   .route("/job-seeker/auth/edit/about")
   .put(checkAuthenticated, jobSeekerControllers.instance().editAbout);
+// job seeker, edit address(put)
+/**
+ * @openapi
+ * /api/user/job-seeker/auth/edit/address:
+ *   post:
+ *     summary: edit job seeker's address
+ *     tags: [Job Seeker]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *        application/json:
+ *          schema:
+ *            type: object
+ *            properties:
+ *              address:
+ *                type: string
+ *                description: new address of job seeker
+ *                example: 9876 Duangjun rd. Palm District
+ *              provinceAddress:
+ *                type: string
+ *                description: new provinceAddress of job seeker
+ *                example: Borwon Province
+ *     responses:
+ *       200:
+ *         description: Return the job seeker id, and address, province.
+ *         content:
+ *          application/json:
+ *            schema:
+ *              type: object
+ *              properties:
+ *                success:
+ *                  type: boolean
+ *                  description: is fetch successful
+ *                  example: true
+ *                msg:
+ *                  type: string
+ *                  description: response message
+ *                  example: Successfully fetch api
+ *                data:
+ *                  type: object
+ *                  description: response data
+ *                  example: {userId: 123, address: 12345 Hello rd. Qwerty district, provinceAddress: KeKekeke}
+ */
+userRouter
+  .route("/job-seeker/auth/edit/address")
+  .put(checkAuthenticated, jobSeekerControllers.instance().editAddress);
+// job seeker, edit contact(put)
+/**
+ * @openapi
+ * /api/user/job-seeker/auth/edit/contact:
+ *   post:
+ *     summary: edit job seeker's contact
+ *     tags: [Job Seeker]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *        application/json:
+ *          schema:
+ *            type: object
+ *            properties:
+ *              contact:
+ *                type: string
+ *                description: new contact of job seeker
+ *                example: 0123456789
+ *     responses:
+ *       200:
+ *         description: Return the job seeker id, and contact.
+ *         content:
+ *          application/json:
+ *            schema:
+ *              type: object
+ *              properties:
+ *                success:
+ *                  type: boolean
+ *                  description: is fetch successful
+ *                  example: true
+ *                msg:
+ *                  type: string
+ *                  description: response message
+ *                  example: Successfully fetch api
+ *                data:
+ *                  type: object
+ *                  description: response data
+ *                  example: {userId: 123, contact: 0123456789}
+ */
+userRouter
+  .route("/job-seeker/auth/edit/contact")
+  .put(checkAuthenticated, jobSeekerControllers.instance().editContact);
+/**
+ * @openapi
+ * /api/user/job-seeker/auth/edit/password:
+ *   post:
+ *     summary: edit job seeker's password
+ *     tags: [Job Seeker]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *        application/json:
+ *          schema:
+ *            type: object
+ *            properties:
+ *              password:
+ *                type: string
+ *                description: new password of job seeker
+ *                example: hello69xD
+ *     responses:
+ *       200:
+ *         description: Return the job seeker id.
+ *         content:
+ *          application/json:
+ *            schema:
+ *              type: object
+ *              properties:
+ *                success:
+ *                  type: boolean
+ *                  description: is fetch successful
+ *                  example: true
+ *                msg:
+ *                  type: string
+ *                  description: response message
+ *                  example: Successfully fetch api
+ *                data:
+ *                  type: object
+ *                  description: response data
+ *                  example: {userId: 123}
+ */
+userRouter
+  .route("/job-seeker/auth/edit/password")
+  .put(checkAuthenticated, jobSeekerControllers.instance().editPassword);
 
 // job seeker, google oauth login(GET)
 /**

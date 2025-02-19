@@ -60,14 +60,15 @@ export interface userModelInterfaces extends baseUserModelInterfaces {
 
   editAddress(
     address: string,
-    provinceAddress: string
-  ): Promise<TEditAddressResponse>;
+    provinceAddress: string,
+    user: TGenericUserSession
+  ): Promise<TEditAddressResponse | null>;
 
   editPassword(
     password: string,
     oldPassword: string,
     user: TGenericUserSession
-  ): Promise<TEditPasswordResponse>;
+  ): Promise<TEditPasswordResponse | null>;
 
   uploadProfilePicture(
     image: Express.Multer.File,

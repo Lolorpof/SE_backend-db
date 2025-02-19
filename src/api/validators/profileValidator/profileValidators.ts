@@ -21,7 +21,9 @@ export const editOfficialNameSchema = z.object({ offcialName: z.string() }); // 
 export const editEmailSchema = z.object({ email: z.string().email() });
 
 export const editPasswordSchema = z.object({
-  password: z.string(),
+  password: z
+    .string()
+    .min(6, "New password length must have atleast 6 characters"),
   oldPassword: z.string(),
 });
 

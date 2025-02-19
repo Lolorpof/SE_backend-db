@@ -23,20 +23,27 @@ import { registrationApprovalImageBucket } from "../utilities/minio";
 import { minioUrlExpire } from "../utilities/env";
 import {
   TEditAboutResponse,
+  TEditAddressResponse,
+  TEditContactResponse,
   TEditEmailResponse,
   TEditFullNameResponse,
+  TEditPasswordResponse,
   TEditUsernameResponse,
 } from "../types/editUserProfile";
 import {
   editAboutSchema,
   editAddressSchema,
+  editContactSchema,
   editEmailSchema,
   editFullNameSchema,
+  editPasswordSchema,
   editUsernameSchema,
   TEditAboutSchema,
   TEditAddressSchema,
+  TEditContactSchema,
   TEditEmailSchema,
   TEditFullNameSchema,
+  TEditPasswordSchema,
   TEditUsernameSchema,
 } from "../validators/profileValidator";
 
@@ -51,7 +58,7 @@ export class jobSeekerServices implements jobSeekerServiceInterfaces {
   }
 
   // register
-  async register(userForm: any): Promise<ServicesResponse<any>> {
+  async register(userForm: any): Promise<ServicesResponse<TRegisterUser>> {
     // {Business Logic}
     // user form validation
     try {
@@ -340,7 +347,12 @@ export class jobSeekerServices implements jobSeekerServiceInterfaces {
     }
 
     if (jobSeekers.length === 0) {
-      return { success: true, msg: "There's no job seekers", status: 200 };
+      return {
+        success: true,
+        msg: "There's no job seekers",
+        status: 200,
+        data: null,
+      };
     }
 
     return {
@@ -492,11 +504,11 @@ export class jobSeekerServices implements jobSeekerServiceInterfaces {
 
     // special case
     if (result.case) {
-      if (result.case === "same username") {
+      if (result.case === "empty username") {
         return {
           status: 400,
           success: false,
-          msg: "New username is the same",
+          msg: "User field is empty",
         };
       } else if (result.case === "exact dupe") {
         return {
@@ -626,7 +638,7 @@ export class jobSeekerServices implements jobSeekerServiceInterfaces {
       return { status: 400, success: false, msg: "Wrong credential format" };
     }
 
-    const formattedUser = user as TGenericUserSession;
+    const formattedUser = user as TJobSeekerSession;
 
     if (formattedUser.type !== "JOBSEEKER") {
       return { status: 401, success: false, msg: "User isn't logged in" };
@@ -650,6 +662,147 @@ export class jobSeekerServices implements jobSeekerServiceInterfaces {
       success: true,
       msg: "Successfully updated about user",
       data: result,
+    };
+  }
+
+  // edit address
+  async editAddress(
+    body: any,
+    user: Express.User
+  ): Promise<ServicesResponse<TEditAddressResponse>> {
+    let parsedBody: TEditAddressSchema;
+    try {
+      parsedBody = editAddressSchema.parse(body);
+    } catch (error) {
+      console.error(error);
+      return { status: 400, success: false, msg: "Wrong credential format" };
+    }
+
+    const formattedUser = user as TJobSeekerSession;
+
+    if (formattedUser.type !== "JOBSEEKER") {
+      return { status: 401, success: false, msg: "User isn't logged in" };
+    }
+
+    const [error, result] = await catchError(
+      jobSeekerModels
+        .instance()
+        .editAddress(
+          parsedBody.address,
+          parsedBody.provinceAddress,
+          formattedUser
+        )
+    );
+    if (error) {
+      console.error(error);
+      return { status: 403, success: false, msg: "Something went wrong" };
+    }
+
+    // address is empty string
+    if (!result) {
+      return { status: 400, success: false, msg: "Field is empty" };
+    }
+
+    return {
+      status: 200,
+      success: true,
+      msg: "Successfully updated address",
+      data: result,
+    };
+  }
+
+  // edit contact
+  async editContact(
+    body: any,
+    user: Express.User
+  ): Promise<ServicesResponse<TEditContactResponse>> {
+    let parsedBody: TEditContactSchema;
+    try {
+      parsedBody = editContactSchema.parse(body);
+    } catch (error) {
+      console.error(error);
+      return { status: 400, success: false, msg: "Wrong credential format" };
+    }
+
+    const formattedUser = user as TJobSeekerSession;
+
+    if (formattedUser.type !== "JOBSEEKER") {
+      return { status: 401, success: false, msg: "User isn't logged in" };
+    }
+
+    const [error, result] = await catchError(
+      jobSeekerModels.instance().editContact(parsedBody.contact, formattedUser)
+    );
+    if (error) {
+      console.error(error);
+      return { status: 403, success: false, msg: "Something went wrong" };
+    }
+    if (!result) {
+      return { status: 400, success: false, msg: "Contact field is empty" };
+    }
+
+    return {
+      status: 200,
+      success: true,
+      msg: "Successfully updated contact",
+      data: result,
+    };
+  }
+
+  // edit password, no oauth
+  async editPassword(
+    body: any,
+    user: Express.User
+  ): Promise<ServicesResponse<TEditPasswordResponse>> {
+    let parsedBody: TEditPasswordSchema;
+    try {
+      parsedBody = editPasswordSchema.parse(body);
+    } catch (error) {
+      console.error(error);
+      return { status: 400, success: false, msg: "Wrong credential format" };
+    }
+
+    const formattedUser = user as TJobSeekerSession;
+
+    if (formattedUser.type !== "JOBSEEKER" || formattedUser.isOauth) {
+      return { status: 401, success: false, msg: "User isn't logged in" };
+    }
+
+    const [error, result] = await catchError(
+      jobSeekerModels
+        .instance()
+        .editPassword(
+          parsedBody.password,
+          parsedBody.oldPassword,
+          formattedUser
+        )
+    );
+    if (error) {
+      console.error(error);
+      return { status: 403, success: false, msg: "Something went wrong" };
+    }
+    if (!result) {
+      return { status: 400, success: false, msg: "Password field is empty" };
+    }
+    if (result.case) {
+      if (result.case === "no user") {
+        return { status: 403, success: false, msg: "Something went wrong" };
+      } else if (result.case === "wrong password") {
+        return { status: 401, success: false, msg: "Wrong old password" };
+      } else if (result.case === "exactDupe") {
+        return { status: 400, success: false, msg: "Password can't be use" };
+      }
+
+      delete result.case;
+    }
+
+    const { case: _, ...formattedResult } = result;
+
+    return {
+      status: 200,
+      success: true,
+      msg: "Successfully updated password",
+      data: { userId: formattedResult.userId },
     };
   }
 }

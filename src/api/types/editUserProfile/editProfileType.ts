@@ -16,7 +16,7 @@ export type TEditUsernameResponse = Omit<TEditUsernameSchema, "password"> &
   userId &
   Case;
 
-export type TEditPasswordResponse = TEditPasswordSchema & userId;
+export type TEditPasswordResponse = userId & Case;
 
 export type TEditOfficialNameResponse = TEditOfficialNameSchema & userId;
 
