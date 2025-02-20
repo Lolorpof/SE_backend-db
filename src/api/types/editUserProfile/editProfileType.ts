@@ -7,6 +7,8 @@ import {
   TEditAboutSchema,
   TEditContactSchema,
   TEditAddressSchema,
+  TEditJobSeekerSkillSchema,
+  TEditJobSeekerVulnerabilitySchema,
 } from "../../validators/profileValidator";
 
 type userId = { userId: string };
@@ -29,3 +31,10 @@ export type TEditAboutResponse = TEditAboutSchema & userId;
 export type TEditContactResponse = TEditContactSchema & userId;
 
 export type TEditAddressResponse = TEditAddressSchema & userId;
+
+export type TEditJobSeekerSkillResponse = TEditJobSeekerSkillSchema &
+  userId &
+  Case;
+
+export type TEditJobSeekerVulnerabilityResponse =
+  TEditJobSeekerVulnerabilitySchema & userId & Case;

@@ -27,6 +27,8 @@ import {
   TEditContactResponse,
   TEditEmailResponse,
   TEditFullNameResponse,
+  TEditJobSeekerSkillResponse,
+  TEditJobSeekerVulnerabilityResponse,
   TEditPasswordResponse,
   TEditUsernameResponse,
 } from "../types/editUserProfile";
@@ -36,6 +38,8 @@ import {
   editContactSchema,
   editEmailSchema,
   editFullNameSchema,
+  editJobSeekerSkillSchema,
+  editJobSeekerVulnerabilitySchema,
   editPasswordSchema,
   editUsernameSchema,
   TEditAboutSchema,
@@ -43,6 +47,8 @@ import {
   TEditContactSchema,
   TEditEmailSchema,
   TEditFullNameSchema,
+  TEditJobSeekerSkillSchema,
+  TEditJobSeekerVulnerabilitySchema,
   TEditPasswordSchema,
   TEditUsernameSchema,
 } from "../validators/profileValidator";
@@ -803,6 +809,109 @@ export class jobSeekerServices implements jobSeekerServiceInterfaces {
       success: true,
       msg: "Successfully updated password",
       data: { userId: formattedResult.userId },
+    };
+  }
+
+  // edit job seeker skills
+  async editSkill(
+    body: any,
+    user: Express.User
+  ): Promise<ServicesResponse<TEditJobSeekerSkillResponse>> {
+    let parsedBody: TEditJobSeekerSkillSchema;
+    try {
+      parsedBody = editJobSeekerSkillSchema.parse(body);
+    } catch (error) {
+      console.error(error);
+      return { status: 400, success: false, msg: "Wrong credential format" };
+    }
+
+    const formattedUser = user as TJobSeekerSession;
+
+    if (formattedUser.type !== "JOBSEEKER") {
+      return { status: 401, success: false, msg: "User isn't logged in" };
+    }
+
+    const [error, result] = await catchError(
+      jobSeekerModels.instance().editSkill(parsedBody.skillsId, formattedUser)
+    );
+    if (error) {
+      console.error(error);
+      return { status: 403, success: false, msg: "Something went wrong" };
+    }
+    if (result.case) {
+      if (result.case === "not exist") {
+        return {
+          status: 200,
+          success: true,
+          msg: "Some skill doesn't existed, so that skill won't be add",
+          data: { skillsId: result.skillsId, userId: formattedUser.id },
+        };
+      }
+
+      delete result.case;
+    }
+
+    const { case: _, ...formattedResult } = result;
+
+    return {
+      status: 200,
+      success: true,
+      msg: "Successfully editted skills",
+      data: formattedResult,
+    };
+  }
+
+  // edit job seeker vulnerabilities
+  async editVulnerability(
+    body: any,
+    user: Express.User
+  ): Promise<ServicesResponse<TEditJobSeekerVulnerabilityResponse>> {
+    let parsedBody: TEditJobSeekerVulnerabilitySchema;
+    try {
+      parsedBody = editJobSeekerVulnerabilitySchema.parse(body);
+    } catch (error) {
+      console.error(error);
+      return { status: 400, success: false, msg: "Wrong credential format" };
+    }
+
+    const formattedUser = user as TJobSeekerSession;
+
+    if (formattedUser.type !== "JOBSEEKER") {
+      return { status: 401, success: false, msg: "User isn't logged in" };
+    }
+
+    const [error, result] = await catchError(
+      jobSeekerModels
+        .instance()
+        .editVulnerability(parsedBody.vulnerabilitiesId, formattedUser)
+    );
+    if (error) {
+      console.error(error);
+      return { status: 403, success: false, msg: "Something went wrong" };
+    }
+    if (result.case) {
+      if (result.case === "not exist") {
+        return {
+          status: 200,
+          success: true,
+          msg: "Some vulnerability doesn't existed, so that vulnerability won't be add",
+          data: {
+            vulnerabilitiesId: result.vulnerabilitiesId,
+            userId: formattedUser.id,
+          },
+        };
+      }
+
+      delete result.case;
+    }
+
+    const { case: _, ...formattedResult } = result;
+
+    return {
+      status: 200,
+      success: true,
+      msg: "Successfully editted skills",
+      data: formattedResult,
     };
   }
 }

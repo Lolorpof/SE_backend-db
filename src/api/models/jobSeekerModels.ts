@@ -1,9 +1,15 @@
 import "dotenv/config";
 import { drizzlePool } from "../../db/conn";
 import {
+  jobSeekerSkillTable,
   jobSeekerTable,
+  jobSeekerVulnerabilityTable,
+  oauthJobSeekerSkillTable,
   oauthJobSeekerTable,
+  oauthJobSeekerVulnerabilityTable,
   registrationApprovalTable,
+  skillTable,
+  vulnerabilityTypeTable,
 } from "../../db/schema";
 import "../types/usersTypes";
 import { and, eq, or } from "drizzle-orm";
@@ -20,6 +26,8 @@ import {
   TEditContactResponse,
   TEditEmailResponse,
   TEditFullNameResponse,
+  TEditJobSeekerSkillResponse,
+  TEditJobSeekerVulnerabilityResponse,
   TEditPasswordResponse,
   TEditUsernameResponse,
 } from "../types/editUserProfile";
@@ -226,9 +234,16 @@ export class jobSeekerModels implements jobSeekerModelInterfaces {
         where: eq(jobSeekerTable.id, idOrProviderId),
         with: {
           skills: {
+            columns: {
+              jobSeekerId: false,
+              skillId: false,
+              createdAt: false,
+              updatedAt: false,
+            },
             with: { toSkill: { columns: { name: true, description: true } } },
           },
           vulnerabilities: {
+            columns: { severity: true, publicStatus: true },
             with: {
               toVulnerabilityType: {
                 columns: { name: true, description: true },
@@ -246,9 +261,16 @@ export class jobSeekerModels implements jobSeekerModelInterfaces {
         ),
         with: {
           skills: {
+            columns: {
+              oauthJobSeekerId: false,
+              skillId: false,
+              createdAt: false,
+              updatedAt: false,
+            },
             with: { toSkill: { columns: { name: true, description: true } } },
           },
           vulnerabilities: {
+            columns: { severity: true, publicStatus: true },
             with: {
               toVulnerabilityType: {
                 columns: { name: true, description: true },
@@ -587,5 +609,132 @@ export class jobSeekerModels implements jobSeekerModelInterfaces {
       .where(eq(jobSeekerTable.id, formattedUser.id));
 
     return { userId: formattedUser.id };
+  }
+
+  async editSkill(
+    skillsId: string[],
+    user: TJobSeekerSession
+  ): Promise<TEditJobSeekerSkillResponse> {
+    const addedSkillsId: string[] = [];
+    let notExist = false;
+    // check oauth
+    if (user.isOauth) {
+      // delete all user skill first
+      await drizzlePool
+        .delete(oauthJobSeekerSkillTable)
+        .where(eq(oauthJobSeekerSkillTable.oauthJobSeekerId, user.id));
+
+      // then insert everything again
+      for (const skillId of skillsId) {
+        const checkSkillExist = await drizzlePool.query.skillTable.findFirst({
+          columns: { id: true },
+          where: eq(skillTable.id, skillId),
+        });
+        if (!checkSkillExist) {
+          notExist = true;
+          continue;
+        }
+
+        await drizzlePool
+          .insert(oauthJobSeekerSkillTable)
+          .values({ skillId: skillId, oauthJobSeekerId: user.id });
+        addedSkillsId.push(skillId);
+      }
+    } else {
+      // delete all user skill first
+      await drizzlePool
+        .delete(jobSeekerSkillTable)
+        .where(eq(jobSeekerSkillTable.jobSeekerId, user.id));
+
+      // then insert everything again
+      for (const skillId of skillsId) {
+        const checkSkillExist = await drizzlePool.query.skillTable.findFirst({
+          columns: { id: true },
+          where: eq(skillTable.id, skillId),
+        });
+        if (!checkSkillExist) {
+          notExist = true;
+          continue;
+        }
+
+        await drizzlePool
+          .insert(jobSeekerSkillTable)
+          .values({ skillId: skillId, jobSeekerId: user.id });
+        addedSkillsId.push(skillId);
+      }
+    }
+
+    if (notExist) {
+      return { skillsId: addedSkillsId, userId: user.id, case: "not exist" };
+    }
+    return { skillsId, userId: user.id };
+  }
+
+  async editVulnerability(
+    vulnerabilitiesId: string[],
+    user: TJobSeekerSession
+  ): Promise<TEditJobSeekerVulnerabilityResponse> {
+    const addedVulnerabilitiesId: string[] = [];
+    let notExist = false;
+
+    // check oauth
+    if (user.isOauth) {
+      // delete all user skill first
+      await drizzlePool
+        .delete(oauthJobSeekerVulnerabilityTable)
+        .where(eq(oauthJobSeekerVulnerabilityTable.oauthJobSeekerId, user.id));
+
+      // then insert everything again
+      for (const vulnerabilityId of vulnerabilitiesId) {
+        const checkVulnerabilityExist =
+          await drizzlePool.query.vulnerabilityTypeTable.findFirst({
+            columns: { id: true },
+            where: eq(vulnerabilityTypeTable.id, vulnerabilityId),
+          });
+        if (!checkVulnerabilityExist) {
+          notExist = true;
+          continue;
+        }
+
+        await drizzlePool.insert(oauthJobSeekerVulnerabilityTable).values({
+          vulnerabilityTypeId: vulnerabilityId,
+          oauthJobSeekerId: user.id,
+        });
+        addedVulnerabilitiesId.push(vulnerabilityId);
+      }
+    } else {
+      // delete all user skill first
+      await drizzlePool
+        .delete(jobSeekerVulnerabilityTable)
+        .where(eq(jobSeekerVulnerabilityTable.jobSeekerId, user.id));
+
+      // then insert everything again
+      for (const vulnerabilityId of vulnerabilitiesId) {
+        const checkVulnerabilityExist =
+          await drizzlePool.query.vulnerabilityTypeTable.findFirst({
+            columns: { id: true },
+            where: eq(vulnerabilityTypeTable.id, vulnerabilityId),
+          });
+        if (!checkVulnerabilityExist) {
+          notExist = true;
+          continue;
+        }
+
+        await drizzlePool.insert(jobSeekerVulnerabilityTable).values({
+          vulnerabilityTypeId: vulnerabilityId,
+          jobSeekerId: user.id,
+        });
+        addedVulnerabilitiesId.push(vulnerabilityId);
+      }
+    }
+
+    if (notExist) {
+      return {
+        vulnerabilitiesId: addedVulnerabilitiesId,
+        userId: user.id,
+        case: "not exist",
+      };
+    }
+    return { vulnerabilitiesId, userId: user.id };
   }
 }

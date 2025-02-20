@@ -48,6 +48,10 @@ export interface userOauthControllerInterfaces
 export interface jobSeekerControllerInterfaces
   extends userOauthControllerInterfaces {
   uploadResume(req: Request, res: Response): Promise<void>;
+
+  editSkill(req: Request, res: Response): Promise<void>;
+
+  editVulnerability(req: Request, res: Response): Promise<void>;
 }
 
 export interface employerControllerInterfaces

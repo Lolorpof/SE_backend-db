@@ -7,6 +7,8 @@ import {
   TEditContactResponse,
   TEditEmailResponse,
   TEditFullNameResponse,
+  TEditJobSeekerSkillResponse,
+  TEditJobSeekerVulnerabilityResponse,
   TEditOfficialNameResponse,
   TEditPasswordResponse,
   TEditUsernameResponse,
@@ -115,6 +117,16 @@ export interface jobSeekerModelInterfaces extends userOauthModelInterfaces {
     image: Express.Multer.File,
     user: TGenericUserSession
   ): Promise<TResumeImage>;
+
+  editSkill(
+    skillsId: string[],
+    user: TJobSeekerSession
+  ): Promise<TEditJobSeekerSkillResponse>;
+
+  editVulnerability(
+    vulnerabilitiesId: string[],
+    user: TJobSeekerSession
+  ): Promise<TEditJobSeekerVulnerabilityResponse>;
 }
 
 export interface employerModelInterfaces extends userOauthModelInterfaces {}

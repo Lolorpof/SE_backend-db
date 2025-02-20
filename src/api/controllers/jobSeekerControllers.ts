@@ -367,6 +367,50 @@ export class jobSeekerControllers implements jobSeekerControllerInterfaces {
       return;
     }
 
+    const { case: _, ...formattedResultData } = result.data;
+
+    res.status(result.status).json({
+      success: result.success,
+      msg: result.msg,
+      data: formattedResultData,
+    });
+  }
+
+  // edit job seeker skills route handler
+  async editSkill(req: Request, res: Response): Promise<void> {
+    const result = await jobSeekerServices
+      .instance()
+      .editSkill(req.body, req.user as Express.User);
+
+    if (!result.success) {
+      res
+        .status(result.status)
+        .json({ success: result.success, msg: result.msg });
+      return;
+    }
+
+    // const { case: _, ...formattedResultData } = result.data;
+
+    res.status(result.status).json({
+      success: result.success,
+      msg: result.msg,
+      data: result.data,
+    });
+  }
+
+  // edit job seeker vulnerabilities route handler
+  async editVulnerability(req: Request, res: Response): Promise<void> {
+    const result = await jobSeekerServices
+      .instance()
+      .editVulnerability(req.body, req.user as Express.User);
+
+    if (!result.success) {
+      res
+        .status(result.status)
+        .json({ success: result.success, msg: result.msg });
+      return;
+    }
+
     // const { case: _, ...formattedResultData } = result.data;
 
     res.status(result.status).json({

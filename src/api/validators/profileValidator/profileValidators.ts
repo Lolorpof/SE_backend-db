@@ -36,6 +36,14 @@ export const editAddressSchema = z.object({
   provinceAddress: z.string(),
 });
 
+export const editJobSeekerSkillSchema = z.object({
+  skillsId: z.array(z.string().uuid("Field isn't of type uuid")),
+});
+
+export const editJobSeekerVulnerabilitySchema = z.object({
+  vulnerabilitiesId: z.array(z.string().uuid("Field isn't of type uuid")),
+});
+
 // Infer Type
 
 export type TSpecificUserSchema = z.infer<typeof specificUserSchema>;
@@ -55,3 +63,11 @@ export type TEditAboutSchema = z.infer<typeof editAboutSchema>;
 export type TEditContactSchema = z.infer<typeof editContactSchema>;
 
 export type TEditAddressSchema = z.infer<typeof editAddressSchema>;
+
+export type TEditJobSeekerSkillSchema = z.infer<
+  typeof editJobSeekerSkillSchema
+>;
+
+export type TEditJobSeekerVulnerabilitySchema = z.infer<
+  typeof editJobSeekerVulnerabilitySchema
+>;

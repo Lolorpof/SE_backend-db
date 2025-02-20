@@ -9,6 +9,8 @@ import {
   TEditContactResponse,
   TEditEmailResponse,
   TEditFullNameResponse,
+  TEditJobSeekerSkillResponse,
+  TEditJobSeekerVulnerabilityResponse,
   TEditOfficialNameResponse,
   TEditPasswordResponse,
   TEditUsernameResponse,
@@ -115,6 +117,16 @@ export interface jobSeekerServiceInterfaces extends userOauthServiceInterfaces {
     body: any,
     user: Express.User
   ): Promise<ServicesResponse<TResumeImage>>;
+
+  editSkill(
+    body: any,
+    user: Express.User
+  ): Promise<ServicesResponse<TEditJobSeekerSkillResponse>>;
+
+  editVulnerability(
+    body: any,
+    user: Express.User
+  ): Promise<ServicesResponse<TEditJobSeekerVulnerabilityResponse>>;
 }
 
 export interface employerServiceInterfaces extends userOauthServiceInterfaces {}

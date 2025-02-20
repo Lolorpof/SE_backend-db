@@ -613,6 +613,88 @@ userRouter
 userRouter
   .route("/job-seeker/auth/edit/password")
   .put(checkAuthenticated, jobSeekerControllers.instance().editPassword);
+/**
+ * @openapi
+ * /api/user/job-seeker/auth/edit/skill:
+ *   post:
+ *     summary: edit job seeker's skill
+ *     tags: [Job Seeker]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *        application/json:
+ *          schema:
+ *            type: object
+ *            properties:
+ *              skillsId:
+ *                type: array
+ *                description: all skills id of job seeker
+ *                example: ["1234", "5678"]
+ *     responses:
+ *       200:
+ *         description: Return the job seeker id, and skills Id.
+ *         content:
+ *          application/json:
+ *            schema:
+ *              type: object
+ *              properties:
+ *                success:
+ *                  type: boolean
+ *                  description: is fetch successful
+ *                  example: true
+ *                msg:
+ *                  type: string
+ *                  description: response message
+ *                  example: Successfully fetch api
+ *                data:
+ *                  type: object
+ *                  description: response data
+ *                  example: {userId: 123, skillsId: ["1234", "5678"]}
+ */
+userRouter
+  .route("/job-seeker/auth/edit/skill")
+  .put(checkAuthenticated, jobSeekerControllers.instance().editSkill);
+/**
+ * @openapi
+ * /api/user/job-seeker/auth/edit/vulnerability:
+ *   post:
+ *     summary: edit job seeker's vulnerability
+ *     tags: [Job Seeker]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *        application/json:
+ *          schema:
+ *            type: object
+ *            properties:
+ *              vulnerabilitiesId:
+ *                type: array
+ *                description: all vulnerabilities id of job seeker
+ *                example: ["1234", "5678"]
+ *     responses:
+ *       200:
+ *         description: Return the job seeker id, and vulnerabilities Id.
+ *         content:
+ *          application/json:
+ *            schema:
+ *              type: object
+ *              properties:
+ *                success:
+ *                  type: boolean
+ *                  description: is fetch successful
+ *                  example: true
+ *                msg:
+ *                  type: string
+ *                  description: response message
+ *                  example: Successfully fetch api
+ *                data:
+ *                  type: object
+ *                  description: response data
+ *                  example: {userId: 123, vulnerabilitiesId: ["1234", "5678"]}
+ */
+userRouter
+  .route("/job-seeker/auth/edit/vulnerability")
+  .put(checkAuthenticated, jobSeekerControllers.instance().editVulnerability);
 
 // job seeker, google oauth login(GET)
 /**
