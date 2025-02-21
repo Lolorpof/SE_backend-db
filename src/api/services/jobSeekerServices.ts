@@ -491,7 +491,7 @@ export class jobSeekerServices implements jobSeekerServiceInterfaces {
     }
 
     // insert into minio
-    const imageName = `${formattedUser.id}_profile`;
+    const imageName = `${formattedUser.id}_job-seeker_profile`;
     await createBucketIfNotExisted(userProfileImageBucket);
     await minioClient.putObject(
       userProfileImageBucket,
@@ -531,7 +531,7 @@ export class jobSeekerServices implements jobSeekerServiceInterfaces {
     }
 
     // insert into minio
-    const imageName = `${formattedUser.id}_resume`;
+    const imageName = `${formattedUser.id}_job-seeker_resume`;
     await createBucketIfNotExisted(jobSeekerResumeImageBucket);
     await minioClient.putObject(
       jobSeekerResumeImageBucket,
