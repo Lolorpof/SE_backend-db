@@ -216,10 +216,53 @@ export class jobSeekerControllers implements jobSeekerControllerInterfaces {
   }
 
   // upload profile picture route handler (not done)
-  // async uploadProfilePicture(req: Request, res: Response): Promise<void> {}
+  async uploadProfilePicture(req: Request, res: Response): Promise<void> {
+    const [error, result] = await catchError(
+      jobSeekerServices
+        .instance()
+        .uploadProfilePicture(
+          req.file as Express.Multer.File,
+          req.user as Express.User
+        )
+    );
+    if (error) {
+      res.status(403).json({ success: false, msg: "Credential is missing" });
+      return;
+    }
+    if (!result.success) {
+      res
+        .status(result.status)
+        .json({ success: result.success, msg: result.msg });
+      return;
+    }
+
+    res
+      .status(result.status)
+      .json({ success: result.success, msg: result.msg, data: result.data });
+  }
 
   // // upload resume image route handler
-  // async uploadResume(req: Request, res: Response): Promise<void> {}
+  async uploadResume(req: Request, res: Response): Promise<void> {
+    const [error, result] = await catchError(
+      jobSeekerServices
+        .instance()
+        .uploadResume(req.file as Express.Multer.File, req.user as Express.User)
+    );
+    if (error) {
+      res.status(403).json({ success: false, msg: "Credential is missing" });
+      return;
+    }
+    if (!result.success) {
+      res
+        .status(result.status)
+        .json({ success: result.success, msg: result.msg });
+      return;
+    }
+
+    res
+      .status(result.status)
+      .json({ success: result.success, msg: result.msg, data: result.data });
+  }
 
   // edit username route handler
   async editUsername(req: Request, res: Response): Promise<void> {

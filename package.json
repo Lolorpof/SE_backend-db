@@ -11,7 +11,8 @@
     "db:gen": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
     "db:seed": "tsx src/db/seed.ts",
-    "db:reset": "docker compose down -v && docker compose up -d"
+    "db:reset": "docker compose down -v && docker compose up -d",
+    "minio:bucket": "tsx ./src/api/utilities/minio/createBucket.ts"
   },
   "keywords": [],
   "author": "",

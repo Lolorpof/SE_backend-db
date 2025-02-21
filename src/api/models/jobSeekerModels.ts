@@ -34,6 +34,10 @@ import {
 import { catchError } from "../utilities/utilFunctions";
 import bcrypt from "bcryptjs";
 import { saltRounds } from "../utilities/env";
+import {
+  createBucketIfNotExisted,
+  userProfileImageBucket,
+} from "../utilities/minio";
 
 export class jobSeekerModels implements jobSeekerModelInterfaces {
   // singleton design
@@ -338,6 +342,19 @@ export class jobSeekerModels implements jobSeekerModelInterfaces {
     return result[0];
   }
 
+  // check if approval id existed
+  async approvalExisted(approvalId: string): Promise<boolean> {
+    const approval =
+      await drizzlePool.query.registrationApprovalTable.findFirst({
+        columns: { id: true },
+        where: eq(registrationApprovalTable.id, approvalId),
+      });
+
+    if (!approval) return false;
+
+    return true;
+  }
+
   // upload registration image into approval table
   async uploadRegistrationImage(
     approvalId: string,
@@ -350,6 +367,43 @@ export class jobSeekerModels implements jobSeekerModelInterfaces {
       .where(eq(registrationApprovalTable.id, approvalId));
 
     return { approvalId, url: imageUrl };
+  }
+
+  // upload profile image and return link, no oauth
+  async uploadProfilePicture(
+    imageUrl: string,
+    user: TGenericUserSession
+  ): Promise<TProfileImage> {
+    const formattedUser = user as TJobSeekerSession;
+
+    await drizzlePool
+      .update(jobSeekerTable)
+      .set({ profilePicture: imageUrl })
+      .where(eq(jobSeekerTable.id, formattedUser.id));
+
+    return { url: imageUrl, userId: formattedUser.id };
+  }
+
+  // upload resume image and return link
+  async uploadResume(
+    imageUrl: string,
+    user: TJobSeekerSession
+  ): Promise<TResumeImage> {
+    // update url in table
+    // check oauth
+    if (user.isOauth) {
+      await drizzlePool
+        .update(oauthJobSeekerTable)
+        .set({ resume: imageUrl })
+        .where(eq(oauthJobSeekerTable.id, user.id));
+    } else {
+      await drizzlePool
+        .update(jobSeekerTable)
+        .set({ resume: imageUrl })
+        .where(eq(jobSeekerTable.id, user.id));
+    }
+
+    return { url: imageUrl, userId: user.id };
   }
 
   // credentials auth only

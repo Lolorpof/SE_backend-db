@@ -45,6 +45,8 @@ export interface userModelInterfaces extends baseUserModelInterfaces {
     imageUrl: string
   ): Promise<TRegisterImage>;
 
+  approvalExisted(approvalId: string): Promise<boolean>;
+
   editEmail(
     email: string,
     user: TGenericUserSession
@@ -73,9 +75,8 @@ export interface userModelInterfaces extends baseUserModelInterfaces {
   ): Promise<TEditPasswordResponse | null>;
 
   uploadProfilePicture(
-    image: Express.Multer.File,
-    userId: string,
-    provider?: string
+    imageUrl: string,
+    user: TGenericUserSession
   ): Promise<TProfileImage>;
 }
 
@@ -114,8 +115,8 @@ export interface userOauthModelInterfaces extends singleUserModelInterfaces {
 
 export interface jobSeekerModelInterfaces extends userOauthModelInterfaces {
   uploadResume(
-    image: Express.Multer.File,
-    user: TGenericUserSession
+    imageUrl: string,
+    user: TJobSeekerSession
   ): Promise<TResumeImage>;
 
   editSkill(

@@ -114,7 +114,7 @@ export interface userOauthServiceInterfaces
 
 export interface jobSeekerServiceInterfaces extends userOauthServiceInterfaces {
   uploadResume(
-    body: any,
+    image: Express.Multer.File,
     user: Express.User
   ): Promise<ServicesResponse<TResumeImage>>;
 

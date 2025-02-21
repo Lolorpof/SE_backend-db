@@ -19,7 +19,11 @@ import {
   createBucketIfNotExisted,
   minioClient,
 } from "../utilities/minio/minio";
-import { registrationApprovalImageBucket } from "../utilities/minio";
+import {
+  jobSeekerResumeImageBucket,
+  registrationApprovalImageBucket,
+  userProfileImageBucket,
+} from "../utilities/minio";
 import { minioUrlExpire } from "../utilities/env";
 import {
   TEditAboutResponse,
@@ -429,22 +433,30 @@ export class jobSeekerServices implements jobSeekerServiceInterfaces {
     approvalId: string,
     image: Express.Multer.File
   ): Promise<ServicesResponse<TRegisterImage>> {
+    // approval existed check
+    const approvalExist = await jobSeekerModels
+      .instance()
+      .approvalExisted(approvalId);
+    if (!approvalExist) {
+      return {
+        success: false,
+        status: 400,
+        msg: "Approval doesn't existed",
+      };
+    }
+
     // upload iamge to minio and get image url
+    const imageName = `${approvalId}_register`;
     await createBucketIfNotExisted(registrationApprovalImageBucket);
     await minioClient.putObject(
       registrationApprovalImageBucket,
-      `${approvalId}_register`,
+      imageName,
       image.buffer,
       image.size,
       { "Content-Type": image.mimetype }
     );
 
-    const imageUrl = await minioClient.presignedUrl(
-      "GET",
-      registrationApprovalImageBucket,
-      `${approvalId}_register`,
-      minioUrlExpire // url is valid for 3 hours
-    );
+    const imageUrl = `http://localhost:1982/register/${imageName}`;
 
     // insert into approval table
     const [error, result] = await catchError(
@@ -464,6 +476,85 @@ export class jobSeekerServices implements jobSeekerServiceInterfaces {
       success: true,
       status: 201,
       msg: "Successfully upload and insert registraion approval image",
+      data: result,
+    };
+  }
+
+  // upload profile image, no oauth
+  async uploadProfilePicture(
+    image: Express.Multer.File,
+    user: Express.User
+  ): Promise<ServicesResponse<TProfileImage>> {
+    const formattedUser = user as TJobSeekerSession;
+    if (formattedUser.type !== "JOBSEEKER" || formattedUser.isOauth) {
+      return { status: 400, success: false, msg: "User isn't logged in" };
+    }
+
+    // insert into minio
+    const imageName = `${formattedUser.id}_profile`;
+    await createBucketIfNotExisted(userProfileImageBucket);
+    await minioClient.putObject(
+      userProfileImageBucket,
+      imageName,
+      image.buffer,
+      image.size,
+      { "Content-Type": image.mimetype }
+    );
+
+    // get image url (temp presigned)
+    const imageUrl = `http://localhost:1982/profile/${imageName}`;
+
+    // call model
+    const [error, result] = await catchError(
+      jobSeekerModels.instance().uploadProfilePicture(imageUrl, formattedUser)
+    );
+    if (error) {
+      return { status: 403, success: false, msg: "Something went wrong" };
+    }
+
+    return {
+      status: 201,
+      success: true,
+      msg: "Successfully uploaded profile image",
+      data: result,
+    };
+  }
+
+  // upload resume image
+  async uploadResume(
+    image: Express.Multer.File,
+    user: Express.User
+  ): Promise<ServicesResponse<TResumeImage>> {
+    const formattedUser = user as TJobSeekerSession;
+    if (formattedUser.type !== "JOBSEEKER") {
+      return { status: 400, success: false, msg: "User isn't logged in" };
+    }
+
+    // insert into minio
+    const imageName = `${formattedUser.id}_resume`;
+    await createBucketIfNotExisted(jobSeekerResumeImageBucket);
+    await minioClient.putObject(
+      jobSeekerResumeImageBucket,
+      imageName,
+      image.buffer,
+      image.size,
+      { "Content-Type": image.mimetype }
+    );
+
+    const imageUrl = `http://localhost:1982/resume/${imageName}`;
+
+    // call model
+    const [error, result] = await catchError(
+      jobSeekerModels.instance().uploadResume(imageUrl, formattedUser)
+    );
+    if (error) {
+      return { status: 403, success: false, msg: "Something went wrong" };
+    }
+
+    return {
+      status: 201,
+      success: true,
+      msg: "Successfully uploaded resume",
       data: result,
     };
   }

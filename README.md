@@ -3,7 +3,30 @@
 - run `npm i` or `pnpm i`
 - create your own `.env` file and set it up
 - run `docker compose up --build` for first time setup
+- run `npm run minio:bucket` or `pnpm run minio:bucket` to create buckets
 - for subsequent runs, just use `docker compose up`
+
+# Make bucket public
+
+1. Access minio docker container
+
+```sh
+docker exec -it t10-minio /bin/sh
+```
+
+2. set mc service in minio (change access-key and secret-key)
+
+```sh
+mc alias set myminio http://localhost:9000 access-key secret-key
+```
+
+3. make buckets public
+
+```sh
+mc anonymous set public myminio/register
+mc anonymous set public myminio/profile
+mc anonymous set public myminio/resume
+```
 
 To reset the database completely:
 

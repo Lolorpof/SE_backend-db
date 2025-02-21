@@ -12,7 +12,11 @@ import "../types/usersTypes";
 import "../validators/usersValidator";
 import { TSingleUserRegister } from "../validators/usersValidator";
 import { companyControllers } from "../controllers/companyControllers";
-import { uploadRegisterImageMiddleware } from "../utilities/multer";
+import {
+  uploadProfileImageMiddleware,
+  uploadRegisterImageMiddleware,
+  uploadResumeImageMiddleware,
+} from "../utilities/multer";
 
 const userRouter = express.Router();
 
@@ -104,7 +108,7 @@ userRouter
  *                description: image file
  *     responses:
  *       201:
- *         description: Return the job seeker id.
+ *         description: Return the job seeker id, and image url.
  *         content:
  *          application/json:
  *            schema:
@@ -307,6 +311,106 @@ userRouter
   .post(checkUnauthenticated, jobSeekerControllers.instance().login)
   .get(checkAuthenticated, jobSeekerControllers.instance().getCurrent)
   .delete(checkAuthenticated, jobSeekerControllers.instance().logout);
+
+// job seeker, upload profile image(POST)
+/**
+ * @openapi
+ * /api/user/job-seeker/auth/profile-image:
+ *   post:
+ *     summary: upload profile image
+ *     tags: [Job Seeker]
+ *     consumes:
+ *       - multipart/form-data
+ *     requestBody:
+ *       required: true
+ *       content:
+ *        multipart/form-data:
+ *          schema:
+ *            type: object
+ *            properties:
+ *              name:
+ *                type: string
+ *                format: binary
+ *                description: image file
+ *     responses:
+ *       201:
+ *         description: Return the job seeker id, and image url.
+ *         content:
+ *          application/json:
+ *            schema:
+ *              type: object
+ *              properties:
+ *                success:
+ *                  type: boolean
+ *                  description: is fetch successful
+ *                  example: true
+ *                msg:
+ *                  type: string
+ *                  description: response message
+ *                  example: Successfully fetch api
+ *                data:
+ *                  type: object
+ *                  description: response data
+ *                  example: {approvalId: 123, url: image's url}
+ */
+userRouter
+  .route("/job-seeker/auth/profile-image")
+  .post(
+    checkAuthenticated,
+    uploadProfileImageMiddleware,
+    checkUploadedSingleFile,
+    jobSeekerControllers.instance().uploadProfilePicture
+  );
+
+// job seeker, upload resume image(POST)
+/**
+ * @openapi
+ * /api/user/job-seeker/auth/resume-image:
+ *   post:
+ *     summary: upload resume image
+ *     tags: [Job Seeker]
+ *     consumes:
+ *       - multipart/form-data
+ *     requestBody:
+ *       required: true
+ *       content:
+ *        multipart/form-data:
+ *          schema:
+ *            type: object
+ *            properties:
+ *              name:
+ *                type: string
+ *                format: binary
+ *                description: image file
+ *     responses:
+ *       201:
+ *         description: Return the job seeker id, and image url.
+ *         content:
+ *          application/json:
+ *            schema:
+ *              type: object
+ *              properties:
+ *                success:
+ *                  type: boolean
+ *                  description: is fetch successful
+ *                  example: true
+ *                msg:
+ *                  type: string
+ *                  description: response message
+ *                  example: Successfully fetch api
+ *                data:
+ *                  type: object
+ *                  description: response data
+ *                  example: {approvalId: 123, url: image's url}
+ */
+userRouter
+  .route("/job-seeker/auth/resume-image")
+  .post(
+    checkAuthenticated,
+    uploadResumeImageMiddleware,
+    checkUploadedSingleFile,
+    jobSeekerControllers.instance().uploadResume
+  );
 
 // job seeker, edit username(put)
 /**
