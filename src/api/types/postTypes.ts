@@ -1,5 +1,10 @@
-import { jobHirerTypeEnum, postStatusEnum, jobPostTypeEnum, jobSeekerTypeEnum } from "../../db/schema";
-import { SerivcesResponse } from "./responseTypes";
+import {
+  jobHirerTypeEnum,
+  postStatusEnum,
+  jobPostTypeEnum,
+  jobSeekerTypeEnum,
+} from "../../db/schema";
+import { ServicesResponse } from "./responseTypes";
 import { BaseEntity } from "../services/services";
 
 // Base type for common fields between job posts
@@ -9,9 +14,9 @@ export type TBasePost = BaseEntity & {
   jobLocation: string;
   workDates: string;
   workHoursRange: string;
-  status: typeof postStatusEnum.enumValues[number]; // "MATCHED" | "UNMATCHED" | "MATCHED_INPROG"
-  jobPostType: typeof jobPostTypeEnum.enumValues[number]; // "FULLTIME" | "PARTTIME" | "FREELANCE"
-  
+  status: (typeof postStatusEnum.enumValues)[number]; // "MATCHED" | "UNMATCHED" | "MATCHED_INPROG"
+  jobPostType: (typeof jobPostTypeEnum.enumValues)[number]; // "FULLTIME" | "PARTTIME" | "FREELANCE"
+
   // Metadata
   createdAt: Date;
   updatedAt: Date;
@@ -22,7 +27,7 @@ export type TBasePost = BaseEntity & {
     name: string;
     description: string | null;
   }[];
-  
+
   jobCategories?: {
     id: string;
     name: string;
@@ -34,8 +39,8 @@ export type TBasePost = BaseEntity & {
 export type TPost = TBasePost & {
   salary: number;
   hiredAmount: number;
-  jobHirerType: typeof jobHirerTypeEnum.enumValues[number]; // "EMPLOYER" | "OAUTHEMPLOYER" | "COMPANY"
-  
+  jobHirerType: (typeof jobHirerTypeEnum.enumValues)[number]; // "EMPLOYER" | "OAUTHEMPLOYER" | "COMPANY"
+
   // Foreign key references
   employerId: string | null;
   oauthEmployerId: string | null;
@@ -48,7 +53,7 @@ export type TPost = TBasePost & {
 // Type for job finding post data
 export type TJobFindingPost = TBasePost & {
   expectedSalary: number;
-  jobSeekerType: typeof jobSeekerTypeEnum.enumValues[number]; // "NORMAL" | "OAUTH"
+  jobSeekerType: (typeof jobSeekerTypeEnum.enumValues)[number]; // "NORMAL" | "OAUTH"
   jobSeekerId: string | null;
   oauthJobSeekerId: string | null;
 };
@@ -78,4 +83,6 @@ export type TPostsResponse<T = TPost> = {
 };
 
 // Type for service response with job hiring post data
-export type TPostServiceResponse = SerivcesResponse<TPostResponse | TPostsResponse>;
+export type TPostServiceResponse = ServicesResponse<
+  TPostResponse | TPostsResponse
+>;
