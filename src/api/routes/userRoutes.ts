@@ -311,6 +311,26 @@ userRouter
   .post(checkUnauthenticated, jobSeekerControllers.instance().login)
   .get(checkAuthenticated, jobSeekerControllers.instance().getCurrent)
   .delete(checkAuthenticated, jobSeekerControllers.instance().logout);
+// job seeker, google oauth login(GET)
+/**
+ * @openapi
+ * /api/user/job-seeker/oauth/google:
+ *   get:
+ *     summary: google login as job seeker (call by 'window.open()')
+ *     tags: [Job Seeker]
+ *     responses:
+ *       200:
+ *         description: Redirect user to home page
+ */
+userRouter.get(
+  "/job-seeker/oauth/google",
+  checkUnauthenticatedOauth,
+  jobSeekerControllers.instance().googleLogin
+);
+userRouter.get(
+  "/job-seeker/oauth/google/callback",
+  jobSeekerControllers.instance().googleLogin
+);
 
 // job seeker, upload profile image(POST)
 /**
@@ -676,6 +696,7 @@ userRouter
 userRouter
   .route("/job-seeker/auth/edit/contact")
   .put(checkAuthenticated, jobSeekerControllers.instance().editContact);
+// job seeker, edit password(put)
 /**
  * @openapi
  * /api/user/job-seeker/auth/edit/password:
@@ -717,6 +738,7 @@ userRouter
 userRouter
   .route("/job-seeker/auth/edit/password")
   .put(checkAuthenticated, jobSeekerControllers.instance().editPassword);
+// job seeker, edit skills(put)
 /**
  * @openapi
  * /api/user/job-seeker/auth/edit/skill:
@@ -758,6 +780,7 @@ userRouter
 userRouter
   .route("/job-seeker/auth/edit/skill")
   .put(checkAuthenticated, jobSeekerControllers.instance().editSkill);
+// job seeker, edit vulnerabilities(put)
 /**
  * @openapi
  * /api/user/job-seeker/auth/edit/vulnerability:
@@ -799,27 +822,6 @@ userRouter
 userRouter
   .route("/job-seeker/auth/edit/vulnerability")
   .put(checkAuthenticated, jobSeekerControllers.instance().editVulnerability);
-
-// job seeker, google oauth login(GET)
-/**
- * @openapi
- * /api/user/job-seeker/oauth/google:
- *   get:
- *     summary: google login as job seeker (call by 'window.open()')
- *     tags: [Job Seeker]
- *     responses:
- *       200:
- *         description: Redirect user to home page
- */
-userRouter.get(
-  "/job-seeker/oauth/google",
-  checkUnauthenticatedOauth,
-  jobSeekerControllers.instance().googleLogin
-);
-userRouter.get(
-  "/job-seeker/oauth/google/callback",
-  jobSeekerControllers.instance().googleLogin
-);
 
 // job seeker, get user by id(GET) {Not implemented cuz no usage yet}
 userRouter.route("/job-seeker/auth/:id");
@@ -1100,6 +1102,363 @@ userRouter.get(
   "/employer/oauth/google/callback",
   employerControllers.instance().googleLogin
 );
+
+// employer, upload profile image(POST)
+/**
+ * @openapi
+ * /api/user/employer/auth/profile-image:
+ *   post:
+ *     summary: upload profile image
+ *     tags: [Employer]
+ *     consumes:
+ *       - multipart/form-data
+ *     requestBody:
+ *       required: true
+ *       content:
+ *        multipart/form-data:
+ *          schema:
+ *            type: object
+ *            properties:
+ *              name:
+ *                type: string
+ *                format: binary
+ *                description: image file
+ *     responses:
+ *       201:
+ *         description: Return the employer id, and image url.
+ *         content:
+ *          application/json:
+ *            schema:
+ *              type: object
+ *              properties:
+ *                success:
+ *                  type: boolean
+ *                  description: is fetch successful
+ *                  example: true
+ *                msg:
+ *                  type: string
+ *                  description: response message
+ *                  example: Successfully fetch api
+ *                data:
+ *                  type: object
+ *                  description: response data
+ *                  example: {approvalId: 123, url: image's url}
+ */
+userRouter
+  .route("/employer/auth/profile-image")
+  .post(
+    checkAuthenticated,
+    uploadProfileImageMiddleware,
+    checkUploadedSingleFile,
+    employerControllers.instance().uploadProfilePicture
+  );
+
+// employer, edit username(put)
+/**
+ * @openapi
+ * /api/user/employer/auth/edit/username:
+ *   post:
+ *     summary: edit employer's username
+ *     tags: [Employer]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *        application/json:
+ *          schema:
+ *            type: object
+ *            properties:
+ *              username:
+ *                type: string
+ *                description: new username of employer
+ *                example: New Username
+ *              password:
+ *                type: string
+ *                description: employer's current password
+ *                example: secret123
+ *     responses:
+ *       200:
+ *         description: Return the employer id, and username.
+ *         content:
+ *          application/json:
+ *            schema:
+ *              type: object
+ *              properties:
+ *                success:
+ *                  type: boolean
+ *                  description: is fetch successful
+ *                  example: true
+ *                msg:
+ *                  type: string
+ *                  description: response message
+ *                  example: Successfully fetch api
+ *                data:
+ *                  type: object
+ *                  description: response data
+ *                  example: {userId: 123, username: New Username}
+ */
+userRouter
+  .route("/employer/auth/edit/username")
+  .put(checkAuthenticated, employerControllers.instance().editUsername);
+// employer, edit email(put)
+/**
+ * @openapi
+ * /api/user/employer/auth/edit/email:
+ *   post:
+ *     summary: edit employer's email
+ *     tags: [Employer]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *        application/json:
+ *          schema:
+ *            type: object
+ *            properties:
+ *              email:
+ *                type: string
+ *                description: new email of employer
+ *                example: newemail@gmail.com
+ *     responses:
+ *       200:
+ *         description: Return the employer id, and email.
+ *         content:
+ *          application/json:
+ *            schema:
+ *              type: object
+ *              properties:
+ *                success:
+ *                  type: boolean
+ *                  description: is fetch successful
+ *                  example: true
+ *                msg:
+ *                  type: string
+ *                  description: response message
+ *                  example: Successfully fetch api
+ *                data:
+ *                  type: object
+ *                  description: response data
+ *                  example: {userId: 123, email: newemail@gmail.com}
+ */
+userRouter
+  .route("/employer/auth/edit/email")
+  .put(checkAuthenticated, employerControllers.instance().editEmail);
+// employer, edit full name(put)
+/**
+ * @openapi
+ * /api/user/employer/auth/edit/full-name:
+ *   post:
+ *     summary: edit employer's full name
+ *     tags: [Employer]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *        application/json:
+ *          schema:
+ *            type: object
+ *            properties:
+ *              firstName:
+ *                type: string
+ *                description: new first name of employer
+ *                example: Wut
+ *              lastName:
+ *                type: string
+ *                description: new last name of employer
+ *                example: TheHeck
+ *     responses:
+ *       200:
+ *         description: Return the job seeker id, and full name.
+ *         content:
+ *          application/json:
+ *            schema:
+ *              type: object
+ *              properties:
+ *                success:
+ *                  type: boolean
+ *                  description: is fetch successful
+ *                  example: true
+ *                msg:
+ *                  type: string
+ *                  description: response message
+ *                  example: Successfully fetch api
+ *                data:
+ *                  type: object
+ *                  description: response data
+ *                  example: {userId: 123, firstName: Wut, lastName: TheHeck}
+ */
+userRouter
+  .route("/employer/auth/edit/full-name")
+  .put(checkAuthenticated, employerControllers.instance().editFullName);
+// employer, edit about(put)
+/**
+ * @openapi
+ * /api/user/employer/auth/edit/about:
+ *   post:
+ *     summary: edit employer's about
+ *     tags: [Employer]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *        application/json:
+ *          schema:
+ *            type: object
+ *            properties:
+ *              about:
+ *                type: string
+ *                description: new about of employer
+ *                example: This is my profile bro
+ *     responses:
+ *       200:
+ *         description: Return the employer id, and about.
+ *         content:
+ *          application/json:
+ *            schema:
+ *              type: object
+ *              properties:
+ *                success:
+ *                  type: boolean
+ *                  description: is fetch successful
+ *                  example: true
+ *                msg:
+ *                  type: string
+ *                  description: response message
+ *                  example: Successfully fetch api
+ *                data:
+ *                  type: object
+ *                  description: response data
+ *                  example: {userId: 123, about: This is my profile bro}
+ */
+userRouter
+  .route("/employer/auth/edit/about")
+  .put(checkAuthenticated, employerControllers.instance().editAbout);
+// employer, edit address(put)
+/**
+ * @openapi
+ * /api/user/employer/auth/edit/address:
+ *   post:
+ *     summary: edit employer's address
+ *     tags: [Employer]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *        application/json:
+ *          schema:
+ *            type: object
+ *            properties:
+ *              address:
+ *                type: string
+ *                description: new address of employer
+ *                example: 9876 Duangjun rd. Palm District
+ *              provinceAddress:
+ *                type: string
+ *                description: new provinceAddress of employer
+ *                example: Borwon Province
+ *     responses:
+ *       200:
+ *         description: Return the employer id, and address, province.
+ *         content:
+ *          application/json:
+ *            schema:
+ *              type: object
+ *              properties:
+ *                success:
+ *                  type: boolean
+ *                  description: is fetch successful
+ *                  example: true
+ *                msg:
+ *                  type: string
+ *                  description: response message
+ *                  example: Successfully fetch api
+ *                data:
+ *                  type: object
+ *                  description: response data
+ *                  example: {userId: 123, address: 12345 Hello rd. Qwerty district, provinceAddress: KeKekeke}
+ */
+userRouter
+  .route("/employer/auth/edit/address")
+  .put(checkAuthenticated, employerControllers.instance().editAddress);
+// employer, edit contact(put)
+/**
+ * @openapi
+ * /api/user/employer/auth/edit/contact:
+ *   post:
+ *     summary: edit employer's contact
+ *     tags: [Employer]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *        application/json:
+ *          schema:
+ *            type: object
+ *            properties:
+ *              contact:
+ *                type: string
+ *                description: new contact of employer
+ *                example: 0123456789
+ *     responses:
+ *       200:
+ *         description: Return the employer id, and contact.
+ *         content:
+ *          application/json:
+ *            schema:
+ *              type: object
+ *              properties:
+ *                success:
+ *                  type: boolean
+ *                  description: is fetch successful
+ *                  example: true
+ *                msg:
+ *                  type: string
+ *                  description: response message
+ *                  example: Successfully fetch api
+ *                data:
+ *                  type: object
+ *                  description: response data
+ *                  example: {userId: 123, contact: 0123456789}
+ */
+userRouter
+  .route("/employer/auth/edit/contact")
+  .put(checkAuthenticated, employerControllers.instance().editContact);
+// employer, edit password(put)
+/**
+ * @openapi
+ * /api/user/employer/auth/edit/password:
+ *   post:
+ *     summary: edit employer's password
+ *     tags: [Employer]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *        application/json:
+ *          schema:
+ *            type: object
+ *            properties:
+ *              password:
+ *                type: string
+ *                description: new password of employer
+ *                example: hello69xD
+ *     responses:
+ *       200:
+ *         description: Return the employer id.
+ *         content:
+ *          application/json:
+ *            schema:
+ *              type: object
+ *              properties:
+ *                success:
+ *                  type: boolean
+ *                  description: is fetch successful
+ *                  example: true
+ *                msg:
+ *                  type: string
+ *                  description: response message
+ *                  example: Successfully fetch api
+ *                data:
+ *                  type: object
+ *                  description: response data
+ *                  example: {userId: 123}
+ */
+userRouter
+  .route("/employer/auth/edit/password")
+  .put(checkAuthenticated, employerControllers.instance().editPassword);
 
 // [Company]
 // company, register(POST)
