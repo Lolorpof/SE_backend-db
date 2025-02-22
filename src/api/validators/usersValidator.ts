@@ -21,15 +21,19 @@ export const singleUserRegisterSchema = z.object({
       message: "Space must appear between First Name and Last Name Once",
     }), // space appear only once
   email: z.string().email(),
-  password: z.string(),
-  confirmPassword: z.string(),
+  password: z.string().min(6, "Password length must have atleast 6 characters"),
+  confirmPassword: z
+    .string()
+    .min(6, "Confirm password length must have atleast 6 characters"),
 });
 
 export const companyRegisterSchema = z.object({
   officialName: z.string(),
   email: z.string().email(),
-  password: z.string(),
-  confirmPassword: z.string(),
+  password: z.string().min(6, "Password length must have atleast 6 characters"),
+  confirmPassword: z
+    .string()
+    .min(6, "Confirm password length must have atleast 6 characters"),
 });
 
 export const approvedRequestSchema = z.object({

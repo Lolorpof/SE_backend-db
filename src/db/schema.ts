@@ -103,6 +103,7 @@ export const jobSeekerTable = pgTable(
     aboutMe: varchar("about_me", { length: 2050 }),
     contact: varchar("contact", { length: 255 }),
     resume: varchar("resume", { length: 255 }).notNull().default(undef),
+    provinceAddress: varchar("province_address", { length: 64 }),
     address: varchar("address", { length: 255 }),
     approvalStatus: usersApprovalStatusEnum("approval_status")
       .notNull()
@@ -137,6 +138,7 @@ export const oauthJobSeekerTable = pgTable(
     contact: varchar("contact", { length: 255 }),
     resume: varchar("resume", { length: 255 }).notNull().default(undef),
     provider: providerEnum("provider").notNull(),
+    provinceAddress: varchar("province_address", { length: 64 }),
     address: varchar("address", { length: 255 }),
     approvalStatus: usersApprovalStatusEnum("approval_status")
       .notNull()
@@ -168,6 +170,7 @@ export const employerTable = pgTable(
       .default(undef),
     aboutMe: varchar("about_me", { length: 2050 }),
     contact: varchar("contact", { length: 255 }),
+    provinceAddress: varchar("province_address", { length: 64 }),
     address: varchar("address", { length: 255 }),
     approvalStatus: usersApprovalStatusEnum("approval_status")
       .notNull()
@@ -201,6 +204,7 @@ export const oauthEmployerTable = pgTable(
     aboutMe: varchar("about_me", { length: 2050 }),
     contact: varchar("contact", { length: 255 }),
     provider: providerEnum("provider").notNull(),
+    provinceAddress: varchar("province_address", { length: 64 }),
     address: varchar("address", { length: 255 }),
     approvalStatus: usersApprovalStatusEnum("approval_status")
       .notNull()
@@ -228,6 +232,7 @@ export const companyTable = pgTable("company", {
     .default(undef),
   aboutUs: varchar("about_us", { length: 2050 }),
   contact: varchar("contact", { length: 255 }),
+  provinceAddress: varchar("province_address", { length: 64 }),
   address: varchar("address", { length: 255 }),
   approvalStatus: usersApprovalStatusEnum("approval_status")
     .notNull()

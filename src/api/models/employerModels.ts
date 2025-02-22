@@ -7,13 +7,25 @@ import {
 } from "../../db/schema";
 import "../types/usersTypes";
 import {
+  employerModelInterfaces,
   userModelInterfaces,
   userOauthModelInterfaces,
 } from "../interfaces/userModelInterfaces";
 import { Profile } from "passport-google-oauth20";
 import { TApprovedRequest } from "../validators/usersValidator";
+import {
+  TEditAboutResponse,
+  TEditAddressResponse,
+  TEditContactResponse,
+  TEditEmailResponse,
+  TEditFullNameResponse,
+  TEditPasswordResponse,
+  TEditUsernameResponse,
+} from "../types/editUserProfile";
+import bcrypt from "bcryptjs";
+import { saltRounds } from "../utilities/env";
 
-export class employerModels implements userOauthModelInterfaces {
+export class employerModels implements employerModelInterfaces {
   // singleton design
   private static employerModel: employerModels | undefined;
   static instance() {
@@ -235,5 +247,297 @@ export class employerModels implements userOauthModelInterfaces {
     }
 
     return result[0];
+  }
+
+  // check if approval id existed
+  async approvalExisted(approvalId: string): Promise<boolean> {
+    const approval =
+      await drizzlePool.query.registrationApprovalTable.findFirst({
+        columns: { id: true },
+        where: eq(registrationApprovalTable.id, approvalId),
+      });
+
+    if (!approval) return false;
+
+    return true;
+  }
+
+  // upload profile image and return link, no oauth
+  async uploadProfilePicture(
+    imageUrl: string,
+    user: TGenericUserSession
+  ): Promise<TProfileImage> {
+    const formattedUser = user as TEmployerSession;
+
+    await drizzlePool
+      .update(employerTable)
+      .set({ profilePicture: imageUrl })
+      .where(eq(employerTable.id, formattedUser.id));
+
+    return { url: imageUrl, userId: formattedUser.id };
+  }
+
+  // credentials auth only
+  async editUsername(
+    username: string,
+    password: string,
+    user: TGenericUserSession
+  ): Promise<TEditUsernameResponse | null> {
+    const formattedUser = user as TEmployerSession;
+    // check for true duplicate
+    const currentUserPassword = await drizzlePool.query.employerTable.findFirst(
+      {
+        columns: { password: true },
+        where: eq(employerTable.id, user.id),
+      }
+    );
+
+    // password check
+    if (!currentUserPassword) {
+      return null;
+    }
+    const passwordMatched = await bcrypt.compare(
+      password,
+      currentUserPassword.password
+    );
+    if (!passwordMatched) {
+      return null;
+    }
+
+    // username is empty string
+    if (username.length === 0) {
+      return {
+        userId: formattedUser.id,
+        username: username,
+        case: "empty username",
+      };
+    }
+
+    // duplicate username check
+    const dupedUsernames = await drizzlePool.query.employerTable.findMany({
+      columns: { username: true, password: true },
+      where: eq(employerTable.username, username),
+    });
+
+    // exact dupe check
+    for (const dupedUsername of dupedUsernames) {
+      const exactDuped = await bcrypt.compare(password, dupedUsername.password);
+
+      if (exactDuped) {
+        return {
+          userId: user.id,
+          username: dupedUsername.username,
+          case: "exact dupe",
+        };
+      }
+    }
+
+    // no dupe
+    await drizzlePool
+      .update(employerTable)
+      .set({ username: username })
+      .where(eq(employerTable.id, user.id));
+    return {
+      userId: user.id,
+      username: username,
+    };
+  }
+
+  async editEmail(
+    email: string,
+    user: TGenericUserSession
+  ): Promise<TEditEmailResponse | null> {
+    // duplicate email check
+    const dupeEmail = await drizzlePool.query.employerTable.findFirst({
+      columns: { email: true },
+      where: eq(employerTable.email, email),
+    });
+
+    if (dupeEmail) {
+      return null;
+    }
+
+    // editable email
+    await drizzlePool
+      .update(employerTable)
+      .set({ email: email })
+      .where(eq(employerTable.id, user.id));
+
+    return { email: email, userId: user.id };
+  }
+
+  async editFullName(
+    firstName: string,
+    lastName: string,
+    user: TGenericUserSession
+  ): Promise<TEditFullNameResponse | null> {
+    const formattedUser = user as TEmployerSession;
+
+    // check dupe
+    const dupedName = await drizzlePool.query.employerTable.findFirst({
+      columns: { firstName: true, lastName: true },
+      where: and(
+        eq(employerTable.firstName, firstName),
+        eq(employerTable.lastName, lastName)
+      ),
+    });
+    if (dupedName) {
+      return null;
+    }
+
+    // no dupe
+    await drizzlePool
+      .update(employerTable)
+      .set({ firstName: firstName, lastName: lastName })
+      .where(eq(employerTable.id, formattedUser.id));
+
+    return {
+      userId: formattedUser.id,
+      firstName: firstName,
+      lastName: lastName,
+    };
+  }
+
+  async editAbout(
+    about: string,
+    user: TGenericUserSession
+  ): Promise<TEditAboutResponse | null> {
+    const formattedUser = user as TEmployerSession;
+    // new about is empty
+    if (about.length === 0) {
+      return null;
+    }
+
+    // oauth check
+    if (formattedUser.isOauth) {
+      await drizzlePool
+        .update(oauthEmployerTable)
+        .set({ aboutMe: about })
+        .where(eq(oauthEmployerTable.id, formattedUser.id));
+    } else {
+      await drizzlePool
+        .update(employerTable)
+        .set({ aboutMe: about })
+        .where(eq(employerTable.id, formattedUser.id));
+    }
+
+    return { userId: formattedUser.id, about: about };
+  }
+
+  async editAddress(
+    address: string,
+    provinceAddress: string,
+    user: TGenericUserSession
+  ): Promise<TEditAddressResponse | null> {
+    const formattedUser = user as TEmployerSession;
+
+    // check empty string
+    if (address.length === 0 || provinceAddress.length === 0) {
+      return null;
+    }
+
+    // oauth check
+    if (formattedUser.isOauth) {
+      await drizzlePool
+        .update(oauthEmployerTable)
+        .set({ address: address, provinceAddress: provinceAddress })
+        .where(eq(oauthEmployerTable.id, formattedUser.id));
+    } else {
+      await drizzlePool
+        .update(employerTable)
+        .set({ address: address, provinceAddress: provinceAddress })
+        .where(eq(employerTable.id, formattedUser.id));
+    }
+
+    return {
+      userId: formattedUser.id,
+      address: address,
+      provinceAddress: provinceAddress,
+    };
+  }
+
+  async editContact(
+    contact: string,
+    user: TGenericUserSession
+  ): Promise<TEditContactResponse | null> {
+    const formattedUser = user as TEmployerSession;
+
+    // contact empty string
+    if (contact.length === 0) {
+      return null;
+    }
+
+    // oauth check
+    if (formattedUser.isOauth) {
+      await drizzlePool
+        .update(oauthEmployerTable)
+        .set({ contact: contact })
+        .where(eq(oauthEmployerTable.id, formattedUser.id));
+    } else {
+      await drizzlePool
+        .update(employerTable)
+        .set({ contact: contact })
+        .where(eq(employerTable.id, formattedUser.id));
+    }
+
+    return { userId: formattedUser.id, contact: contact };
+  }
+
+  async editPassword(
+    password: string,
+    oldPassword: string,
+    user: TGenericUserSession
+  ): Promise<TEditPasswordResponse | null> {
+    const formattedUser = user as TEmployerSession;
+
+    // empty string check
+    if (password.length === 0) {
+      return null;
+    }
+
+    // old password check
+    const userPassword = await drizzlePool.query.employerTable.findFirst({
+      columns: { password: true },
+      where: eq(employerTable.id, formattedUser.id),
+    });
+    if (!userPassword) {
+      console.error("***No user found***");
+      return {
+        userId: formattedUser.id,
+        case: "no user",
+      };
+    }
+    const correct = await bcrypt.compare(oldPassword, userPassword.password);
+    if (!correct) {
+      return {
+        userId: formattedUser.id,
+        case: "wrong password",
+      };
+    }
+
+    // dupe check
+    const dupedUsernames = await drizzlePool.query.employerTable.findMany({
+      columns: { username: true, password: true },
+      where: eq(employerTable.username, formattedUser.username),
+    });
+    for (const du of dupedUsernames) {
+      const exactMatch = await bcrypt.compare(password, du.password);
+
+      if (exactMatch) {
+        return {
+          userId: formattedUser.id,
+          case: "exactDupe",
+        };
+      }
+    }
+
+    // password changeable
+    const hashedPassword = await bcrypt.hash(password, saltRounds);
+    await drizzlePool
+      .update(employerTable)
+      .set({ password: hashedPassword })
+      .where(eq(employerTable.id, formattedUser.id));
+
+    return { userId: formattedUser.id };
   }
 }

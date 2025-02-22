@@ -7,22 +7,49 @@ import {
 } from "../validators/usersValidator";
 import bcrypt from "bcryptjs";
 import {
+  employerServiceInterfaces,
   userOauthServiceInterfaces,
   userServiceInterfaces,
 } from "../interfaces/userServiceInterfaces";
 import { IVerifyOptions } from "passport-local";
 import "../types/usersTypes";
 import { Profile, VerifyCallback } from "passport-google-oauth20";
-import { SerivcesResponse } from "../types/responseTypes";
+import { ServicesResponse } from "../types/responseTypes";
 import {
   createBucketIfNotExisted,
   minioClient,
   registrationApprovalImageBucket,
+  userProfileImageBucket,
 } from "../utilities/minio";
 import { minioUrlExpire } from "../utilities/env";
 import { catchError } from "../utilities/utilFunctions";
+import {
+  editAboutSchema,
+  editAddressSchema,
+  editContactSchema,
+  editEmailSchema,
+  editFullNameSchema,
+  editPasswordSchema,
+  editUsernameSchema,
+  TEditAboutSchema,
+  TEditAddressSchema,
+  TEditContactSchema,
+  TEditEmailSchema,
+  TEditFullNameSchema,
+  TEditPasswordSchema,
+  TEditUsernameSchema,
+} from "../validators/profileValidator";
+import {
+  TEditAboutResponse,
+  TEditAddressResponse,
+  TEditContactResponse,
+  TEditEmailResponse,
+  TEditFullNameResponse,
+  TEditPasswordResponse,
+  TEditUsernameResponse,
+} from "../types/editUserProfile";
 
-export class employerServices implements userOauthServiceInterfaces {
+export class employerServices implements employerServiceInterfaces {
   // singleton design
   private static employerService: employerServices | undefined;
   static instance() {
@@ -33,7 +60,7 @@ export class employerServices implements userOauthServiceInterfaces {
   }
 
   // register employer
-  async register(userForm: any): Promise<SerivcesResponse<any>> {
+  async register(userForm: any): Promise<ServicesResponse<any>> {
     // {Business Logic}
     // user form validation
     try {
@@ -277,7 +304,7 @@ export class employerServices implements userOauthServiceInterfaces {
     user: Express.User | undefined,
     type: string,
     isOauth: boolean
-  ): Promise<SerivcesResponse<any>> {
+  ): Promise<ServicesResponse<any>> {
     if (!user) {
       return { success: false, status: 403, msg: "Something went wrong" };
     }
@@ -304,7 +331,7 @@ export class employerServices implements userOauthServiceInterfaces {
   // get current user (passport calls)
   async getCurrent(
     user: Express.User | undefined
-  ): Promise<SerivcesResponse<TEmployerSession>> {
+  ): Promise<ServicesResponse<TEmployerSession>> {
     if (!user) {
       return { status: 403, success: false, msg: "Something went wrong" };
     }
@@ -330,7 +357,7 @@ export class employerServices implements userOauthServiceInterfaces {
   async uploadRegistrationImage(
     approvalId: string,
     image: Express.Multer.File
-  ): Promise<SerivcesResponse<TRegisterImage>> {
+  ): Promise<ServicesResponse<TRegisterImage>> {
     // upload iamge to minio and get image url
     await createBucketIfNotExisted(registrationApprovalImageBucket);
     await minioClient.putObject(
@@ -374,7 +401,7 @@ export class employerServices implements userOauthServiceInterfaces {
   async deserializer(
     id: string,
     provider?: "GOOGLE" | "LINE"
-  ): Promise<SerivcesResponse<any>> {
+  ): Promise<ServicesResponse<any>> {
     let user: TEmployer | undefined;
     // getting user
     try {
@@ -397,6 +424,390 @@ export class employerServices implements userOauthServiceInterfaces {
       msg: "Retrieve user successfully",
       data: user,
       status: 200,
+    };
+  }
+
+  // upload profile image, no oauth
+  async uploadProfilePicture(
+    image: Express.Multer.File,
+    user: Express.User
+  ): Promise<ServicesResponse<TProfileImage>> {
+    const formattedUser = user as TEmployerSession;
+    if (formattedUser.type !== "EMPLOYER" || formattedUser.isOauth) {
+      return { status: 400, success: false, msg: "User isn't logged in" };
+    }
+
+    // insert into minio
+    const imageName = `${formattedUser.id}_employer_profile`;
+    await createBucketIfNotExisted(userProfileImageBucket);
+    await minioClient.putObject(
+      userProfileImageBucket,
+      imageName,
+      image.buffer,
+      image.size,
+      { "Content-Type": image.mimetype }
+    );
+
+    // get image url (temp presigned)
+    const imageUrl = `http://localhost:1982/profile/${imageName}`;
+
+    // call model
+    const [error, result] = await catchError(
+      employerModels.instance().uploadProfilePicture(imageUrl, formattedUser)
+    );
+    if (error) {
+      return { status: 403, success: false, msg: "Something went wrong" };
+    }
+
+    return {
+      status: 201,
+      success: true,
+      msg: "Successfully uploaded profile image",
+      data: result,
+    };
+  }
+
+  // edit username, no oauth
+  async editUsername(
+    body: any,
+    user: Express.User
+  ): Promise<ServicesResponse<TEditUsernameResponse>> {
+    let parsedBody: TEditUsernameSchema;
+    try {
+      parsedBody = editUsernameSchema.parse(body);
+    } catch (error) {
+      console.error(error);
+      return { status: 400, success: false, msg: "Wrong credentials format" };
+    }
+
+    const formattedUser = user as TEmployerSession;
+
+    // wrong user type
+    if (formattedUser.type !== "EMPLOYER" || formattedUser.isOauth) {
+      return { status: 401, success: false, msg: "User isn't logged in" };
+    }
+
+    const [error, result] = await catchError(
+      employerModels
+        .instance()
+        .editUsername(parsedBody.username, parsedBody.password, formattedUser)
+    );
+
+    if (error) {
+      console.error(error);
+      return { status: 403, success: false, msg: "Something went wrong" };
+    }
+
+    // wrong password
+    if (!result) {
+      return {
+        status: 400,
+        success: false,
+        msg: "Wrong password",
+      };
+    }
+
+    // special case
+    if (result.case) {
+      if (result.case === "empty username") {
+        return {
+          status: 400,
+          success: false,
+          msg: "User field is empty",
+        };
+      } else if (result.case === "exact dupe") {
+        return {
+          status: 400,
+          success: false,
+          msg: "Username can't be used",
+        };
+      }
+      delete result.case;
+    }
+
+    const { case: _, ...formattedResult } = result;
+
+    return {
+      status: 200,
+      success: true,
+      msg: "Successfully editted username",
+      data: formattedResult,
+    };
+  }
+
+  // edit email, no oauth
+  async editEmail(
+    body: any,
+    user: Express.User
+  ): Promise<ServicesResponse<TEditEmailResponse>> {
+    // validate body
+    let parsedBody: TEditEmailSchema;
+    try {
+      parsedBody = editEmailSchema.parse(body);
+    } catch (error) {
+      console.error(error);
+      return {
+        status: 400,
+        success: false,
+        msg: "Wrong credentials format",
+      };
+    }
+
+    const formattedUser = user as TEmployerSession;
+
+    // wrong user type
+    if (formattedUser.type !== "EMPLOYER" || formattedUser.isOauth) {
+      return { status: 401, success: false, msg: "User isn't logged in" };
+    }
+
+    // check dupe email
+    const [error, result] = await catchError(
+      employerModels.instance().editEmail(parsedBody.email, formattedUser)
+    );
+
+    if (error) {
+      console.error(error);
+      return {
+        status: 403,
+        success: false,
+        msg: "Something went wrong",
+      };
+    }
+
+    // dupe email
+    if (!result) {
+      return { status: 400, success: false, msg: "Email is already used" };
+    }
+
+    return {
+      status: 200,
+      success: true,
+      msg: "Successfully updated email",
+      data: result,
+    };
+  }
+
+  // edit fullname, no oauth
+  async editFullName(
+    body: any,
+    user: Express.User
+  ): Promise<ServicesResponse<TEditFullNameResponse>> {
+    let parsedBody: TEditFullNameSchema;
+    try {
+      parsedBody = editFullNameSchema.parse(body);
+    } catch (error) {
+      console.error(error);
+      return { status: 400, success: false, msg: "Wrong credential format" };
+    }
+
+    const formattedUser = user as TEmployerSession;
+
+    // wrong user type
+    if (formattedUser.type !== "EMPLOYER" || formattedUser.isOauth) {
+      return { status: 401, success: false, msg: "User isn't logged in" };
+    }
+
+    // call models
+    const [error, result] = await catchError(
+      employerModels
+        .instance()
+        .editFullName(parsedBody.firstName, parsedBody.lastName, formattedUser)
+    );
+    if (error) {
+      console.error(error);
+      return { status: 403, msg: "Something went wrong", success: false };
+    }
+
+    if (!result) {
+      return { status: 400, msg: "Name is already used", success: false };
+    }
+
+    return {
+      status: 200,
+      msg: "Successfully updated full name",
+      success: true,
+      data: result,
+    };
+  }
+
+  // edit about
+  async editAbout(
+    body: any,
+    user: Express.User
+  ): Promise<ServicesResponse<TEditAboutResponse>> {
+    let parsedBody: TEditAboutSchema;
+    try {
+      parsedBody = editAboutSchema.parse(body);
+    } catch (error) {
+      console.error(error);
+      return { status: 400, success: false, msg: "Wrong credential format" };
+    }
+
+    const formattedUser = user as TEmployerSession;
+
+    if (formattedUser.type !== "EMPLOYER") {
+      return { status: 401, success: false, msg: "User isn't logged in" };
+    }
+
+    const [error, result] = await catchError(
+      employerModels.instance().editAbout(parsedBody.about, formattedUser)
+    );
+    if (error) {
+      console.error(error);
+      return { status: 403, success: false, msg: "Something went wrong" };
+    }
+
+    // about is empty string
+    if (!result) {
+      return { status: 400, success: false, msg: "Field is empty" };
+    }
+
+    return {
+      status: 200,
+      success: true,
+      msg: "Successfully updated about user",
+      data: result,
+    };
+  }
+
+  // edit address
+  async editAddress(
+    body: any,
+    user: Express.User
+  ): Promise<ServicesResponse<TEditAddressResponse>> {
+    let parsedBody: TEditAddressSchema;
+    try {
+      parsedBody = editAddressSchema.parse(body);
+    } catch (error) {
+      console.error(error);
+      return { status: 400, success: false, msg: "Wrong credential format" };
+    }
+
+    const formattedUser = user as TEmployerSession;
+
+    if (formattedUser.type !== "EMPLOYER") {
+      return { status: 401, success: false, msg: "User isn't logged in" };
+    }
+
+    const [error, result] = await catchError(
+      employerModels
+        .instance()
+        .editAddress(
+          parsedBody.address,
+          parsedBody.provinceAddress,
+          formattedUser
+        )
+    );
+    if (error) {
+      console.error(error);
+      return { status: 403, success: false, msg: "Something went wrong" };
+    }
+
+    // address is empty string
+    if (!result) {
+      return { status: 400, success: false, msg: "Field is empty" };
+    }
+
+    return {
+      status: 200,
+      success: true,
+      msg: "Successfully updated address",
+      data: result,
+    };
+  }
+
+  // edit contact
+  async editContact(
+    body: any,
+    user: Express.User
+  ): Promise<ServicesResponse<TEditContactResponse>> {
+    let parsedBody: TEditContactSchema;
+    try {
+      parsedBody = editContactSchema.parse(body);
+    } catch (error) {
+      console.error(error);
+      return { status: 400, success: false, msg: "Wrong credential format" };
+    }
+
+    const formattedUser = user as TEmployerSession;
+
+    if (formattedUser.type !== "EMPLOYER") {
+      return { status: 401, success: false, msg: "User isn't logged in" };
+    }
+
+    const [error, result] = await catchError(
+      employerModels.instance().editContact(parsedBody.contact, formattedUser)
+    );
+    if (error) {
+      console.error(error);
+      return { status: 403, success: false, msg: "Something went wrong" };
+    }
+    if (!result) {
+      return { status: 400, success: false, msg: "Contact field is empty" };
+    }
+
+    return {
+      status: 200,
+      success: true,
+      msg: "Successfully updated contact",
+      data: result,
+    };
+  }
+
+  // edit password, no oauth
+  async editPassword(
+    body: any,
+    user: Express.User
+  ): Promise<ServicesResponse<TEditPasswordResponse>> {
+    let parsedBody: TEditPasswordSchema;
+    try {
+      parsedBody = editPasswordSchema.parse(body);
+    } catch (error) {
+      console.error(error);
+      return { status: 400, success: false, msg: "Wrong credential format" };
+    }
+
+    const formattedUser = user as TEmployerSession;
+
+    if (formattedUser.type !== "EMPLOYER" || formattedUser.isOauth) {
+      return { status: 401, success: false, msg: "User isn't logged in" };
+    }
+
+    const [error, result] = await catchError(
+      employerModels
+        .instance()
+        .editPassword(
+          parsedBody.password,
+          parsedBody.oldPassword,
+          formattedUser
+        )
+    );
+    if (error) {
+      console.error(error);
+      return { status: 403, success: false, msg: "Something went wrong" };
+    }
+    if (!result) {
+      return { status: 400, success: false, msg: "Password field is empty" };
+    }
+    if (result.case) {
+      if (result.case === "no user") {
+        return { status: 403, success: false, msg: "Something went wrong" };
+      } else if (result.case === "wrong password") {
+        return { status: 401, success: false, msg: "Wrong old password" };
+      } else if (result.case === "exactDupe") {
+        return { status: 400, success: false, msg: "Password can't be use" };
+      }
+
+      delete result.case;
+    }
+
+    const { case: _, ...formattedResult } = result;
+
+    return {
+      status: 200,
+      success: true,
+      msg: "Successfully updated password",
+      data: { userId: formattedResult.userId },
     };
   }
 }

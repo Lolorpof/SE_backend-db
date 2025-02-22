@@ -181,3 +181,15 @@ type TRegisterImage = {
   approvalId: string;
   url: string;
 };
+
+// profile image
+type TProfileImage = {
+  userId: string;
+  url: string;
+};
+
+// resume image
+type TResumeImage = {
+  userId: string;
+  url: string;
+};

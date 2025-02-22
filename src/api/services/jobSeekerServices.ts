@@ -8,20 +8,56 @@ import { IVerifyOptions } from "passport-local";
 import "../types/usersTypes";
 import "../interfaces/userServiceInterfaces";
 import {
+  jobSeekerServiceInterfaces,
   userOauthServiceInterfaces,
   userServiceInterfaces,
 } from "../interfaces/userServiceInterfaces";
 import { Profile, VerifyCallback } from "passport-google-oauth20";
-import { SerivcesResponse } from "../types/responseTypes";
+import { ServicesResponse } from "../types/responseTypes";
 import { catchError } from "../utilities/utilFunctions";
 import {
   createBucketIfNotExisted,
   minioClient,
 } from "../utilities/minio/minio";
-import { registrationApprovalImageBucket } from "../utilities/minio";
+import {
+  jobSeekerResumeImageBucket,
+  registrationApprovalImageBucket,
+  userProfileImageBucket,
+} from "../utilities/minio";
 import { minioUrlExpire } from "../utilities/env";
+import {
+  TEditAboutResponse,
+  TEditAddressResponse,
+  TEditContactResponse,
+  TEditEmailResponse,
+  TEditFullNameResponse,
+  TEditJobSeekerSkillResponse,
+  TEditJobSeekerVulnerabilityResponse,
+  TEditPasswordResponse,
+  TEditUsernameResponse,
+} from "../types/editUserProfile";
+import {
+  editAboutSchema,
+  editAddressSchema,
+  editContactSchema,
+  editEmailSchema,
+  editFullNameSchema,
+  editJobSeekerSkillSchema,
+  editJobSeekerVulnerabilitySchema,
+  editPasswordSchema,
+  editUsernameSchema,
+  TEditAboutSchema,
+  TEditAddressSchema,
+  TEditContactSchema,
+  TEditEmailSchema,
+  TEditFullNameSchema,
+  TEditJobSeekerSkillSchema,
+  TEditJobSeekerVulnerabilitySchema,
+  TEditPasswordSchema,
+  TEditUsernameSchema,
+} from "../validators/profileValidator";
 
-export class jobSeekerServices implements userOauthServiceInterfaces {
+export class jobSeekerServices implements jobSeekerServiceInterfaces {
   // singleton design
   private static jobSeekerService: jobSeekerServices | undefined;
   static instance() {
@@ -32,7 +68,7 @@ export class jobSeekerServices implements userOauthServiceInterfaces {
   }
 
   // register
-  async register(userForm: any): Promise<SerivcesResponse<any>> {
+  async register(userForm: any): Promise<ServicesResponse<TRegisterUser>> {
     // {Business Logic}
     // user form validation
     try {
@@ -286,7 +322,7 @@ export class jobSeekerServices implements userOauthServiceInterfaces {
     user: Express.User | undefined,
     type: string,
     isOauth: boolean
-  ): Promise<SerivcesResponse<TCheckUser>> {
+  ): Promise<ServicesResponse<TCheckUser>> {
     if (!user) {
       return { success: false, status: 403, msg: "Something went wrong" };
     }
@@ -311,7 +347,7 @@ export class jobSeekerServices implements userOauthServiceInterfaces {
   }
 
   // get all
-  async getAll(): Promise<SerivcesResponse<any>> {
+  async getAll(): Promise<ServicesResponse<any>> {
     let jobSeekers;
     try {
       jobSeekers = await jobSeekerModels.instance().getAll();
@@ -321,7 +357,12 @@ export class jobSeekerServices implements userOauthServiceInterfaces {
     }
 
     if (jobSeekers.length === 0) {
-      return { success: true, msg: "There's no job seekers", status: 200 };
+      return {
+        success: true,
+        msg: "There's no job seekers",
+        status: 200,
+        data: null,
+      };
     }
 
     return {
@@ -336,7 +377,7 @@ export class jobSeekerServices implements userOauthServiceInterfaces {
   async deserializer(
     id: string,
     provider?: "GOOGLE" | "LINE"
-  ): Promise<SerivcesResponse<TJobSeeker>> {
+  ): Promise<ServicesResponse<TJobSeeker>> {
     let user: TJobSeeker | undefined;
     // getting user
     try {
@@ -365,7 +406,7 @@ export class jobSeekerServices implements userOauthServiceInterfaces {
   // get current
   async getCurrent(
     user: Express.User | undefined
-  ): Promise<SerivcesResponse<TJobSeekerSession>> {
+  ): Promise<ServicesResponse<TJobSeekerSession>> {
     if (!user) {
       return { success: false, msg: "Something went wrong", status: 403 };
     }
@@ -391,23 +432,31 @@ export class jobSeekerServices implements userOauthServiceInterfaces {
   async uploadRegistrationImage(
     approvalId: string,
     image: Express.Multer.File
-  ): Promise<SerivcesResponse<TRegisterImage>> {
+  ): Promise<ServicesResponse<TRegisterImage>> {
+    // approval existed check
+    const approvalExist = await jobSeekerModels
+      .instance()
+      .approvalExisted(approvalId);
+    if (!approvalExist) {
+      return {
+        success: false,
+        status: 400,
+        msg: "Approval doesn't existed",
+      };
+    }
+
     // upload iamge to minio and get image url
+    const imageName = `${approvalId}_register`;
     await createBucketIfNotExisted(registrationApprovalImageBucket);
     await minioClient.putObject(
       registrationApprovalImageBucket,
-      `${approvalId}_register`,
+      imageName,
       image.buffer,
       image.size,
       { "Content-Type": image.mimetype }
     );
 
-    const imageUrl = await minioClient.presignedUrl(
-      "GET",
-      registrationApprovalImageBucket,
-      `${approvalId}_register`,
-      minioUrlExpire // url is valid for 3 hours
-    );
+    const imageUrl = `http://localhost:1982/register/${imageName}`;
 
     // insert into approval table
     const [error, result] = await catchError(
@@ -428,6 +477,532 @@ export class jobSeekerServices implements userOauthServiceInterfaces {
       status: 201,
       msg: "Successfully upload and insert registraion approval image",
       data: result,
+    };
+  }
+
+  // upload profile image, no oauth
+  async uploadProfilePicture(
+    image: Express.Multer.File,
+    user: Express.User
+  ): Promise<ServicesResponse<TProfileImage>> {
+    const formattedUser = user as TJobSeekerSession;
+    if (formattedUser.type !== "JOBSEEKER" || formattedUser.isOauth) {
+      return { status: 400, success: false, msg: "User isn't logged in" };
+    }
+
+    // insert into minio
+    const imageName = `${formattedUser.id}_job-seeker_profile`;
+    await createBucketIfNotExisted(userProfileImageBucket);
+    await minioClient.putObject(
+      userProfileImageBucket,
+      imageName,
+      image.buffer,
+      image.size,
+      { "Content-Type": image.mimetype }
+    );
+
+    // get image url (temp presigned)
+    const imageUrl = `http://localhost:1982/profile/${imageName}`;
+
+    // call model
+    const [error, result] = await catchError(
+      jobSeekerModels.instance().uploadProfilePicture(imageUrl, formattedUser)
+    );
+    if (error) {
+      return { status: 403, success: false, msg: "Something went wrong" };
+    }
+
+    return {
+      status: 201,
+      success: true,
+      msg: "Successfully uploaded profile image",
+      data: result,
+    };
+  }
+
+  // upload resume image
+  async uploadResume(
+    image: Express.Multer.File,
+    user: Express.User
+  ): Promise<ServicesResponse<TResumeImage>> {
+    const formattedUser = user as TJobSeekerSession;
+    if (formattedUser.type !== "JOBSEEKER") {
+      return { status: 400, success: false, msg: "User isn't logged in" };
+    }
+
+    // insert into minio
+    const imageName = `${formattedUser.id}_job-seeker_resume`;
+    await createBucketIfNotExisted(jobSeekerResumeImageBucket);
+    await minioClient.putObject(
+      jobSeekerResumeImageBucket,
+      imageName,
+      image.buffer,
+      image.size,
+      { "Content-Type": image.mimetype }
+    );
+
+    const imageUrl = `http://localhost:1982/resume/${imageName}`;
+
+    // call model
+    const [error, result] = await catchError(
+      jobSeekerModels.instance().uploadResume(imageUrl, formattedUser)
+    );
+    if (error) {
+      return { status: 403, success: false, msg: "Something went wrong" };
+    }
+
+    return {
+      status: 201,
+      success: true,
+      msg: "Successfully uploaded resume",
+      data: result,
+    };
+  }
+
+  // edit username, no oauth
+  async editUsername(
+    body: any,
+    user: Express.User
+  ): Promise<ServicesResponse<TEditUsernameResponse>> {
+    let parsedBody: TEditUsernameSchema;
+    try {
+      parsedBody = editUsernameSchema.parse(body);
+    } catch (error) {
+      console.error(error);
+      return { status: 400, success: false, msg: "Wrong credentials format" };
+    }
+
+    const formattedUser: TJobSeekerSession = user as TJobSeekerSession;
+
+    // wrong user type
+    if (formattedUser.type !== "JOBSEEKER" || formattedUser.isOauth) {
+      return { status: 401, success: false, msg: "User isn't logged in" };
+    }
+
+    const [error, result] = await catchError(
+      jobSeekerModels
+        .instance()
+        .editUsername(parsedBody.username, parsedBody.password, formattedUser)
+    );
+
+    if (error) {
+      console.error(error);
+      return { status: 403, success: false, msg: "Something went wrong" };
+    }
+
+    // wrong password
+    if (!result) {
+      return {
+        status: 400,
+        success: false,
+        msg: "Wrong password",
+      };
+    }
+
+    // special case
+    if (result.case) {
+      if (result.case === "empty username") {
+        return {
+          status: 400,
+          success: false,
+          msg: "User field is empty",
+        };
+      } else if (result.case === "exact dupe") {
+        return {
+          status: 400,
+          success: false,
+          msg: "Username can't be used",
+        };
+      }
+      delete result.case;
+    }
+
+    const { case: _, ...formattedResult } = result;
+
+    return {
+      status: 200,
+      success: true,
+      msg: "Successfully editted username",
+      data: formattedResult,
+    };
+  }
+
+  // edit email, no oauth
+  async editEmail(
+    body: any,
+    user: Express.User
+  ): Promise<ServicesResponse<TEditEmailResponse>> {
+    // validate body
+    let parsedBody: TEditEmailSchema;
+    try {
+      parsedBody = editEmailSchema.parse(body);
+    } catch (error) {
+      console.error(error);
+      return {
+        status: 400,
+        success: false,
+        msg: "Wrong credentials format",
+      };
+    }
+
+    const formattedUser = user as TJobSeekerSession;
+
+    // wrong user type
+    if (formattedUser.type !== "JOBSEEKER" || formattedUser.isOauth) {
+      return { status: 401, success: false, msg: "User isn't logged in" };
+    }
+
+    // check dupe email
+    const [error, result] = await catchError(
+      jobSeekerModels.instance().editEmail(parsedBody.email, formattedUser)
+    );
+
+    if (error) {
+      console.error(error);
+      return {
+        status: 403,
+        success: false,
+        msg: "Something went wrong",
+      };
+    }
+
+    // dupe email
+    if (!result) {
+      return { status: 400, success: false, msg: "Email is already used" };
+    }
+
+    return {
+      status: 200,
+      success: true,
+      msg: "Successfully updated email",
+      data: result,
+    };
+  }
+
+  // edit fullname, no oauth
+  async editFullName(
+    body: any,
+    user: Express.User
+  ): Promise<ServicesResponse<TEditFullNameResponse>> {
+    let parsedBody: TEditFullNameSchema;
+    try {
+      parsedBody = editFullNameSchema.parse(body);
+    } catch (error) {
+      console.error(error);
+      return { status: 400, success: false, msg: "Wrong credential format" };
+    }
+
+    const formattedUser = user as TJobSeekerSession;
+
+    // wrong user type
+    if (formattedUser.type !== "JOBSEEKER" || formattedUser.isOauth) {
+      return { status: 401, success: false, msg: "User isn't logged in" };
+    }
+
+    // call models
+    const [error, result] = await catchError(
+      jobSeekerModels
+        .instance()
+        .editFullName(parsedBody.firstName, parsedBody.lastName, formattedUser)
+    );
+    if (error) {
+      console.error(error);
+      return { status: 403, msg: "Something went wrong", success: false };
+    }
+
+    if (!result) {
+      return { status: 400, msg: "Name is already used", success: false };
+    }
+
+    return {
+      status: 200,
+      msg: "Successfully updated full name",
+      success: true,
+      data: result,
+    };
+  }
+
+  // edit about
+  async editAbout(
+    body: any,
+    user: Express.User
+  ): Promise<ServicesResponse<TEditAboutResponse>> {
+    let parsedBody: TEditAboutSchema;
+    try {
+      parsedBody = editAboutSchema.parse(body);
+    } catch (error) {
+      console.error(error);
+      return { status: 400, success: false, msg: "Wrong credential format" };
+    }
+
+    const formattedUser = user as TJobSeekerSession;
+
+    if (formattedUser.type !== "JOBSEEKER") {
+      return { status: 401, success: false, msg: "User isn't logged in" };
+    }
+
+    const [error, result] = await catchError(
+      jobSeekerModels.instance().editAbout(parsedBody.about, formattedUser)
+    );
+    if (error) {
+      console.error(error);
+      return { status: 403, success: false, msg: "Something went wrong" };
+    }
+
+    // about is empty string
+    if (!result) {
+      return { status: 400, success: false, msg: "Field is empty" };
+    }
+
+    return {
+      status: 200,
+      success: true,
+      msg: "Successfully updated about user",
+      data: result,
+    };
+  }
+
+  // edit address
+  async editAddress(
+    body: any,
+    user: Express.User
+  ): Promise<ServicesResponse<TEditAddressResponse>> {
+    let parsedBody: TEditAddressSchema;
+    try {
+      parsedBody = editAddressSchema.parse(body);
+    } catch (error) {
+      console.error(error);
+      return { status: 400, success: false, msg: "Wrong credential format" };
+    }
+
+    const formattedUser = user as TJobSeekerSession;
+
+    if (formattedUser.type !== "JOBSEEKER") {
+      return { status: 401, success: false, msg: "User isn't logged in" };
+    }
+
+    const [error, result] = await catchError(
+      jobSeekerModels
+        .instance()
+        .editAddress(
+          parsedBody.address,
+          parsedBody.provinceAddress,
+          formattedUser
+        )
+    );
+    if (error) {
+      console.error(error);
+      return { status: 403, success: false, msg: "Something went wrong" };
+    }
+
+    // address is empty string
+    if (!result) {
+      return { status: 400, success: false, msg: "Field is empty" };
+    }
+
+    return {
+      status: 200,
+      success: true,
+      msg: "Successfully updated address",
+      data: result,
+    };
+  }
+
+  // edit contact
+  async editContact(
+    body: any,
+    user: Express.User
+  ): Promise<ServicesResponse<TEditContactResponse>> {
+    let parsedBody: TEditContactSchema;
+    try {
+      parsedBody = editContactSchema.parse(body);
+    } catch (error) {
+      console.error(error);
+      return { status: 400, success: false, msg: "Wrong credential format" };
+    }
+
+    const formattedUser = user as TJobSeekerSession;
+
+    if (formattedUser.type !== "JOBSEEKER") {
+      return { status: 401, success: false, msg: "User isn't logged in" };
+    }
+
+    const [error, result] = await catchError(
+      jobSeekerModels.instance().editContact(parsedBody.contact, formattedUser)
+    );
+    if (error) {
+      console.error(error);
+      return { status: 403, success: false, msg: "Something went wrong" };
+    }
+    if (!result) {
+      return { status: 400, success: false, msg: "Contact field is empty" };
+    }
+
+    return {
+      status: 200,
+      success: true,
+      msg: "Successfully updated contact",
+      data: result,
+    };
+  }
+
+  // edit password, no oauth
+  async editPassword(
+    body: any,
+    user: Express.User
+  ): Promise<ServicesResponse<TEditPasswordResponse>> {
+    let parsedBody: TEditPasswordSchema;
+    try {
+      parsedBody = editPasswordSchema.parse(body);
+    } catch (error) {
+      console.error(error);
+      return { status: 400, success: false, msg: "Wrong credential format" };
+    }
+
+    const formattedUser = user as TJobSeekerSession;
+
+    if (formattedUser.type !== "JOBSEEKER" || formattedUser.isOauth) {
+      return { status: 401, success: false, msg: "User isn't logged in" };
+    }
+
+    const [error, result] = await catchError(
+      jobSeekerModels
+        .instance()
+        .editPassword(
+          parsedBody.password,
+          parsedBody.oldPassword,
+          formattedUser
+        )
+    );
+    if (error) {
+      console.error(error);
+      return { status: 403, success: false, msg: "Something went wrong" };
+    }
+    if (!result) {
+      return { status: 400, success: false, msg: "Password field is empty" };
+    }
+    if (result.case) {
+      if (result.case === "no user") {
+        return { status: 403, success: false, msg: "Something went wrong" };
+      } else if (result.case === "wrong password") {
+        return { status: 401, success: false, msg: "Wrong old password" };
+      } else if (result.case === "exactDupe") {
+        return { status: 400, success: false, msg: "Password can't be use" };
+      }
+
+      delete result.case;
+    }
+
+    const { case: _, ...formattedResult } = result;
+
+    return {
+      status: 200,
+      success: true,
+      msg: "Successfully updated password",
+      data: { userId: formattedResult.userId },
+    };
+  }
+
+  // edit job seeker skills
+  async editSkill(
+    body: any,
+    user: Express.User
+  ): Promise<ServicesResponse<TEditJobSeekerSkillResponse>> {
+    let parsedBody: TEditJobSeekerSkillSchema;
+    try {
+      parsedBody = editJobSeekerSkillSchema.parse(body);
+    } catch (error) {
+      console.error(error);
+      return { status: 400, success: false, msg: "Wrong credential format" };
+    }
+
+    const formattedUser = user as TJobSeekerSession;
+
+    if (formattedUser.type !== "JOBSEEKER") {
+      return { status: 401, success: false, msg: "User isn't logged in" };
+    }
+
+    const [error, result] = await catchError(
+      jobSeekerModels.instance().editSkill(parsedBody.skillsId, formattedUser)
+    );
+    if (error) {
+      console.error(error);
+      return { status: 403, success: false, msg: "Something went wrong" };
+    }
+    if (result.case) {
+      if (result.case === "not exist") {
+        return {
+          status: 200,
+          success: true,
+          msg: "Some skill doesn't existed, so that skill won't be add",
+          data: { skillsId: result.skillsId, userId: formattedUser.id },
+        };
+      }
+
+      delete result.case;
+    }
+
+    const { case: _, ...formattedResult } = result;
+
+    return {
+      status: 200,
+      success: true,
+      msg: "Successfully editted skills",
+      data: formattedResult,
+    };
+  }
+
+  // edit job seeker vulnerabilities
+  async editVulnerability(
+    body: any,
+    user: Express.User
+  ): Promise<ServicesResponse<TEditJobSeekerVulnerabilityResponse>> {
+    let parsedBody: TEditJobSeekerVulnerabilitySchema;
+    try {
+      parsedBody = editJobSeekerVulnerabilitySchema.parse(body);
+    } catch (error) {
+      console.error(error);
+      return { status: 400, success: false, msg: "Wrong credential format" };
+    }
+
+    const formattedUser = user as TJobSeekerSession;
+
+    if (formattedUser.type !== "JOBSEEKER") {
+      return { status: 401, success: false, msg: "User isn't logged in" };
+    }
+
+    const [error, result] = await catchError(
+      jobSeekerModels
+        .instance()
+        .editVulnerability(parsedBody.vulnerabilitiesId, formattedUser)
+    );
+    if (error) {
+      console.error(error);
+      return { status: 403, success: false, msg: "Something went wrong" };
+    }
+    if (result.case) {
+      if (result.case === "not exist") {
+        return {
+          status: 200,
+          success: true,
+          msg: "Some vulnerability doesn't existed, so that vulnerability won't be add",
+          data: {
+            vulnerabilitiesId: result.vulnerabilitiesId,
+            userId: formattedUser.id,
+          },
+        };
+      }
+
+      delete result.case;
+    }
+
+    const { case: _, ...formattedResult } = result;
+
+    return {
+      status: 200,
+      success: true,
+      msg: "Successfully editted skills",
+      data: formattedResult,
     };
   }
 }

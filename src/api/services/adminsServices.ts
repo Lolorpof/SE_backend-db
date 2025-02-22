@@ -13,7 +13,7 @@ import { registrationApprovalModels } from "../models/registrationApprovalModels
 import { jobSeekerModels } from "../models/jobSeekerModels";
 import { employerModels } from "../models/employerModels";
 import { companyModels } from "../models/companyModels";
-import { SerivcesResponse } from "../types/responseTypes";
+import { ServicesResponse } from "../types/responseTypes";
 
 export class adminServices implements adminServiceInterfaces {
   static adminService: adminServices | undefined;
@@ -27,7 +27,7 @@ export class adminServices implements adminServiceInterfaces {
   // logged in admin
   async getCurrent(
     user: Express.User | undefined
-  ): Promise<SerivcesResponse<TAdminSession>> {
+  ): Promise<ServicesResponse<TAdminSession>> {
     if (!user) {
       return { success: false, status: 403, msg: "Something went wrong" };
     }
@@ -54,7 +54,7 @@ export class adminServices implements adminServiceInterfaces {
   async checkCurrent(
     user: Express.User | undefined,
     type: string
-  ): Promise<SerivcesResponse<any>> {
+  ): Promise<ServicesResponse<any>> {
     if (!user) {
       return { success: false, status: 403, msg: "Something went wrong" };
     }
@@ -83,7 +83,7 @@ export class adminServices implements adminServiceInterfaces {
   async approvingUser(
     approvalRequest: any,
     adminId: string
-  ): Promise<SerivcesResponse<TApproveResponse>> {
+  ): Promise<ServicesResponse<TApproveResponse>> {
     // validation
     try {
       approvedRequestSchema.parse(approvalRequest);
@@ -149,7 +149,7 @@ export class adminServices implements adminServiceInterfaces {
   }
 
   async getAllApproveRequest(): Promise<
-    SerivcesResponse<TRegistrationApproval[]>
+    ServicesResponse<TRegistrationApproval[]>
   > {
     const [error, users] = await catchError<TRegistrationApproval[]>(
       registrationApprovalModels.instance().getAllApproveRequest()
@@ -232,7 +232,7 @@ export class adminServices implements adminServiceInterfaces {
   }
 
   // create new admin
-  async create(): Promise<SerivcesResponse<any>> {
+  async create(): Promise<ServicesResponse<any>> {
     const username = nanoid(randomNumberRange(8, 16));
     const password = nanoid(randomNumberRange(10, 16));
 
@@ -265,7 +265,7 @@ export class adminServices implements adminServiceInterfaces {
     };
   }
 
-  async deserializer(id: string): Promise<SerivcesResponse<any>> {
+  async deserializer(id: string): Promise<ServicesResponse<any>> {
     let user: TAdmin | undefined;
     // getting user
     try {

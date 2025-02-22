@@ -1,6 +1,6 @@
 import { drizzlePool } from "../../db/conn";
 import { eq } from "drizzle-orm";
-import { SerivcesResponse } from "../types/responseTypes";
+import { ServicesResponse } from "../types/responseTypes";
 import { errorServices } from "./errorServices";
 import { Table } from "drizzle-orm";
 
@@ -16,10 +16,14 @@ export interface BaseEntityInput<T = any> {
   [key: string]: T;
 }
 
-export abstract class Services<T extends BaseEntity, TInput extends BaseEntityInput = BaseEntityInput> {
+export abstract class Services<
+  T extends BaseEntity,
+  TInput extends BaseEntityInput = BaseEntityInput
+> {
   //singleton design
   //protected to allow access in child classes
-  protected static ServicesInstances: Map<string, Services<any, any>> = new Map();
+  protected static ServicesInstances: Map<string, Services<any, any>> =
+    new Map();
   //readonly table
   protected readonly table: Table;
 
@@ -27,7 +31,10 @@ export abstract class Services<T extends BaseEntity, TInput extends BaseEntityIn
     this.table = table;
   }
 
-  protected static getInstance<S extends Services<any, any>>(this: new (...args: any[]) => S, ...args: any[]): S {
+  protected static getInstance<S extends Services<any, any>>(
+    this: new (...args: any[]) => S,
+    ...args: any[]
+  ): S {
     const key = this.name;
     if (!Services.ServicesInstances.has(key)) {
       Services.ServicesInstances.set(key, new this(...args));
@@ -35,14 +42,14 @@ export abstract class Services<T extends BaseEntity, TInput extends BaseEntityIn
     return Services.ServicesInstances.get(key) as S;
   }
 
-  async getAll(): Promise<SerivcesResponse<T[]>> {
+  async getAll(): Promise<ServicesResponse<T[]>> {
     try {
       const items = await drizzlePool.select().from(this.table);
       return {
         success: true,
         status: 200,
         msg: "Items fetched successfully",
-        data: items as T[]
+        data: items as T[],
       };
     } catch (error) {
       console.error("Error fetching items:", error);
@@ -50,7 +57,7 @@ export abstract class Services<T extends BaseEntity, TInput extends BaseEntityIn
     }
   }
 
-  async getById(id: string): Promise<SerivcesResponse<T>> {
+  async getById(id: string): Promise<ServicesResponse<T>> {
     try {
       const [item] = await drizzlePool
         .select()
@@ -58,14 +65,14 @@ export abstract class Services<T extends BaseEntity, TInput extends BaseEntityIn
         .where(eq((this.table as any).id, id));
 
       if (!item) {
-        throw errorServices.handleNotFoundError('Item');
+        throw errorServices.handleNotFoundError("Item");
       }
 
       return {
         success: true,
         status: 200,
         msg: "Item fetched successfully",
-        data: item as T
+        data: item as T,
       };
     } catch (error) {
       console.error("Error fetching item by id:", error);
@@ -73,7 +80,7 @@ export abstract class Services<T extends BaseEntity, TInput extends BaseEntityIn
     }
   }
 
-  async create(data: TInput): Promise<SerivcesResponse<T>> {
+  async create(data: TInput): Promise<ServicesResponse<T>> {
     try {
       const [newItem] = await drizzlePool
         .insert(this.table)
@@ -84,49 +91,53 @@ export abstract class Services<T extends BaseEntity, TInput extends BaseEntityIn
         success: true,
         status: 201,
         msg: "Item created successfully",
-        data: newItem as T
+        data: newItem as T,
       };
     } catch (error) {
       console.error("Error creating item:", error);
       if (error.code === "23505") {
-        throw errorServices.handleValidationError("Item with this name already exists");
+        throw errorServices.handleValidationError(
+          "Item with this name already exists"
+        );
       }
       throw errorServices.handleServerError(error);
     }
   }
 
-  async update(id: string, data: TInput): Promise<SerivcesResponse<T>> {
+  async update(id: string, data: TInput): Promise<ServicesResponse<T>> {
     try {
       const [updatedItem] = await drizzlePool
         .update(this.table)
         .set({
           ...data,
-          updatedAt: new Date()
+          updatedAt: new Date(),
         })
 
         .where(eq((this.table as any).id, id))
         .returning();
 
       if (!updatedItem) {
-        throw errorServices.handleNotFoundError('Item');
+        throw errorServices.handleNotFoundError("Item");
       }
 
       return {
         success: true,
         status: 200,
         msg: "Item updated successfully",
-        data: updatedItem as T
+        data: updatedItem as T,
       };
     } catch (error) {
       console.error("Error updating item:", error);
       if (error.code === "23505") {
-        throw errorServices.handleValidationError("Item with this name already exists");
+        throw errorServices.handleValidationError(
+          "Item with this name already exists"
+        );
       }
       throw errorServices.handleServerError(error);
     }
   }
 
-  async delete(id: string): Promise<SerivcesResponse<T>> {
+  async delete(id: string): Promise<ServicesResponse<T>> {
     try {
       const [deletedItem] = await drizzlePool
         .delete(this.table)
@@ -134,14 +145,14 @@ export abstract class Services<T extends BaseEntity, TInput extends BaseEntityIn
         .returning();
 
       if (!deletedItem) {
-        throw errorServices.handleNotFoundError('Item');
+        throw errorServices.handleNotFoundError("Item");
       }
 
       return {
         success: true,
         status: 200,
         msg: "Item deleted successfully",
-        data: deletedItem as T
+        data: deletedItem as T,
       };
     } catch (error) {
       console.error("Error deleting item:", error);

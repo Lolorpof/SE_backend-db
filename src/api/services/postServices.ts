@@ -14,9 +14,18 @@ import {
   jobCategoryTable,
   jobPostTypeEnum,
 } from "../../db/schema";
-import { jobPostType, jobFindingPostType, validUidType } from "../schemas/requestBodySchema";
-import { TPost, TPostResponse, TPostsResponse, TJobFindingPost } from "../types/postTypes";
-import { SerivcesResponse } from "../types/responseTypes";
+import {
+  jobPostType,
+  jobFindingPostType,
+  validUidType,
+} from "../schemas/requestBodySchema";
+import {
+  TPost,
+  TPostResponse,
+  TPostsResponse,
+  TJobFindingPost,
+} from "../types/postTypes";
+import { ServicesResponse } from "../types/responseTypes";
 import { errorServices } from "./errorServices";
 
 export class postServices {
@@ -107,7 +116,7 @@ export class postServices {
                 .select({ officialName: companyTable.officialName })
                 .from(companyTable)
                 .where(eq(companyTable.id, post.companyId));
-              
+
               if (company && company.length > 0) {
                 companyName = company[0].officialName;
               }
@@ -260,7 +269,7 @@ export class postServices {
               .select({ officialName: companyTable.officialName })
               .from(companyTable)
               .where(eq(companyTable.id, post.companyId));
-            
+
             if (company && company.length > 0) {
               companyName = company[0].officialName;
             }
@@ -434,11 +443,11 @@ export class postServices {
         success: true,
         status: 201,
         msg: "Job hiring post created successfully",
-        data: { 
-          ...jobPost, 
+        data: {
+          ...jobPost,
           companyName: company?.officialName || null,
-          skills, 
-          jobCategories: categories 
+          skills,
+          jobCategories: categories,
         } as TPost,
       };
     } catch (error) {
@@ -464,7 +473,7 @@ export class postServices {
         .where(eq(jobHiringPostTable.id, id));
 
       if (!jobPost) {
-        throw errorServices.handleNotFoundError('Job post');
+        throw errorServices.handleNotFoundError("Job post");
       }
 
       // Check if the user is the owner of the post
@@ -480,7 +489,9 @@ export class postServices {
       }
 
       if (!isOwner) {
-        throw errorServices.handleForbiddenError('You are not authorized to update this job post');
+        throw errorServices.handleForbiddenError(
+          "You are not authorized to update this job post"
+        );
       }
 
       // Update the job post
@@ -537,7 +548,7 @@ export class postServices {
         .where(eq(jobHiringPostTable.id, id));
 
       if (!jobPost || jobPost.length === 0) {
-        throw errorServices.handleNotFoundError('Job post');
+        throw errorServices.handleNotFoundError("Job post");
       }
 
       // Fetch company name if companyId exists
@@ -547,7 +558,7 @@ export class postServices {
           .select({ officialName: companyTable.officialName })
           .from(companyTable)
           .where(eq(companyTable.id, jobPost[0].companyId));
-        
+
         if (company && company.length > 0) {
           companyName = company[0].officialName;
         }
@@ -594,7 +605,7 @@ export class postServices {
         .where(eq(jobHiringPostTable.id, id));
 
       if (!jobPost) {
-        throw errorServices.handleNotFoundError('Job post');
+        throw errorServices.handleNotFoundError("Job post");
       }
 
       // Check if the user is the owner of the post
@@ -610,7 +621,9 @@ export class postServices {
       }
 
       if (!isOwner) {
-        throw errorServices.handleForbiddenError('You are not authorized to delete this job post');
+        throw errorServices.handleForbiddenError(
+          "You are not authorized to delete this job post"
+        );
       }
 
       // Delete the job post
@@ -632,8 +645,10 @@ export class postServices {
   }
 
   private async getJobPostSkills(postId: string, type: "hiring" | "finding") {
-    const skillsTable = type === "hiring" ? jobHiringPostSkillTable : jobFindingPostSkillTable;
-    const postIdField = type === "hiring" ? "jobHiringPostId" : "jobFindingPostId";
+    const skillsTable =
+      type === "hiring" ? jobHiringPostSkillTable : jobFindingPostSkillTable;
+    const postIdField =
+      type === "hiring" ? "jobHiringPostId" : "jobFindingPostId";
 
     return await drizzlePool
       .select({
@@ -646,9 +661,14 @@ export class postServices {
       .where(eq(skillsTable[postIdField], postId));
   }
 
-  private async getJobPostCategories(postId: string, type: "hiring" | "finding") {
-    const categoriesTable = type === "hiring" ? jobHireCategoryTable : jobFindCategoryTable;
-    const postIdField = type === "hiring" ? "jobHiringPostId" : "jobFindingPostId";
+  private async getJobPostCategories(
+    postId: string,
+    type: "hiring" | "finding"
+  ) {
+    const categoriesTable =
+      type === "hiring" ? jobHireCategoryTable : jobFindCategoryTable;
+    const postIdField =
+      type === "hiring" ? "jobHiringPostId" : "jobFindingPostId";
 
     return await drizzlePool
       .select({
@@ -657,7 +677,10 @@ export class postServices {
         description: jobCategoryTable.description,
       })
       .from(categoriesTable)
-      .innerJoin(jobCategoryTable, eq(categoriesTable.jobCategoryId, jobCategoryTable.id))
+      .innerJoin(
+        jobCategoryTable,
+        eq(categoriesTable.jobCategoryId, jobCategoryTable.id)
+      )
       .where(eq(categoriesTable[postIdField], postId));
   }
 
@@ -733,7 +756,11 @@ export class postServices {
               this.getJobPostSkills(post.id, "finding"),
               this.getJobPostCategories(post.id, "finding"),
             ]);
-            return { ...post, skills, jobCategories: categories } as TJobFindingPost;
+            return {
+              ...post,
+              skills,
+              jobCategories: categories,
+            } as TJobFindingPost;
           })
         );
 
@@ -759,7 +786,9 @@ export class postServices {
       // Title filter
       if (title) {
         conditions.push(
-          sql`LOWER(${jobFindingPostTable.title}) ILIKE LOWER(${'%' + title + '%'})`
+          sql`LOWER(${jobFindingPostTable.title}) ILIKE LOWER(${
+            "%" + title + "%"
+          })`
         );
       }
 
@@ -777,7 +806,9 @@ export class postServices {
       if (salaryRange) {
         const salary = Number(salaryRange);
         if (!isNaN(salary)) {
-          conditions.push(sql`${jobFindingPostTable.expectedSalary} <= ${salary}`);
+          conditions.push(
+            sql`${jobFindingPostTable.expectedSalary} <= ${salary}`
+          );
         }
       }
 
@@ -864,7 +895,11 @@ export class postServices {
             this.getJobPostSkills(post.id, "finding"),
             this.getJobPostCategories(post.id, "finding"),
           ]);
-          return { ...post, skills, jobCategories: categories } as TJobFindingPost;
+          return {
+            ...post,
+            skills,
+            jobCategories: categories,
+          } as TJobFindingPost;
         })
       );
 
@@ -937,7 +972,11 @@ export class postServices {
         success: true,
         status: 201,
         msg: "Successfully created job finding post",
-        data: { ...newPost, skills, jobCategories: categories } as TJobFindingPost,
+        data: {
+          ...newPost,
+          skills,
+          jobCategories: categories,
+        } as TJobFindingPost,
       };
     } catch (error) {
       console.error("Error in createJobFindingPost:", error);
@@ -965,7 +1004,7 @@ export class postServices {
         .limit(1);
 
       if (!existingPost.length) {
-        throw errorServices.handleNotFoundError('Job finding post');
+        throw errorServices.handleNotFoundError("Job finding post");
       }
 
       const [updatedPost] = await drizzlePool
@@ -985,7 +1024,8 @@ export class postServices {
         .returning();
 
       if (jobPostData.skills) {
-        await drizzlePool.delete(jobFindingPostSkillTable)
+        await drizzlePool
+          .delete(jobFindingPostSkillTable)
           .where(eq(jobFindingPostSkillTable.jobFindingPostId, postId));
         await drizzlePool.insert(jobFindingPostSkillTable).values(
           jobPostData.skills.map((skillId) => ({
@@ -996,7 +1036,8 @@ export class postServices {
       }
 
       if (jobPostData.jobCategories) {
-        await drizzlePool.delete(jobFindCategoryTable)
+        await drizzlePool
+          .delete(jobFindCategoryTable)
           .where(eq(jobFindCategoryTable.jobFindingPostId, postId));
         await drizzlePool.insert(jobFindCategoryTable).values(
           jobPostData.jobCategories.map((categoryId) => ({
@@ -1015,7 +1056,11 @@ export class postServices {
         success: true,
         status: 200,
         msg: "Successfully updated job finding post",
-        data: { ...updatedPost, skills, jobCategories: categories } as TJobFindingPost,
+        data: {
+          ...updatedPost,
+          skills,
+          jobCategories: categories,
+        } as TJobFindingPost,
       };
     } catch (error) {
       console.error("Error in updateJobFindingPost:", error);
@@ -1047,7 +1092,7 @@ export class postServices {
         .limit(1);
 
       if (!post) {
-        throw errorServices.handleNotFoundError('Job finding post');
+        throw errorServices.handleNotFoundError("Job finding post");
       }
 
       const [skills, categories] = await Promise.all([
@@ -1085,7 +1130,7 @@ export class postServices {
         .returning();
 
       if (!deletedPost) {
-        throw errorServices.handleNotFoundError('Job finding post');
+        throw errorServices.handleNotFoundError("Job finding post");
       }
 
       return {
@@ -1100,7 +1145,10 @@ export class postServices {
     }
   }
 
-  public async getJobFindingPostsByUser(userId: string, isOauth: boolean): Promise<TPostsResponse<TJobFindingPost>> {
+  public async getJobFindingPostsByUser(
+    userId: string,
+    isOauth: boolean
+  ): Promise<TPostsResponse<TJobFindingPost>> {
     try {
       const posts = await drizzlePool
         .select({
@@ -1121,7 +1169,7 @@ export class postServices {
         })
         .from(jobFindingPostTable)
         .where(
-          isOauth 
+          isOauth
             ? eq(jobFindingPostTable.oauthJobSeekerId, userId)
             : eq(jobFindingPostTable.jobSeekerId, userId)
         );
@@ -1132,7 +1180,11 @@ export class postServices {
             this.getJobPostSkills(post.id, "finding"),
             this.getJobPostCategories(post.id, "finding"),
           ]);
-          return { ...post, skills, jobCategories: categories } as TJobFindingPost;
+          return {
+            ...post,
+            skills,
+            jobCategories: categories,
+          } as TJobFindingPost;
         })
       );
 
@@ -1156,7 +1208,10 @@ export class postServices {
     }
   }
 
-  public async getJobPostsByEmployer(userId: string, isOauth: boolean): Promise<TPostsResponse> {
+  public async getJobPostsByEmployer(
+    userId: string,
+    isOauth: boolean
+  ): Promise<TPostsResponse> {
     try {
       const posts = await drizzlePool
         .select({
@@ -1179,7 +1234,7 @@ export class postServices {
         })
         .from(jobHiringPostTable)
         .where(
-          isOauth 
+          isOauth
             ? eq(jobHiringPostTable.oauthEmployerId, userId)
             : eq(jobHiringPostTable.employerId, userId)
         );
@@ -1214,7 +1269,9 @@ export class postServices {
     }
   }
 
-  public async getJobPostsByCompany(companyId: string): Promise<TPostsResponse> {
+  public async getJobPostsByCompany(
+    companyId: string
+  ): Promise<TPostsResponse> {
     try {
       const posts = await drizzlePool
         .select({
@@ -1252,7 +1309,12 @@ export class postServices {
             this.getJobPostSkills(post.id, "hiring"),
             this.getJobPostCategories(post.id, "hiring"),
           ]);
-          return { ...post, companyName, skills, jobCategories: categories } as TPost;
+          return {
+            ...post,
+            companyName,
+            skills,
+            jobCategories: categories,
+          } as TPost;
         })
       );
 
@@ -1275,4 +1337,4 @@ export class postServices {
       throw errorServices.handleServerError(error);
     }
   }
-} 
+}

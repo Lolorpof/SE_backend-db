@@ -1,6 +1,14 @@
-export type SerivcesResponse<T> = {
-  success: boolean;
+export type ServicesResponse<T> = SuccessResponse<T> | FailedResponse;
+
+type SuccessResponse<T> = {
+  success: true;
   msg: string;
-  data?: T;
+  status: number;
+  data: T;
+};
+
+type FailedResponse = {
+  success: false;
+  msg: string;
   status: number;
 };
