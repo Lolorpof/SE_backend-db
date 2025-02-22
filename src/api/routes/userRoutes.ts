@@ -1701,4 +1701,315 @@ userRouter
   .get(checkAuthenticated, companyControllers.instance().getCurrent)
   .delete(checkAuthenticated, companyControllers.instance().logout);
 
+// company, upload profile image(POST)
+/**
+ * @openapi
+ * /api/user/company/auth/profile-image:
+ *   post:
+ *     summary: upload profile image
+ *     tags: [Company]
+ *     consumes:
+ *       - multipart/form-data
+ *     requestBody:
+ *       required: true
+ *       content:
+ *        multipart/form-data:
+ *          schema:
+ *            type: object
+ *            properties:
+ *              name:
+ *                type: string
+ *                format: binary
+ *                description: image file
+ *     responses:
+ *       201:
+ *         description: Return the company id, and image url.
+ *         content:
+ *          application/json:
+ *            schema:
+ *              type: object
+ *              properties:
+ *                success:
+ *                  type: boolean
+ *                  description: is fetch successful
+ *                  example: true
+ *                msg:
+ *                  type: string
+ *                  description: response message
+ *                  example: Successfully fetch api
+ *                data:
+ *                  type: object
+ *                  description: response data
+ *                  example: {approvalId: 123, url: image's url}
+ */
+userRouter
+  .route("/company/auth/profile-image")
+  .post(
+    checkAuthenticated,
+    uploadProfileImageMiddleware,
+    checkUploadedSingleFile,
+    companyControllers.instance().uploadProfilePicture
+  );
+
+// company, edit official-name(put)
+/**
+ * @openapi
+ * /api/user/company/auth/edit/official-name:
+ *   post:
+ *     summary: edit company's official-name
+ *     tags: [Company]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *        application/json:
+ *          schema:
+ *            type: object
+ *            properties:
+ *              officialName:
+ *                type: string
+ *                description: new official name of company
+ *                example: New Official Name
+ *              password:
+ *                type: string
+ *                description: company's current password
+ *                example: secret123
+ *     responses:
+ *       200:
+ *         description: Return the company id, and official-name.
+ *         content:
+ *          application/json:
+ *            schema:
+ *              type: object
+ *              properties:
+ *                success:
+ *                  type: boolean
+ *                  description: is fetch successful
+ *                  example: true
+ *                msg:
+ *                  type: string
+ *                  description: response message
+ *                  example: Successfully fetch api
+ *                data:
+ *                  type: object
+ *                  description: response data
+ *                  example: {userId: 123, officialName: New Official Name}
+ */
+userRouter
+  .route("/company/auth/edit/official-name")
+  .put(checkAuthenticated, companyControllers.instance().editOfficialName);
+// company, edit email(put)
+/**
+ * @openapi
+ * /api/user/company/auth/edit/email:
+ *   post:
+ *     summary: edit company's email
+ *     tags: [Company]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *        application/json:
+ *          schema:
+ *            type: object
+ *            properties:
+ *              email:
+ *                type: string
+ *                description: new email of company
+ *                example: newemail@gmail.com
+ *     responses:
+ *       200:
+ *         description: Return the company id, and email.
+ *         content:
+ *          application/json:
+ *            schema:
+ *              type: object
+ *              properties:
+ *                success:
+ *                  type: boolean
+ *                  description: is fetch successful
+ *                  example: true
+ *                msg:
+ *                  type: string
+ *                  description: response message
+ *                  example: Successfully fetch api
+ *                data:
+ *                  type: object
+ *                  description: response data
+ *                  example: {userId: 123, email: newemail@gmail.com}
+ */
+userRouter
+  .route("/company/auth/edit/email")
+  .put(checkAuthenticated, companyControllers.instance().editEmail);
+// company, edit about(put)
+/**
+ * @openapi
+ * /api/user/company/auth/edit/about:
+ *   post:
+ *     summary: edit company's about
+ *     tags: [Company]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *        application/json:
+ *          schema:
+ *            type: object
+ *            properties:
+ *              about:
+ *                type: string
+ *                description: new about of company
+ *                example: This is my profile bro
+ *     responses:
+ *       200:
+ *         description: Return the company id, and about.
+ *         content:
+ *          application/json:
+ *            schema:
+ *              type: object
+ *              properties:
+ *                success:
+ *                  type: boolean
+ *                  description: is fetch successful
+ *                  example: true
+ *                msg:
+ *                  type: string
+ *                  description: response message
+ *                  example: Successfully fetch api
+ *                data:
+ *                  type: object
+ *                  description: response data
+ *                  example: {userId: 123, about: This is my profile bro}
+ */
+userRouter
+  .route("/company/auth/edit/about")
+  .put(checkAuthenticated, companyControllers.instance().editAbout);
+// company, edit address(put)
+/**
+ * @openapi
+ * /api/user/company/auth/edit/address:
+ *   post:
+ *     summary: edit company's address
+ *     tags: [Company]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *        application/json:
+ *          schema:
+ *            type: object
+ *            properties:
+ *              address:
+ *                type: string
+ *                description: new address of company
+ *                example: 9876 Duangjun rd. Palm District
+ *              provinceAddress:
+ *                type: string
+ *                description: new provinceAddress of company
+ *                example: Borwon Province
+ *     responses:
+ *       200:
+ *         description: Return the company id, and address, province.
+ *         content:
+ *          application/json:
+ *            schema:
+ *              type: object
+ *              properties:
+ *                success:
+ *                  type: boolean
+ *                  description: is fetch successful
+ *                  example: true
+ *                msg:
+ *                  type: string
+ *                  description: response message
+ *                  example: Successfully fetch api
+ *                data:
+ *                  type: object
+ *                  description: response data
+ *                  example: {userId: 123, address: 12345 Hello rd. Qwerty district, provinceAddress: KeKekeke}
+ */
+userRouter
+  .route("/company/auth/edit/address")
+  .put(checkAuthenticated, companyControllers.instance().editAddress);
+// company, edit contact(put)
+/**
+ * @openapi
+ * /api/user/company/auth/edit/contact:
+ *   post:
+ *     summary: edit company's contact
+ *     tags: [Company]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *        application/json:
+ *          schema:
+ *            type: object
+ *            properties:
+ *              contact:
+ *                type: string
+ *                description: new contact of company
+ *                example: 0123456789
+ *     responses:
+ *       200:
+ *         description: Return the company id, and contact.
+ *         content:
+ *          application/json:
+ *            schema:
+ *              type: object
+ *              properties:
+ *                success:
+ *                  type: boolean
+ *                  description: is fetch successful
+ *                  example: true
+ *                msg:
+ *                  type: string
+ *                  description: response message
+ *                  example: Successfully fetch api
+ *                data:
+ *                  type: object
+ *                  description: response data
+ *                  example: {userId: 123, contact: 0123456789}
+ */
+userRouter
+  .route("/company/auth/edit/contact")
+  .put(checkAuthenticated, companyControllers.instance().editContact);
+// company, edit password(put)
+/**
+ * @openapi
+ * /api/user/company/auth/edit/password:
+ *   post:
+ *     summary: edit company's password
+ *     tags: [Company]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *        application/json:
+ *          schema:
+ *            type: object
+ *            properties:
+ *              password:
+ *                type: string
+ *                description: new password of company
+ *                example: hello69xD
+ *     responses:
+ *       200:
+ *         description: Return the company id.
+ *         content:
+ *          application/json:
+ *            schema:
+ *              type: object
+ *              properties:
+ *                success:
+ *                  type: boolean
+ *                  description: is fetch successful
+ *                  example: true
+ *                msg:
+ *                  type: string
+ *                  description: response message
+ *                  example: Successfully fetch api
+ *                data:
+ *                  type: object
+ *                  description: response data
+ *                  example: {userId: 123}
+ */
+userRouter
+  .route("/company/auth/edit/password")
+  .put(checkAuthenticated, companyControllers.instance().editPassword);
+
 export { userRouter };

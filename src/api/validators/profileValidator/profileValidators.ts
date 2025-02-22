@@ -16,7 +16,10 @@ export const editFullNameSchema = z.object({
   lastName: z.string(),
 }); // job-seeker & employer
 
-export const editOfficialNameSchema = z.object({ offcialName: z.string() }); // company only
+export const editOfficialNameSchema = z.object({
+  officialName: z.string(),
+  password: z.string(),
+}); // company only
 
 export const editEmailSchema = z.object({ email: z.string().email() });
 

@@ -6,7 +6,7 @@ const allowedPictureMimeTypes = ["image/jpeg", "image/png"];
 // registration approval multer
 const uploadRegisterImage = multer({
   storage: multer.memoryStorage(),
-  limits: { fileSize: 1024 * 1024 * 3 }, //3 MB
+  limits: { fileSize: 1024 * 1024 * 3, files: 1 }, //3 MB
   fileFilter(req, file, callback) {
     // file type is correct (jpg/png)
     if (allowedPictureMimeTypes.includes(file.mimetype)) {
@@ -34,8 +34,14 @@ export const uploadRegisterImageMiddleware = (
       } else if (error.code === "LIMIT_UNEXPECTED_FILE") {
         res.status(400).json({ success: false, msg: error.field });
         return;
+      } else if (error.code === "LIMIT_FILE_COUNT") {
+        res.status(400).json({
+          success: false,
+          msg: error.message,
+        });
+        return;
       }
-      res.status(403).json({ msg: "Something went wrong", ok: false });
+      res.status(403).json({ success: false, msg: "Something went wrong" });
       return;
     }
 
@@ -46,7 +52,7 @@ export const uploadRegisterImageMiddleware = (
 // user's profile image multer
 const uploadProfileImage = multer({
   storage: multer.memoryStorage(),
-  limits: { fileSize: 1024 * 1024 * 7 }, //7 MB
+  limits: { fileSize: 1024 * 1024 * 7, files: 1 }, //7 MB
   fileFilter(req, file, callback) {
     // file type is correct (jpg/png)
     if (allowedPictureMimeTypes.includes(file.mimetype)) {
@@ -72,10 +78,19 @@ export const uploadProfileImageMiddleware = (
         res.status(400).json({ success: false, msg: error.message });
         return;
       } else if (error.code === "LIMIT_UNEXPECTED_FILE") {
-        res.status(400).json({ success: false, msg: error.field });
+        res.status(400).json({
+          success: false,
+          msg: error.field,
+        });
+        return;
+      } else if (error.code === "LIMIT_FILE_COUNT") {
+        res.status(400).json({
+          success: false,
+          msg: error.message,
+        });
         return;
       }
-      res.status(403).json({ msg: "Something went wrong", ok: false });
+      res.status(403).json({ success: false, msg: "Something went wrong" });
       return;
     }
 
@@ -86,7 +101,7 @@ export const uploadProfileImageMiddleware = (
 // job seeker's resume image multer
 const uploadResumeImage = multer({
   storage: multer.memoryStorage(),
-  limits: { fileSize: 1024 * 1024 * 9 }, //9 MB
+  limits: { fileSize: 1024 * 1024 * 9, files: 1 }, //9 MB
   fileFilter(req, file, callback) {
     // file type is correct (jpg/png)
     if (allowedPictureMimeTypes.includes(file.mimetype)) {
@@ -114,8 +129,14 @@ export const uploadResumeImageMiddleware = (
       } else if (error.code === "LIMIT_UNEXPECTED_FILE") {
         res.status(400).json({ success: false, msg: error.field });
         return;
+      } else if (error.code === "LIMIT_FILE_COUNT") {
+        res.status(400).json({
+          success: false,
+          msg: error.message,
+        });
+        return;
       }
-      res.status(403).json({ msg: "Something went wrong", ok: false });
+      res.status(403).json({ success: false, msg: "Something went wrong" });
       return;
     }
 

@@ -22,16 +22,16 @@ export class companyControllers implements companyControllerInterfaces {
     const userForm = req.body;
     const result = await companyServices.instance().register(userForm);
 
-    if (result.data) {
+    if (!result.success) {
       res
         .status(result.status)
-        .json({ success: result.success, msg: result.msg, data: result.data });
+        .json({ success: result.success, msg: result.msg });
       return;
     }
 
     res
       .status(result.status)
-      .json({ success: result.success, msg: result.msg });
+      .json({ success: result.success, msg: result.msg, data: result.data });
   }
 
   // login company route handler
@@ -147,5 +147,164 @@ export class companyControllers implements companyControllerInterfaces {
     res
       .status(result.status)
       .json({ success: result.success, msg: result.msg, data: result.data });
+  }
+
+  // upload profile picture route handler
+  async uploadProfilePicture(req: Request, res: Response): Promise<void> {
+    const [error, result] = await catchError(
+      companyServices
+        .instance()
+        .uploadProfilePicture(
+          req.file as Express.Multer.File,
+          req.user as Express.User
+        )
+    );
+    if (error) {
+      res.status(403).json({ success: false, msg: "Credential is missing" });
+      return;
+    }
+    if (!result.success) {
+      res
+        .status(result.status)
+        .json({ success: result.success, msg: result.msg });
+      return;
+    }
+
+    res
+      .status(result.status)
+      .json({ success: result.success, msg: result.msg, data: result.data });
+  }
+
+  // edit username route handler
+  async editOfficialName(req: Request, res: Response): Promise<void> {
+    // get response
+    const result = await companyServices
+      .instance()
+      .editOfficialName(req.body, req.user as Express.User);
+
+    if (!result.success) {
+      res
+        .status(result.status)
+        .json({ success: result.success, msg: result.msg });
+      return;
+    }
+
+    const { case: _, ...formattedResultData } = result.data;
+
+    res.status(result.status).json({
+      success: result.success,
+      msg: result.msg,
+      data: formattedResultData,
+    });
+  }
+
+  // edit email route handler
+  async editEmail(req: Request, res: Response): Promise<void> {
+    const result = await companyServices
+      .instance()
+      .editEmail(req.body, req.user as Express.User);
+
+    if (!result.success) {
+      res
+        .status(result.status)
+        .json({ success: result.success, msg: result.msg });
+      return;
+    }
+
+    // const { case: _, ...formattedResultData } = result.data;
+
+    res.status(result.status).json({
+      success: result.success,
+      msg: result.msg,
+      data: result.data,
+    });
+  }
+
+  // edit about route handler
+  async editAbout(req: Request, res: Response): Promise<void> {
+    const result = await companyServices
+      .instance()
+      .editAbout(req.body, req.user as Express.User);
+
+    if (!result.success) {
+      res
+        .status(result.status)
+        .json({ success: result.success, msg: result.msg });
+      return;
+    }
+
+    // const { case: _, ...formattedResultData } = result.data;
+
+    res.status(result.status).json({
+      success: result.success,
+      msg: result.msg,
+      data: result.data,
+    });
+  }
+
+  // edit address route handler
+  async editAddress(req: Request, res: Response): Promise<void> {
+    const result = await companyServices
+      .instance()
+      .editAddress(req.body, req.user as Express.User);
+
+    if (!result.success) {
+      res
+        .status(result.status)
+        .json({ success: result.success, msg: result.msg });
+      return;
+    }
+
+    // const { case: _, ...formattedResultData } = result.data;
+
+    res.status(result.status).json({
+      success: result.success,
+      msg: result.msg,
+      data: result.data,
+    });
+  }
+
+  // edit contact route handler
+  async editContact(req: Request, res: Response): Promise<void> {
+    const result = await companyServices
+      .instance()
+      .editContact(req.body, req.user as Express.User);
+
+    if (!result.success) {
+      res
+        .status(result.status)
+        .json({ success: result.success, msg: result.msg });
+      return;
+    }
+
+    // const { case: _, ...formattedResultData } = result.data;
+
+    res.status(result.status).json({
+      success: result.success,
+      msg: result.msg,
+      data: result.data,
+    });
+  }
+
+  // edit password route handler
+  async editPassword(req: Request, res: Response): Promise<void> {
+    const result = await companyServices
+      .instance()
+      .editPassword(req.body, req.user as Express.User);
+
+    if (!result.success) {
+      res
+        .status(result.status)
+        .json({ success: result.success, msg: result.msg });
+      return;
+    }
+
+    const { case: _, ...formattedResultData } = result.data;
+
+    res.status(result.status).json({
+      success: result.success,
+      msg: result.msg,
+      data: formattedResultData,
+    });
   }
 }

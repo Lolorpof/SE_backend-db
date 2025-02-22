@@ -135,6 +135,7 @@ export interface employerModelInterfaces extends userOauthModelInterfaces {}
 export interface companyModelInterfaces extends userModelInterfaces {
   editOfficialName(
     officialName: string,
+    password: string,
     user: TGenericUserSession
-  ): Promise<TEditOfficialNameResponse>;
+  ): Promise<TEditOfficialNameResponse | null>;
 }

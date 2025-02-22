@@ -189,7 +189,7 @@ export class employerControllers implements employerControllerInterfaces {
       .json({ success: result.success, msg: result.msg, data: result.data });
   }
 
-  // upload profile picture route handler (not done)
+  // upload profile picture route handler
   async uploadProfilePicture(req: Request, res: Response): Promise<void> {
     const [error, result] = await catchError(
       employerServices
