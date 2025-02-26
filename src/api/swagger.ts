@@ -3,6 +3,8 @@ import { fileURLToPath } from "url";
 import path from "path";
 import { postRoutesDoc } from "./docs/postRoutes.docs";
 import { vulnerabilityRoutesDoc } from "./docs/vulnerabilityRoutes.docs";
+import { skillRoutesDoc } from "./docs/skillRoutes.docs";
+import { categoryRoutesDoc } from "./docs/categoryRoutes.docs";
 
 // Get the __dirname equivalent in ES modules
 const __filename = fileURLToPath(import.meta.url);
@@ -80,12 +82,16 @@ const options = {
           }
         },
         ...postRoutesDoc.components.schemas,
-        ...vulnerabilityRoutesDoc.components.schemas
+        ...vulnerabilityRoutesDoc.components.schemas,
+        ...skillRoutesDoc.components.schemas,
+        ...categoryRoutesDoc.components.schemas
       },
     },
     paths: {
       ...postRoutesDoc.paths,
-      ...vulnerabilityRoutesDoc.paths
+      ...vulnerabilityRoutesDoc.paths,
+      ...skillRoutesDoc.paths,
+      ...categoryRoutesDoc.paths
     }
   },
   apis: [
