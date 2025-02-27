@@ -494,29 +494,80 @@ export class postServices {
         );
       }
 
-      // Update the job post
-      const [updatedPost] = await drizzlePool
-        .update(jobHiringPostTable)
-        .set({
-          title: jobPostData.title,
-          description: jobPostData.description ?? null,
-          jobLocation: jobPostData.jobLocation,
-          salary: jobPostData.salary,
-          workDates: jobPostData.workDates,
-          workHoursRange: jobPostData.workHoursRange,
-          hiredAmount: jobPostData.hiredAmount,
-          jobPostType: jobPostData.jobPostType,
-          updatedAt: new Date(),
-        })
-        .where(eq(jobHiringPostTable.id, id))
-        .returning();
+      // Start a transaction to update everything atomically
+      return await drizzlePool.transaction(async (tx) => {
+        // Update the job post
+        const [updatedPost] = await tx
+          .update(jobHiringPostTable)
+          .set({
+            title: jobPostData.title,
+            description: jobPostData.description ?? null,
+            jobLocation: jobPostData.jobLocation,
+            salary: jobPostData.salary,
+            workDates: jobPostData.workDates,
+            workHoursRange: jobPostData.workHoursRange,
+            hiredAmount: jobPostData.hiredAmount,
+            jobPostType: jobPostData.jobPostType,
+            updatedAt: new Date(),
+          })
+          .where(eq(jobHiringPostTable.id, id))
+          .returning();
 
-      return {
-        success: true,
-        status: 200,
-        msg: "Job post updated successfully",
-        data: updatedPost as TPost,
-      };
+        // Always delete existing relations first
+        await tx
+          .delete(jobHiringPostSkillTable)
+          .where(eq(jobHiringPostSkillTable.jobHiringPostId, id));
+
+        await tx
+          .delete(jobHireCategoryTable)
+          .where(eq(jobHireCategoryTable.jobHiringPostId, id));
+
+        // Insert new skills relations if provided
+        if (jobPostData.skills && jobPostData.skills.length > 0) {
+          await tx.insert(jobHiringPostSkillTable).values(
+            jobPostData.skills.map((skillId) => ({
+              jobHiringPostId: id,
+              skillId: skillId,
+            }))
+          );
+        }
+
+        // Insert new job category relations if provided
+        if (jobPostData.jobCategories && jobPostData.jobCategories.length > 0) {
+          await tx.insert(jobHireCategoryTable).values(
+            jobPostData.jobCategories.map((categoryId) => ({
+              jobHiringPostId: id,
+              jobCategoryId: categoryId,
+            }))
+          );
+        }
+
+        // Get updated skills and categories
+        const skills = jobPostData.skills && jobPostData.skills.length > 0
+          ? await tx
+              .select()
+              .from(skillTable)
+              .where(inArray(skillTable.id, jobPostData.skills))
+          : [];
+
+        const categories = jobPostData.jobCategories && jobPostData.jobCategories.length > 0
+          ? await tx
+              .select()
+              .from(jobCategoryTable)
+              .where(inArray(jobCategoryTable.id, jobPostData.jobCategories))
+          : [];
+
+        return {
+          success: true,
+          status: 200,
+          msg: "Job post updated successfully",
+          data: {
+            ...updatedPost,
+            skills,
+            jobCategories: categories,
+          } as TPost,
+        };
+      });
     } catch (error) {
       console.error("Error updating job post:", error);
       throw errorServices.handleServerError(error);
@@ -928,6 +979,13 @@ export class postServices {
     user: TJobSeekerSession
   ): Promise<TPostResponse> {
     try {
+      if (!user) {
+        throw errorServices.handleAuthError();
+      }
+
+      // Determine if user is OAuth or normal job seeker
+      const isOauth = user.isOauth;
+
       const [newPost] = await drizzlePool
         .insert(jobFindingPostTable)
         .values({
@@ -938,14 +996,14 @@ export class postServices {
           workDates: jobPostData.workDates,
           workHoursRange: jobPostData.workHoursRange,
           jobPostType: jobPostData.jobPostType,
-          jobSeekerType: jobPostData.jobSeekerType,
+          jobSeekerType: isOauth ? "OAUTH" : "NORMAL",
           status: postStatusEnum.enumValues[1], // UNMATCHED
-          jobSeekerId: user.type === "NORMAL" ? user.id : null,
-          oauthJobSeekerId: user.type === "OAUTH" ? user.id : null,
+          jobSeekerId: isOauth ? null : user.id,
+          oauthJobSeekerId: isOauth ? user.id : null,
         })
         .returning();
 
-      if (jobPostData.skills) {
+      if (jobPostData.skills && jobPostData.skills.length > 0) {
         await drizzlePool.insert(jobFindingPostSkillTable).values(
           jobPostData.skills.map((skillId) => ({
             jobFindingPostId: newPost.id,
@@ -954,7 +1012,7 @@ export class postServices {
         );
       }
 
-      if (jobPostData.jobCategories) {
+      if (jobPostData.jobCategories && jobPostData.jobCategories.length > 0) {
         await drizzlePool.insert(jobFindCategoryTable).values(
           jobPostData.jobCategories.map((categoryId) => ({
             jobFindingPostId: newPost.id,
