@@ -10,10 +10,10 @@ import { checkAdmin } from "../middlewares/rolesChecker";
 const categoryRoutes = Router();
 
 categoryRoutes.route('/')
-  .get(checkAuthenticated, getAllCategories)
+  .get(getAllCategories)
   .post(checkAuthenticated, checkAdmin, validateData(categorySchema), createCategory);
 categoryRoutes.route('/:id')
-  .get(checkAuthenticated, getCategoryById)
+  .get(getCategoryById)
   .put(checkAuthenticated, checkAdmin, validateData(categorySchema), updateCategory)
   .delete(checkAuthenticated, checkAdmin, deleteCategory);
 

@@ -9,10 +9,10 @@ import { getAllSkills, getSkillById, createSkill, updateSkill, deleteSkill } fro
 const skillRoutes = Router();
 
 skillRoutes.route('/')
-  .get(checkAuthenticated, getAllSkills)
+  .get( getAllSkills)
   .post(checkAuthenticated, checkAdmin, validateData(skillSchema), createSkill);
 skillRoutes.route('/:id')
-  .get(checkAuthenticated, getSkillById)
+  .get( getSkillById)
   .put(checkAuthenticated, checkAdmin, validateData(skillSchema), updateSkill)
   .delete(checkAuthenticated, checkAdmin, deleteSkill);
 
