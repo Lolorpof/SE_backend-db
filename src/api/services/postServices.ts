@@ -1,4 +1,5 @@
 import { drizzlePool } from "../../db/conn";
+import { TEmployerSession, TCompanySession, TJobSeekerSession } from "../types/usersTypes";
 import { and, eq, lte, gte, ilike, SQL, inArray, sql, desc } from "drizzle-orm";
 import {
   jobHiringPostTable,

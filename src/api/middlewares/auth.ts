@@ -1,5 +1,6 @@
 import "dotenv/config";
 import { Request, Response, NextFunction } from "express";
+import { TUserSession } from "../types/usersTypes";
 
 export const checkAuthenticated = async (
   req: Request,

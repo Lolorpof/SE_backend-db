@@ -13,6 +13,7 @@ import postRoutes from "./routes/postRoutes";
 import skillRoutes from "./routes/skillRoutes";
 import categoryRoutes from "./routes/categoryRoutes";
 import vulnerabilityRoutes from "./routes/vulnerabilityRoutes";
+import notificationRoutes from "./routes/notificationRoutes";
 const port = process.env.BACKEND_PORT; //6977
 const cookieExpireTime = { real: 1000 * 60 * 60 * 4, dev: 1000 * 60 * 5 };
 
@@ -53,6 +54,7 @@ app.use("/api/post", postRoutes);
 app.use("/api/skill", skillRoutes);
 app.use("/api/category", categoryRoutes);
 app.use("/api/vulnerability", vulnerabilityRoutes);
+app.use("/api/notification", notificationRoutes);
 
 // HTTP Server setup
 app.listen(port, () => {
