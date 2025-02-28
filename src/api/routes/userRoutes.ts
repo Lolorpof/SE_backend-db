@@ -714,10 +714,6 @@ userRouter
  *                type: string
  *                description: new password of job seeker
  *                example: hello69xD
- *              oldPassword
- *                type: string
- *                description: current password of job seeker
- *                example: old69xD
  *     responses:
  *       200:
  *         description: Return the job seeker id.
@@ -1439,10 +1435,6 @@ userRouter
  *                type: string
  *                description: new password of employer
  *                example: hello69xD
- *              oldPassword
- *                type: string
- *                description: current password of employer
- *                example: old69xD
  *     responses:
  *       200:
  *         description: Return the employer id.
@@ -1995,10 +1987,6 @@ userRouter
  *                type: string
  *                description: new password of company
  *                example: hello69xD
- *              oldPassword
- *                type: string
- *                description: current password of company
- *                example: old69xD
  *     responses:
  *       200:
  *         description: Return the company id.
