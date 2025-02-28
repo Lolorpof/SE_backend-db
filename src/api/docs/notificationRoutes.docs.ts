@@ -94,9 +94,9 @@ export const notificationRoutesDoc = {
     }
   },
   paths: {
-    "/api/notifications": {
+    "/api/notification": {
       get: {
-        tags: ["Notifications"],
+        tags: ["Notification"],
         summary: "Get all notifications",
         description: "Retrieve all notifications for the authenticated user with optional status filter. Results are sorted by status (UNREAD first, then READ) and then by creation date (newest first).",
         security: [
@@ -150,9 +150,9 @@ export const notificationRoutesDoc = {
         }
       }
     },
-    "/api/notifications/{id}/read": {
+    "/api/notification/{id}/read": {
       post: {
-        tags: ["Notifications"],
+        tags: ["Notification"],
         summary: "Mark notification as read",
         description: "Mark a specific notification as read for the authenticated user",
         security: [
@@ -216,9 +216,9 @@ export const notificationRoutesDoc = {
         }
       }
     },
-    "/api/notifications/mark-all-read": {
+    "/api/notification/mark-all-read": {
       post: {
-        tags: ["Notifications"],
+        tags: ["Notification"],
         summary: "Mark all notifications as read",
         description: "Mark all unread notifications as read for the authenticated user",
         security: [
