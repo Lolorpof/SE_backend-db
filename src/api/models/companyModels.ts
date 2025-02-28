@@ -201,6 +201,7 @@ export class companyModels implements companyModelInterfaces {
     });
 
     // exact dupe check
+    let dupeCounter = 0;
     for (const dupedOfficialname of dupedOfficialnames) {
       const exactDuped = await bcrypt.compare(
         password,
@@ -208,12 +209,15 @@ export class companyModels implements companyModelInterfaces {
       );
 
       if (exactDuped) {
-        return {
-          userId: user.id,
-          officialName: dupedOfficialname.officialName,
-          case: "exact dupe",
-        };
+        dupeCounter++;
       }
+    }
+    if (dupeCounter > 1) {
+      return {
+        userId: user.id,
+        officialName: officialName,
+        case: "exact dupe",
+      };
     }
 
     // no dupe
@@ -232,12 +236,12 @@ export class companyModels implements companyModelInterfaces {
     user: TGenericUserSession
   ): Promise<TEditEmailResponse | null> {
     // duplicate email check
-    const dupeEmail = await drizzlePool.query.companyTable.findFirst({
+    const dupeEmail = await drizzlePool.query.companyTable.findMany({
       columns: { email: true },
       where: eq(companyTable.email, email),
     });
 
-    if (dupeEmail) {
+    if (dupeEmail.length > 1) {
       return null;
     }
 
@@ -348,15 +352,19 @@ export class companyModels implements companyModelInterfaces {
       columns: { officialName: true, password: true },
       where: eq(companyTable.officialName, formattedUser.officialName),
     });
+    let dupeCounter = 0;
     for (const du of dupedOfficialnames) {
       const exactMatch = await bcrypt.compare(password, du.password);
 
       if (exactMatch) {
-        return {
-          userId: formattedUser.id,
-          case: "exactDupe",
-        };
+        dupeCounter++;
       }
+    }
+    if (dupeCounter > 1) {
+      return {
+        userId: formattedUser.id,
+        case: "exactDupe",
+      };
     }
 
     // password changeable

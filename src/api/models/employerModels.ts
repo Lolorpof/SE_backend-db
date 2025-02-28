@@ -320,16 +320,20 @@ export class employerModels implements employerModelInterfaces {
     });
 
     // exact dupe check
+    let dupedCounter = 0;
     for (const dupedUsername of dupedUsernames) {
       const exactDuped = await bcrypt.compare(password, dupedUsername.password);
 
       if (exactDuped) {
-        return {
-          userId: user.id,
-          username: dupedUsername.username,
-          case: "exact dupe",
-        };
+        dupedCounter++;
       }
+    }
+    if (dupedCounter > 1) {
+      return {
+        userId: user.id,
+        username: username,
+        case: "exact dupe",
+      };
     }
 
     // no dupe
@@ -348,12 +352,12 @@ export class employerModels implements employerModelInterfaces {
     user: TGenericUserSession
   ): Promise<TEditEmailResponse | null> {
     // duplicate email check
-    const dupeEmail = await drizzlePool.query.employerTable.findFirst({
+    const dupeEmail = await drizzlePool.query.employerTable.findMany({
       columns: { email: true },
       where: eq(employerTable.email, email),
     });
 
-    if (dupeEmail) {
+    if (dupeEmail.length > 1) {
       return null;
     }
 
@@ -374,14 +378,14 @@ export class employerModels implements employerModelInterfaces {
     const formattedUser = user as TEmployerSession;
 
     // check dupe
-    const dupedName = await drizzlePool.query.employerTable.findFirst({
+    const dupedName = await drizzlePool.query.employerTable.findMany({
       columns: { firstName: true, lastName: true },
       where: and(
         eq(employerTable.firstName, firstName),
         eq(employerTable.lastName, lastName)
       ),
     });
-    if (dupedName) {
+    if (dupedName.length > 1) {
       return null;
     }
 
@@ -520,15 +524,19 @@ export class employerModels implements employerModelInterfaces {
       columns: { username: true, password: true },
       where: eq(employerTable.username, formattedUser.username),
     });
+    let dupeCounter = 0;
     for (const du of dupedUsernames) {
       const exactMatch = await bcrypt.compare(password, du.password);
 
       if (exactMatch) {
-        return {
-          userId: formattedUser.id,
-          case: "exactDupe",
-        };
+        dupeCounter++;
       }
+    }
+    if (dupeCounter > 1) {
+      return {
+        userId: formattedUser.id,
+        case: "exactDupe",
+      };
     }
 
     // password changeable

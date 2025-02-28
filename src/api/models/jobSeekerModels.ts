@@ -444,16 +444,21 @@ export class jobSeekerModels implements jobSeekerModelInterfaces {
     });
 
     // exact dupe check
+    let dupeCounter = 0;
     for (const dupedUsername of dupedUsernames) {
       const exactDuped = await bcrypt.compare(password, dupedUsername.password);
 
       if (exactDuped) {
-        return {
-          userId: user.id,
-          username: dupedUsername.username,
-          case: "exact dupe",
-        };
+        dupeCounter++;
       }
+    }
+
+    if (dupeCounter > 1) {
+      return {
+        userId: user.id,
+        username: username,
+        case: "exact dupe",
+      };
     }
 
     // no dupe
@@ -472,12 +477,12 @@ export class jobSeekerModels implements jobSeekerModelInterfaces {
     user: TGenericUserSession
   ): Promise<TEditEmailResponse | null> {
     // duplicate email check
-    const dupeEmail = await drizzlePool.query.jobSeekerTable.findFirst({
+    const dupeEmail = await drizzlePool.query.jobSeekerTable.findMany({
       columns: { email: true },
       where: eq(jobSeekerTable.email, email),
     });
 
-    if (dupeEmail) {
+    if (dupeEmail.length > 1) {
       return null;
     }
 
@@ -498,14 +503,14 @@ export class jobSeekerModels implements jobSeekerModelInterfaces {
     const formattedUser = user as TJobSeekerSession;
 
     // check dupe
-    const dupedName = await drizzlePool.query.jobSeekerTable.findFirst({
+    const dupedName = await drizzlePool.query.jobSeekerTable.findMany({
       columns: { firstName: true, lastName: true },
       where: and(
         eq(jobSeekerTable.firstName, firstName),
         eq(jobSeekerTable.lastName, lastName)
       ),
     });
-    if (dupedName) {
+    if (dupedName.length > 1) {
       return null;
     }
 
@@ -644,15 +649,19 @@ export class jobSeekerModels implements jobSeekerModelInterfaces {
       columns: { username: true, password: true },
       where: eq(jobSeekerTable.username, formattedUser.username),
     });
+    let dupeCounter = 0;
     for (const du of dupedUsernames) {
       const exactMatch = await bcrypt.compare(password, du.password);
 
       if (exactMatch) {
-        return {
-          userId: formattedUser.id,
-          case: "exactDupe",
-        };
+        dupeCounter++;
       }
+    }
+    if (dupeCounter > 1) {
+      return {
+        userId: formattedUser.id,
+        case: "exactDupe",
+      };
     }
 
     // password changeable
