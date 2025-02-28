@@ -48,6 +48,7 @@ import {
   TEditPasswordResponse,
   TEditUsernameResponse,
 } from "../types/editUserProfile";
+import { TEmployer, TEmployerSession, TMatchNameEmail, TRegisterUser, TUserSession, TRegisterImage, TProfileImage } from "../types/usersTypes";
 
 export class employerServices implements employerServiceInterfaces {
   // singleton design

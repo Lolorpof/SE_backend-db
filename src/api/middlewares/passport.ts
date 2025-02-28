@@ -9,6 +9,7 @@ import "../types/responseTypes";
 import { companyServices } from "../services/companyServices";
 import { adminServices } from "../services/adminsServices";
 import { ServicesResponse } from "../types/responseTypes";
+import { TJobSeeker, TCompany, TEmployer, TUserSession } from "../types/usersTypes";
 
 // Serializer (turn into session when logging in)
 passport.serializeUser(async (user, done) => {

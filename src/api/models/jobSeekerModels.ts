@@ -38,6 +38,7 @@ import {
   createBucketIfNotExisted,
   userProfileImageBucket,
 } from "../utilities/minio";
+import { TJobSeeker, TEmployer, TCompany, TAdmin, TMatchNameEmail, TRegisterUser, TFormattedSingleUserRegister, TFormattedCompanyRegister, TRegisterImage, TProfileImage, TResumeImage, TJobSeekerSession, TGenericUserSession, TApproveUser, TApprovingUser, TGetId, TApproveReturn } from "../types/usersTypes";
 
 export class jobSeekerModels implements jobSeekerModelInterfaces {
   // singleton design

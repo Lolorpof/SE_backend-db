@@ -15,7 +15,7 @@ import {
   TEditPasswordResponse,
   TEditUsernameResponse,
 } from "../types/editUserProfile";
-
+import { TJobSeekerSession, TEmployerSession, TCompanySession, TAdminSession, TRegisterUser, TRegisterImage, TProfileImage, TResumeImage } from "../types/usersTypes";
 export interface baseUserServiceInterfaces {
   // passport strategy, so response is not <ServiceResponse>
   login(

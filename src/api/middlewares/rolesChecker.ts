@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from "express";
-
+import { TEmployerSession, TJobSeekerSession, TCompanySession, TAdminSession } from "../types/usersTypes";
 export const checkEmployer = (req: Request, res: Response, next: NextFunction) => {
   const user = req.user as TEmployerSession;
   if (!user || user.type !== "EMPLOYER") {

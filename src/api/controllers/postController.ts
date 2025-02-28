@@ -9,10 +9,9 @@ import {
   getAllJobPostsType,
 } from "../schemas/requestBodySchema";
 import { postServices } from "../services/postServices";
-import { ServerError } from "../types/errorTypes";
 import { errorServices } from "../services/errorServices";
-import { ZodError } from "zod";
 import { handleControllerError } from "../utilities/controllerUtils";
+import { TJobSeekerSession, TEmployerSession, TCompanySession } from "../types/usersTypes";
 
 export async function handleGetAllJobPosts(req: Request, res: Response) {
   try {

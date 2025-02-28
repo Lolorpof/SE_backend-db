@@ -13,6 +13,7 @@ import {
   TEditPasswordResponse,
   TEditUsernameResponse,
 } from "../types/editUserProfile";
+import { TJobSeeker, TEmployer, TAdmin, TCompany, TMatchNameEmail, TRegisterUser, TFormattedSingleUserRegister, TFormattedCompanyRegister, TApproveUser, TApprovingUser, TDuplicateNameEmail1, TDuplicateNameEmail2, TGenericUserSession, TApproveReturn, TRegisterImage, TProfileImage, TResumeImage, TJobSeekerSession   } from "../types/usersTypes";
 
 export interface baseUserModelInterfaces {
   // login

@@ -4,6 +4,8 @@ import { drizzlePool } from "../../db/conn";
 import { and, eq } from "drizzle-orm";
 import { catchError } from "../utilities/utilFunctions";
 import e from "express";
+import { TApproveReturn, TRegistrationApproval } from "../types/usersTypes";
+
 
 export class registrationApprovalModels {
   static registrationApprovalModel: registrationApprovalModels | undefined;

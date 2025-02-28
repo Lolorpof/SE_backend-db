@@ -14,6 +14,7 @@ import { jobSeekerModels } from "../models/jobSeekerModels";
 import { employerModels } from "../models/employerModels";
 import { companyModels } from "../models/companyModels";
 import { ServicesResponse } from "../types/responseTypes";
+import { TAdminSession, TApproveResponse, TApproveReturn, TApproveUser, TApprovingUser, TRegistrationApproval, TUserSession, TMatchNameEmail, TAdmin } from "../types/usersTypes";
 
 export class adminServices implements adminServiceInterfaces {
   static adminService: adminServices | undefined;

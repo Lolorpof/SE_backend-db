@@ -28,6 +28,7 @@ import {
 } from "../types/postTypes";
 import { ServicesResponse } from "../types/responseTypes";
 import { errorServices } from "./errorServices";
+import { TJobSeekerSession, TEmployerSession, TCompanySession } from "../types/usersTypes";
 
 export class postServices {
   // singleton design

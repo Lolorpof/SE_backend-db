@@ -11,4 +11,5 @@ type FailedResponse = {
   success: false;
   msg: string;
   status: number;
+  data?: any;
 };

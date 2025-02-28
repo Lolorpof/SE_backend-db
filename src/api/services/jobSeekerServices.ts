@@ -55,6 +55,7 @@ import {
   TEditPasswordSchema,
   TEditUsernameSchema,
 } from "../validators/profileValidator";
+import { TJobSeeker, TJobSeekerSession, TMatchNameEmail, TRegisterUser, TUserSession, TRegisterImage, TProfileImage, TCheckUser, TResumeImage } from "../types/usersTypes";
 
 export class jobSeekerServices implements jobSeekerServiceInterfaces {
   // singleton design

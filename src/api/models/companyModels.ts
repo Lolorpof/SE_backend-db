@@ -21,6 +21,7 @@ import {
 } from "../types/editUserProfile";
 import bcrypt from "bcryptjs";
 import { saltRounds } from "../utilities/env";
+import { TCompany, TMatchNameEmail, TRegisterUser, TFormattedCompanyRegister, TGenericUserSession, TApproveUser, TApprovingUser, TRegisterImage, TProfileImage, TCompanySession } from "../types/usersTypes";
 
 export class companyModels implements companyModelInterfaces {
   // singleton design

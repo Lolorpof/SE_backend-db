@@ -2,6 +2,7 @@ import { eq, or } from "drizzle-orm";
 import { drizzlePool } from "../../db/conn";
 import { adminTable } from "../../db/schema";
 import { adminModelInterfaces } from "../interfaces/userModelInterfaces";
+import { TJobSeeker, TEmployer, TCompany, TAdmin, TMatchNameEmail, TAdminSession } from "../types/usersTypes";
 
 export class adminModels implements adminModelInterfaces {
   static adminModel: adminModels | undefined;

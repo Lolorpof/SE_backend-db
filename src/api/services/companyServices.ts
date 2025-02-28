@@ -46,6 +46,7 @@ import {
   TEditOfficialNameSchema,
   TEditPasswordSchema,
 } from "../validators/profileValidator";
+import { TCompany, TCompanySession, TMatchNameEmail, TRegisterUser, TUserSession, TRegisterImage, TProfileImage } from "../types/usersTypes";
 
 export class companyServices implements companyServiceInterfaces {
   // singleton design

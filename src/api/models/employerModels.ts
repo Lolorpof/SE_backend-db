@@ -24,6 +24,7 @@ import {
 } from "../types/editUserProfile";
 import bcrypt from "bcryptjs";
 import { saltRounds } from "../utilities/env";
+import { TJobSeeker, TEmployer, TCompany, TAdmin, TMatchNameEmail, TRegisterUser, TGenericUserSession, TApproveUser, TApprovingUser, TDuplicateNameEmail1, TDuplicateNameEmail2, TNameDesc, TFormattedSingleUserRegister, TFormattedCompanyRegister, TRegisterImage, TProfileImage, TResumeImage, TJobSeekerSession, TEmployerSession, TCompanySession, TAdminSession } from "../types/usersTypes";
 
 export class employerModels implements employerModelInterfaces {
   // singleton design

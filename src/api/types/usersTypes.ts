@@ -193,3 +193,5 @@ type TResumeImage = {
   userId: string;
   url: string;
 };
+
+export type { TJobSeeker, TEmployer, TCompany, TAdmin, TUserSession, TJobSeekerSession, TEmployerSession, TCompanySession, TAdminSession, TGenericUserSession, TRegisterUser, TGetId, TApproveReturn, TApproveUser, TApprovingUser, TApproveResponse, TRegistrationApproval, TCheckUser, TMatchNameEmail, TDuplicateNameEmail1, TDuplicateNameEmail2, TNameDesc, TFormattedSingleUserRegister, TFormattedCompanyRegister, TRegisterImage, TProfileImage, TResumeImage };
