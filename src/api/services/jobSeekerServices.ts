@@ -5,7 +5,6 @@ import { fromError } from "zod-validation-error";
 import "../types/usersTypes";
 import bcrypt from "bcryptjs";
 import { IVerifyOptions } from "passport-local";
-import "../types/usersTypes";
 import "../interfaces/userServiceInterfaces";
 import {
   jobSeekerServiceInterfaces,

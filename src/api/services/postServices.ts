@@ -1,5 +1,5 @@
 import { drizzlePool } from "../../db/conn";
-import { TEmployerSession, TCompanySession, TJobSeekerSession } from "../types/usersTypes";
+import "../types/usersTypes";
 import { and, eq, lte, gte, ilike, SQL, inArray, sql, desc } from "drizzle-orm";
 import {
   jobHiringPostTable,
@@ -544,19 +544,21 @@ export class postServices {
         }
 
         // Get updated skills and categories
-        const skills = jobPostData.skills && jobPostData.skills.length > 0
-          ? await tx
-              .select()
-              .from(skillTable)
-              .where(inArray(skillTable.id, jobPostData.skills))
-          : [];
+        const skills =
+          jobPostData.skills && jobPostData.skills.length > 0
+            ? await tx
+                .select()
+                .from(skillTable)
+                .where(inArray(skillTable.id, jobPostData.skills))
+            : [];
 
-        const categories = jobPostData.jobCategories && jobPostData.jobCategories.length > 0
-          ? await tx
-              .select()
-              .from(jobCategoryTable)
-              .where(inArray(jobCategoryTable.id, jobPostData.jobCategories))
-          : [];
+        const categories =
+          jobPostData.jobCategories && jobPostData.jobCategories.length > 0
+            ? await tx
+                .select()
+                .from(jobCategoryTable)
+                .where(inArray(jobCategoryTable.id, jobPostData.jobCategories))
+            : [];
 
         return {
           success: true,
