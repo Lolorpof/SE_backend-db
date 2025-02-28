@@ -22,6 +22,9 @@ import {
   oauthEmployerTable,
   oauthJobSeekerSkillTable,
   oauthJobSeekerVulnerabilityTable,
+  jobHiringPostMatchedTable,
+  jobHiringPostMatchedSeekersTable,
+  jobFindingPostMatchedTable,
 } from "./schema";
 
 const SALT_ROUNDS = 10;
@@ -1263,6 +1266,97 @@ async function seed() {
         publicStatus: "HIDDEN",
       }
     ]);
+
+    // Seed Job Hiring Post Matches
+    const [hiringMatch1, hiringMatch2, hiringMatch3] = await db
+      .insert(jobHiringPostMatchedTable)
+      .values([
+        {
+          jobHiringPostId: hiringPost1.id,
+        },
+        {
+          jobHiringPostId: hiringPost2.id,
+        },
+        {
+          jobHiringPostId: hiringPost3.id,
+        }
+      ])
+      .returning();
+
+    // Seed Job Hiring Post Matched Seekers
+    await db
+      .insert(jobHiringPostMatchedSeekersTable)
+      .values([
+        {
+          jobSeekerType: "NORMAL",
+          jobSeekerId: jobSeeker1.id,
+          jobHiringPostMatchedId: hiringMatch1.id,
+          status: "INPROGRESS"
+        },
+        {
+          jobSeekerType: "NORMAL",
+          jobSeekerId: jobSeeker2.id,
+          jobHiringPostMatchedId: hiringMatch1.id,
+          status: "ACCEPTED",
+          approvedAt: new Date()
+        },
+        {
+          jobSeekerType: "OAUTH",
+          oauthJobSeekerId: oauthJobSeeker1.id,
+          jobHiringPostMatchedId: hiringMatch1.id,
+          status: "DENIED"
+        },
+        {
+          jobSeekerType: "NORMAL",
+          jobSeekerId: jobSeeker3.id,
+          jobHiringPostMatchedId: hiringMatch2.id,
+          status: "INPROGRESS"
+        },
+        {
+          jobSeekerType: "OAUTH",
+          oauthJobSeekerId: oauthJobSeeker2.id,
+          jobHiringPostMatchedId: hiringMatch2.id,
+          status: "ACCEPTED",
+          approvedAt: new Date()
+        },
+        {
+          jobSeekerType: "NORMAL",
+          jobSeekerId: jobSeeker4.id,
+          jobHiringPostMatchedId: hiringMatch3.id,
+          status: "INPROGRESS"
+        }
+      ]);
+
+    // Seed Job Finding Post Matches
+    await db
+      .insert(jobFindingPostMatchedTable)
+      .values([
+        {
+          jobFindingPostId: findingPost1.id,
+          status: "INPROGRESS",
+          jobHirerType: "EMPLOYER",
+          employerId: employer1.id
+        },
+        {
+          jobFindingPostId: findingPost2.id,
+          status: "ACCEPTED",
+          jobHirerType: "COMPANY",
+          companyId: company1.id,
+          approvedAt: new Date()
+        },
+        {
+          jobFindingPostId: findingPost3.id,
+          status: "DENIED",
+          jobHirerType: "OAUTHEMPLOYER",
+          oauthEmployerId: oauthEmployer1.id
+        },
+        {
+          jobFindingPostId: findingPost4.id,
+          status: "INPROGRESS",
+          jobHirerType: "EMPLOYER",
+          employerId: employer2.id
+        }
+      ]);
 
     console.log("Database seeded successfully!");
   } catch (error) {

@@ -117,3 +117,35 @@ export type categoryType = z.infer<typeof categorySchema>;
 
 export const vulnerabilitySchema = baseNameDescriptionSchema;
 export type vulnerabilityType = z.infer<typeof vulnerabilitySchema>;
+
+// Matching schemas
+export const matchStatusSchema = z.object({
+  status: z.enum(["INPROGRESS", "ACCEPTED", "DENIED"]),
+}).strict();
+
+const baseHiringMatchSeekerSchema = z.object({
+  jobSeekerType: z.enum(["NORMAL", "OAUTH"]),
+  jobSeekerId: z.string().uuid().optional(),
+  oauthJobSeekerId: z.string().uuid().optional(),
+}).strict();
+
+export const hiringMatchSeekerSchema = baseHiringMatchSeekerSchema;
+
+const baseFindingMatchHirerSchema = z.object({
+  jobHirerType: z.enum(["EMPLOYER", "OAUTHEMPLOYER", "COMPANY"]),
+  employerId: z.string().uuid().optional(),
+  oauthEmployerId: z.string().uuid().optional(),
+  companyId: z.string().uuid().optional(),
+}).strict();
+
+export const findingMatchHirerSchema = baseFindingMatchHirerSchema;
+
+// Validation functions (to be used after schema validation)
+export const validateHiringMatchSeeker = (data: z.infer<typeof hiringMatchSeekerSchema>) => {
+  return (data.jobSeekerId && !data.oauthJobSeekerId) || (!data.jobSeekerId && data.oauthJobSeekerId);
+};
+
+export const validateFindingMatchHirer = (data: z.infer<typeof findingMatchHirerSchema>) => {
+  const ids = [data.employerId, data.oauthEmployerId, data.companyId].filter(Boolean);
+  return ids.length === 1;
+};
