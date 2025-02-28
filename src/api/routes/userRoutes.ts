@@ -658,7 +658,7 @@ userRouter
 /**
  * @openapi
  * /api/user/job-seeker/auth/edit/contact:
- *   post:
+ *   put:
  *     summary: edit job seeker's contact
  *     tags: [Job Seeker]
  *     requestBody:
@@ -1157,7 +1157,7 @@ userRouter
 /**
  * @openapi
  * /api/user/employer/auth/edit/username:
- *   post:
+ *   put:
  *     summary: edit employer's username
  *     tags: [Employer]
  *     requestBody:
