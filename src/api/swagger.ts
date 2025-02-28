@@ -5,6 +5,7 @@ import { postRoutesDoc } from "./docs/postRoutes.docs";
 import { vulnerabilityRoutesDoc } from "./docs/vulnerabilityRoutes.docs";
 import { skillRoutesDoc } from "./docs/skillRoutes.docs";
 import { categoryRoutesDoc } from "./docs/categoryRoutes.docs";
+import { notificationRoutesDoc } from "./docs/notificationRoutes.docs";
 
 // Get the __dirname equivalent in ES modules
 const __filename = fileURLToPath(import.meta.url);
@@ -84,14 +85,16 @@ const options = {
         ...postRoutesDoc.components.schemas,
         ...vulnerabilityRoutesDoc.components.schemas,
         ...skillRoutesDoc.components.schemas,
-        ...categoryRoutesDoc.components.schemas
+        ...categoryRoutesDoc.components.schemas,
+        ...notificationRoutesDoc.components.schemas
       },
     },
     paths: {
       ...postRoutesDoc.paths,
       ...vulnerabilityRoutesDoc.paths,
       ...skillRoutesDoc.paths,
-      ...categoryRoutesDoc.paths
+      ...categoryRoutesDoc.paths,
+      ...notificationRoutesDoc.paths
     }
   },
   apis: [

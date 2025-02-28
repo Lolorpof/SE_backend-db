@@ -1,4 +1,4 @@
-import { eq, desc, and } from "drizzle-orm";
+import { eq, desc, and, asc } from "drizzle-orm";
 import { drizzlePool as db } from "../../db/conn";
 import { notificationTable } from "../../db/schema";
 import { TNotificationCreate, TNotificationQuery, TUserType } from "../types/notification";
@@ -48,7 +48,10 @@ export class NotificationService {
         .select()
         .from(notificationTable)
         .where(and(...conditions))
-        .orderBy(desc(notificationTable.createdAt));
+        .orderBy(
+          desc(notificationTable.status),
+          desc(notificationTable.createdAt)
+        );
 
       return notifications;
     } catch (error) {
