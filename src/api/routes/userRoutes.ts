@@ -436,7 +436,7 @@ userRouter
 /**
  * @openapi
  * /api/user/job-seeker/auth/edit/username:
- *   post:
+ *   put:
  *     summary: edit job seeker's username
  *     tags: [Job Seeker]
  *     requestBody:
@@ -482,7 +482,7 @@ userRouter
 /**
  * @openapi
  * /api/user/job-seeker/auth/edit/email:
- *   post:
+ *   put:
  *     summary: edit job seeker's email
  *     tags: [Job Seeker]
  *     requestBody:
@@ -524,7 +524,7 @@ userRouter
 /**
  * @openapi
  * /api/user/job-seeker/auth/edit/full-name:
- *   post:
+ *   put:
  *     summary: edit job seeker's full name
  *     tags: [Job Seeker]
  *     requestBody:
@@ -570,7 +570,7 @@ userRouter
 /**
  * @openapi
  * /api/user/job-seeker/auth/edit/about:
- *   post:
+ *   put:
  *     summary: edit job seeker's about
  *     tags: [Job Seeker]
  *     requestBody:
@@ -612,7 +612,7 @@ userRouter
 /**
  * @openapi
  * /api/user/job-seeker/auth/edit/address:
- *   post:
+ *   put:
  *     summary: edit job seeker's address
  *     tags: [Job Seeker]
  *     requestBody:
@@ -700,7 +700,7 @@ userRouter
 /**
  * @openapi
  * /api/user/job-seeker/auth/edit/password:
- *   post:
+ *   put:
  *     summary: edit job seeker's password
  *     tags: [Job Seeker]
  *     requestBody:
@@ -742,7 +742,7 @@ userRouter
 /**
  * @openapi
  * /api/user/job-seeker/auth/edit/skill:
- *   post:
+ *   put:
  *     summary: edit job seeker's skill
  *     tags: [Job Seeker]
  *     requestBody:
@@ -784,7 +784,7 @@ userRouter
 /**
  * @openapi
  * /api/user/job-seeker/auth/edit/vulnerability:
- *   post:
+ *   put:
  *     summary: edit job seeker's vulnerability
  *     tags: [Job Seeker]
  *     requestBody:
@@ -1203,7 +1203,7 @@ userRouter
 /**
  * @openapi
  * /api/user/employer/auth/edit/email:
- *   post:
+ *   put:
  *     summary: edit employer's email
  *     tags: [Employer]
  *     requestBody:
@@ -1245,7 +1245,7 @@ userRouter
 /**
  * @openapi
  * /api/user/employer/auth/edit/full-name:
- *   post:
+ *   put:
  *     summary: edit employer's full name
  *     tags: [Employer]
  *     requestBody:
@@ -1291,7 +1291,7 @@ userRouter
 /**
  * @openapi
  * /api/user/employer/auth/edit/about:
- *   post:
+ *   put:
  *     summary: edit employer's about
  *     tags: [Employer]
  *     requestBody:
@@ -1333,7 +1333,7 @@ userRouter
 /**
  * @openapi
  * /api/user/employer/auth/edit/address:
- *   post:
+ *   put:
  *     summary: edit employer's address
  *     tags: [Employer]
  *     requestBody:
@@ -1379,7 +1379,7 @@ userRouter
 /**
  * @openapi
  * /api/user/employer/auth/edit/contact:
- *   post:
+ *   put:
  *     summary: edit employer's contact
  *     tags: [Employer]
  *     requestBody:
@@ -1421,7 +1421,7 @@ userRouter
 /**
  * @openapi
  * /api/user/employer/auth/edit/password:
- *   post:
+ *   put:
  *     summary: edit employer's password
  *     tags: [Employer]
  *     requestBody:
@@ -1755,7 +1755,7 @@ userRouter
 /**
  * @openapi
  * /api/user/company/auth/edit/official-name:
- *   post:
+ *   put:
  *     summary: edit company's official-name
  *     tags: [Company]
  *     requestBody:
@@ -1801,7 +1801,7 @@ userRouter
 /**
  * @openapi
  * /api/user/company/auth/edit/email:
- *   post:
+ *   put:
  *     summary: edit company's email
  *     tags: [Company]
  *     requestBody:
@@ -1843,7 +1843,7 @@ userRouter
 /**
  * @openapi
  * /api/user/company/auth/edit/about:
- *   post:
+ *   put:
  *     summary: edit company's about
  *     tags: [Company]
  *     requestBody:
@@ -1885,7 +1885,7 @@ userRouter
 /**
  * @openapi
  * /api/user/company/auth/edit/address:
- *   post:
+ *   put:
  *     summary: edit company's address
  *     tags: [Company]
  *     requestBody:
@@ -1931,7 +1931,7 @@ userRouter
 /**
  * @openapi
  * /api/user/company/auth/edit/contact:
- *   post:
+ *   put:
  *     summary: edit company's contact
  *     tags: [Company]
  *     requestBody:
@@ -1973,7 +1973,7 @@ userRouter
 /**
  * @openapi
  * /api/user/company/auth/edit/password:
- *   post:
+ *   put:
  *     summary: edit company's password
  *     tags: [Company]
  *     requestBody:
