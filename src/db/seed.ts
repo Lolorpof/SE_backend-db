@@ -72,13 +72,20 @@ async function seed() {
           password: adminPassword,
           email: "admin3@example.com",
           contact: "+66123456791",
-        }
+        },
       ])
       .returning();
 
     // Seed Job Seekers
     const jobSeekerPassword = await bcrypt.hash("seeker123", SALT_ROUNDS);
-    const [jobSeeker1, jobSeeker2, jobSeeker3, jobSeeker4, jobSeeker5, jobSeeker6] = await db
+    const [
+      jobSeeker1,
+      jobSeeker2,
+      jobSeeker3,
+      jobSeeker4,
+      jobSeeker5,
+      jobSeeker6,
+    ] = await db
       .insert(jobSeekerTable)
       .values([
         {
@@ -146,86 +153,94 @@ async function seed() {
           aboutMe: "Full-stack developer focused on MERN stack",
           address: "987 Stack St, Bangkok",
           approvalStatus: "APPROVED",
-        }
+        },
       ])
       .returning();
 
     // Seed Employers
     const employerPassword = await bcrypt.hash("employer123", SALT_ROUNDS);
-    const [employer1, employer2, employer3, employer4, employer5, employer6] = await db
-      .insert(employerTable)
-      .values([
-        {
-          username: "employer1",
-          password: employerPassword,
-          firstName: "Bob",
-          lastName: "Johnson",
-          email: "bob.johnson@example.com",
-          contact: "+66987654323",
-          aboutMe: "HR Manager at Tech Corp",
-          address: "789 Corp St, Bangkok",
-          approvalStatus: "APPROVED",
-        },
-        {
-          username: "employer2",
-          password: employerPassword,
-          firstName: "Alice",
-          lastName: "Williams",
-          email: "alice.williams@example.com",
-          contact: "+66987654324",
-          aboutMe: "Startup Founder",
-          address: "321 Start St, Bangkok",
-          approvalStatus: "UNAPPROVED",
-        },
-        {
-          username: "employer3",
-          password: employerPassword,
-          firstName: "Tom",
-          lastName: "Davis",
-          email: "tom.davis@example.com",
-          contact: "+66987654325",
-          aboutMe: "Technical Recruiter at Global Tech",
-          address: "456 Tech St, Bangkok",
-          approvalStatus: "APPROVED",
-        },
-        {
-          username: "employer4",
-          password: employerPassword,
-          firstName: "Emma",
-          lastName: "Miller",
-          email: "emma.miller@example.com",
-          contact: "+66987654326",
-          aboutMe: "IT Company Director",
-          address: "789 IT St, Bangkok",
-          approvalStatus: "APPROVED",
-        },
-        {
-          username: "employer5",
-          password: employerPassword,
-          firstName: "James",
-          lastName: "Wilson",
-          email: "james.wilson@example.com",
-          contact: "+66987654327",
-          aboutMe: "Software Development Manager",
-          address: "321 Dev St, Bangkok",
-          approvalStatus: "UNAPPROVED",
-        },
-        {
-          username: "employer6",
-          password: employerPassword,
-          firstName: "Sophie",
-          lastName: "Taylor",
-          email: "sophie.taylor@example.com",
-          contact: "+66987654328",
-          aboutMe: "HR Director at Innovation Corp",
-          address: "654 Innovation St, Bangkok",
-          approvalStatus: "APPROVED",
-        }
-      ])
-      .returning();
+    const [employer1, employer2, employer3, employer4, employer5, employer6] =
+      await db
+        .insert(employerTable)
+        .values([
+          {
+            username: "employer1",
+            password: employerPassword,
+            firstName: "Bob",
+            lastName: "Johnson",
+            email: "bob.johnson@example.com",
+            contact: "+66987654323",
+            aboutMe: "HR Manager at Tech Corp",
+            address: "789 Corp St, Bangkok",
+            approvalStatus: "APPROVED",
+          },
+          {
+            username: "employer2",
+            password: employerPassword,
+            firstName: "Alice",
+            lastName: "Williams",
+            email: "alice.williams@example.com",
+            contact: "+66987654324",
+            aboutMe: "Startup Founder",
+            address: "321 Start St, Bangkok",
+            approvalStatus: "UNAPPROVED",
+          },
+          {
+            username: "employer3",
+            password: employerPassword,
+            firstName: "Tom",
+            lastName: "Davis",
+            email: "tom.davis@example.com",
+            contact: "+66987654325",
+            aboutMe: "Technical Recruiter at Global Tech",
+            address: "456 Tech St, Bangkok",
+            approvalStatus: "APPROVED",
+          },
+          {
+            username: "employer4",
+            password: employerPassword,
+            firstName: "Emma",
+            lastName: "Miller",
+            email: "emma.miller@example.com",
+            contact: "+66987654326",
+            aboutMe: "IT Company Director",
+            address: "789 IT St, Bangkok",
+            approvalStatus: "APPROVED",
+          },
+          {
+            username: "employer5",
+            password: employerPassword,
+            firstName: "James",
+            lastName: "Wilson",
+            email: "james.wilson@example.com",
+            contact: "+66987654327",
+            aboutMe: "Software Development Manager",
+            address: "321 Dev St, Bangkok",
+            approvalStatus: "UNAPPROVED",
+          },
+          {
+            username: "employer6",
+            password: employerPassword,
+            firstName: "Sophie",
+            lastName: "Taylor",
+            email: "sophie.taylor@example.com",
+            contact: "+66987654328",
+            aboutMe: "HR Director at Innovation Corp",
+            address: "654 Innovation St, Bangkok",
+            approvalStatus: "APPROVED",
+          },
+        ])
+        .returning();
 
     // Seed OAuth Job Seekers
-    const [oauthJobSeeker1, oauthJobSeeker2, oauthJobSeeker3, oauthJobSeeker4, oauthJobSeeker5, oauthJobSeeker6] = await db
+    const [
+      oauthJobSeeker1,
+      oauthJobSeeker2,
+      oauthJobSeeker3,
+      oauthJobSeeker4,
+      oauthJobSeeker5,
+      oauthJobSeeker6,
+    ] = await db
       .insert(oauthJobSeekerTable)
       .values([
         {
@@ -299,12 +314,19 @@ async function seed() {
           address: "321 Cloud St, Bangkok",
           provider: "LINE",
           approvalStatus: "APPROVED",
-        }
+        },
       ])
       .returning();
 
     // Seed OAuth Employers
-    const [oauthEmployer1, oauthEmployer2, oauthEmployer3, oauthEmployer4, oauthEmployer5, oauthEmployer6] = await db
+    const [
+      oauthEmployer1,
+      oauthEmployer2,
+      oauthEmployer3,
+      oauthEmployer4,
+      oauthEmployer5,
+      oauthEmployer6,
+    ] = await db
       .insert(oauthEmployerTable)
       .values([
         {
@@ -378,75 +400,94 @@ async function seed() {
           address: "987 Talent St, Bangkok",
           provider: "LINE",
           approvalStatus: "APPROVED",
-        }
+        },
       ])
       .returning();
 
     // Seed Companies
     const companyPassword = await bcrypt.hash("company123", SALT_ROUNDS);
-    const [company1, company2, company3, company4, company5, company6] = await db
-      .insert(companyTable)
-      .values([
-        {
-          officialName: "Tech Solutions Co., Ltd.",
-          password: companyPassword,
-          email: "contact@techsolutions.com",
-          contact: "+66987654325",
-          aboutUs: "Leading technology solutions provider",
-          address: "100 Tech Road, Bangkok",
-          approvalStatus: "APPROVED",
-        },
-        {
-          officialName: "Digital Innovations Co., Ltd.",
-          password: companyPassword,
-          email: "contact@digitalinnovations.com",
-          contact: "+66987654326",
-          aboutUs: "Digital transformation consultancy",
-          address: "200 Digital Lane, Bangkok",
-          approvalStatus: "UNAPPROVED",
-        },
-        {
-          officialName: "Future Systems Co., Ltd.",
-          password: companyPassword,
-          email: "contact@futuresystems.com",
-          contact: "+66987654327",
-          aboutUs: "Next-generation software development",
-          address: "300 Future Road, Bangkok",
-          approvalStatus: "APPROVED",
-        },
-        {
-          officialName: "Smart Solutions Co., Ltd.",
-          password: companyPassword,
-          email: "contact@smartsolutions.com",
-          contact: "+66987654328",
-          aboutUs: "Smart city technology provider",
-          address: "400 Smart Lane, Bangkok",
-          approvalStatus: "APPROVED",
-        },
-        {
-          officialName: "Cloud Tech Co., Ltd.",
-          password: companyPassword,
-          email: "contact@cloudtech.com",
-          contact: "+66987654329",
-          aboutUs: "Cloud computing solutions",
-          address: "500 Cloud Road, Bangkok",
-          approvalStatus: "UNAPPROVED",
-        },
-        {
-          officialName: "AI Innovations Co., Ltd.",
-          password: companyPassword,
-          email: "contact@aiinnovations.com",
-          contact: "+66987654330",
-          aboutUs: "Artificial intelligence research and development",
-          address: "600 AI Lane, Bangkok",
-          approvalStatus: "APPROVED",
-        }
-      ])
-      .returning();
+    const [company1, company2, company3, company4, company5, company6] =
+      await db
+        .insert(companyTable)
+        .values([
+          {
+            officialName: "Tech Solutions Co., Ltd.",
+            password: companyPassword,
+            email: "contact@techsolutions.com",
+            contact: "+66987654325",
+            aboutUs: "Leading technology solutions provider",
+            address: "100 Tech Road, Bangkok",
+            approvalStatus: "APPROVED",
+          },
+          {
+            officialName: "Digital Innovations Co., Ltd.",
+            password: companyPassword,
+            email: "contact@digitalinnovations.com",
+            contact: "+66987654326",
+            aboutUs: "Digital transformation consultancy",
+            address: "200 Digital Lane, Bangkok",
+            approvalStatus: "UNAPPROVED",
+          },
+          {
+            officialName: "Future Systems Co., Ltd.",
+            password: companyPassword,
+            email: "contact@futuresystems.com",
+            contact: "+66987654327",
+            aboutUs: "Next-generation software development",
+            address: "300 Future Road, Bangkok",
+            approvalStatus: "APPROVED",
+          },
+          {
+            officialName: "Smart Solutions Co., Ltd.",
+            password: companyPassword,
+            email: "contact@smartsolutions.com",
+            contact: "+66987654328",
+            aboutUs: "Smart city technology provider",
+            address: "400 Smart Lane, Bangkok",
+            approvalStatus: "APPROVED",
+          },
+          {
+            officialName: "Cloud Tech Co., Ltd.",
+            password: companyPassword,
+            email: "contact@cloudtech.com",
+            contact: "+66987654329",
+            aboutUs: "Cloud computing solutions",
+            address: "500 Cloud Road, Bangkok",
+            approvalStatus: "UNAPPROVED",
+          },
+          {
+            officialName: "AI Innovations Co., Ltd.",
+            password: companyPassword,
+            email: "contact@aiinnovations.com",
+            contact: "+66987654330",
+            aboutUs: "Artificial intelligence research and development",
+            address: "600 AI Lane, Bangkok",
+            approvalStatus: "APPROVED",
+          },
+        ])
+        .returning();
 
     // Seed Skills
-    const [skill1, skill2, skill3, skill4, skill5, skill6, skill7, skill8, skill9, 
-           skill10, skill11, skill12, skill13, skill14, skill15, skill16, skill17, skill18] = await db
+    const [
+      skill1,
+      skill2,
+      skill3,
+      skill4,
+      skill5,
+      skill6,
+      skill7,
+      skill8,
+      skill9,
+      skill10,
+      skill11,
+      skill12,
+      skill13,
+      skill14,
+      skill15,
+      skill16,
+      skill17,
+      skill18,
+    ] = await db
       .insert(skillTable)
       .values([
         {
@@ -521,44 +562,63 @@ async function seed() {
         {
           name: "Supply Chain Management",
           description: "Logistics and supply chain optimization",
-        }
+        },
       ])
       .returning();
 
     // Seed Vulnerability Types
-    const [vulType1, vulType2, vulType3, vulType4, vulType5, vulType6] = await db
-      .insert(vulnerabilityTypeTable)
-      .values([
-        {
-          name: "Physical Disability",
-          description: "Physical impairment that affects mobility",
-        },
-        {
-          name: "Visual Impairment",
-          description: "Partial or complete loss of vision",
-        },
-        {
-          name: "Hearing Impairment",
-          description: "Partial or complete hearing loss",
-        },
-        {
-          name: "Speech Impairment",
-          description: "Difficulty with verbal communication",
-        },
-        {
-          name: "Cognitive Disability",
-          description: "Affects learning and information processing",
-        },
-        {
-          name: "Neurodivergent",
-          description: "Different neurological variations",
-        }
-      ])
-      .returning();
+    const [vulType1, vulType2, vulType3, vulType4, vulType5, vulType6] =
+      await db
+        .insert(vulnerabilityTypeTable)
+        .values([
+          {
+            name: "Physical Disability",
+            description: "Physical impairment that affects mobility",
+          },
+          {
+            name: "Visual Impairment",
+            description: "Partial or complete loss of vision",
+          },
+          {
+            name: "Hearing Impairment",
+            description: "Partial or complete hearing loss",
+          },
+          {
+            name: "Speech Impairment",
+            description: "Difficulty with verbal communication",
+          },
+          {
+            name: "Cognitive Disability",
+            description: "Affects learning and information processing",
+          },
+          {
+            name: "Neurodivergent",
+            description: "Different neurological variations",
+          },
+        ])
+        .returning();
 
     // Seed Job Categories
-    const [category1, category2, category3, category4, category5, category6, category7, category8, category9,
-           category10, category11, category12, category13, category14, category15, category16, category17, category18] = await db
+    const [
+      category1,
+      category2,
+      category3,
+      category4,
+      category5,
+      category6,
+      category7,
+      category8,
+      category9,
+      category10,
+      category11,
+      category12,
+      category13,
+      category14,
+      category15,
+      category16,
+      category17,
+      category18,
+    ] = await db
       .insert(jobCategoryTable)
       .values([
         {
@@ -633,7 +693,7 @@ async function seed() {
         {
           name: "Logistics and Supply Chain",
           description: "Supply chain and logistics management roles",
-        }
+        },
       ])
       .returning();
 
@@ -674,7 +734,7 @@ async function seed() {
       {
         jobSeekerId: jobSeeker6.id,
         skillId: skill13.id,
-      }
+      },
     ]);
 
     // Seed Job Seeker Vulnerabilities
@@ -714,11 +774,18 @@ async function seed() {
         vulnerabilityTypeId: vulType6.id,
         severity: "HIGH",
         publicStatus: "HIDDEN",
-      }
+      },
     ]);
 
     // Seed Job Finding Posts
-    const [findingPost1, findingPost2, findingPost3, findingPost4, findingPost5, findingPost6] = await db
+    const [
+      findingPost1,
+      findingPost2,
+      findingPost3,
+      findingPost4,
+      findingPost5,
+      findingPost6,
+    ] = await db
       .insert(jobFindingPostTable)
       .values([
         {
@@ -792,12 +859,19 @@ async function seed() {
           jobSeekerType: "NORMAL",
           jobSeekerId: jobSeeker6.id,
           jobPostType: "FULLTIME",
-        }
+        },
       ])
       .returning();
 
     // Seed Job Hiring Posts
-    const [hiringPost1, hiringPost2, hiringPost3, hiringPost4, hiringPost5, hiringPost6] = await db
+    const [
+      hiringPost1,
+      hiringPost2,
+      hiringPost3,
+      hiringPost4,
+      hiringPost5,
+      hiringPost6,
+    ] = await db
       .insert(jobHiringPostTable)
       .values([
         {
@@ -877,7 +951,7 @@ async function seed() {
           jobHirerType: "COMPANY",
           companyId: company3.id,
           jobPostType: "FULLTIME",
-        }
+        },
       ])
       .returning();
 
@@ -906,7 +980,7 @@ async function seed() {
       {
         jobFindingPostId: findingPost6.id,
         jobCategoryId: category13.id,
-      }
+      },
     ]);
 
     await db.insert(jobHireCategoryTable).values([
@@ -933,7 +1007,7 @@ async function seed() {
       {
         jobHiringPostId: hiringPost6.id,
         jobCategoryId: category17.id,
-      }
+      },
     ]);
 
     // Seed Skills for Posts
@@ -965,7 +1039,7 @@ async function seed() {
       {
         jobFindingPostId: findingPost6.id,
         skillId: skill13.id,
-      }
+      },
     ]);
 
     await db.insert(jobHiringPostSkillTable).values([
@@ -992,7 +1066,7 @@ async function seed() {
       {
         jobHiringPostId: hiringPost6.id,
         skillId: skill17.id,
-      }
+      },
     ]);
 
     // Seed Registration Approvals
@@ -1076,7 +1150,7 @@ async function seed() {
         companyId: company4.id,
         adminId: admin3.id,
         approvedAt: new Date(),
-      }
+      },
     ]);
 
     // Seed Notifications
@@ -1192,7 +1266,7 @@ async function seed() {
         description: "Your registration has been approved",
         userType: "COMPANY",
         companyId: company4.id,
-      }
+      },
     ]);
 
     // Add OAuth Job Seeker Skills
@@ -1224,7 +1298,7 @@ async function seed() {
       {
         oauthJobSeekerId: oauthJobSeeker6.id,
         skillId: skill6.id,
-      }
+      },
     ]);
 
     // Add OAuth Job Seeker Vulnerabilities
@@ -1264,7 +1338,7 @@ async function seed() {
         vulnerabilityTypeId: vulType6.id,
         severity: "HIGH",
         publicStatus: "HIDDEN",
-      }
+      },
     ]);
 
     // Seed Job Hiring Post Matches
@@ -1279,84 +1353,80 @@ async function seed() {
         },
         {
           jobHiringPostId: hiringPost3.id,
-        }
+        },
       ])
       .returning();
 
     // Seed Job Hiring Post Matched Seekers
-    await db
-      .insert(jobHiringPostMatchedSeekersTable)
-      .values([
-        {
-          jobSeekerType: "NORMAL",
-          jobSeekerId: jobSeeker1.id,
-          jobHiringPostMatchedId: hiringMatch1.id,
-          status: "INPROGRESS"
-        },
-        {
-          jobSeekerType: "NORMAL",
-          jobSeekerId: jobSeeker2.id,
-          jobHiringPostMatchedId: hiringMatch1.id,
-          status: "ACCEPTED",
-          approvedAt: new Date()
-        },
-        {
-          jobSeekerType: "OAUTH",
-          oauthJobSeekerId: oauthJobSeeker1.id,
-          jobHiringPostMatchedId: hiringMatch1.id,
-          status: "DENIED"
-        },
-        {
-          jobSeekerType: "NORMAL",
-          jobSeekerId: jobSeeker3.id,
-          jobHiringPostMatchedId: hiringMatch2.id,
-          status: "INPROGRESS"
-        },
-        {
-          jobSeekerType: "OAUTH",
-          oauthJobSeekerId: oauthJobSeeker2.id,
-          jobHiringPostMatchedId: hiringMatch2.id,
-          status: "ACCEPTED",
-          approvedAt: new Date()
-        },
-        {
-          jobSeekerType: "NORMAL",
-          jobSeekerId: jobSeeker4.id,
-          jobHiringPostMatchedId: hiringMatch3.id,
-          status: "INPROGRESS"
-        }
-      ]);
+    await db.insert(jobHiringPostMatchedSeekersTable).values([
+      {
+        jobSeekerType: "NORMAL",
+        jobSeekerId: jobSeeker1.id,
+        jobHiringPostMatchedId: hiringMatch1.id,
+        status: "INPROGRESS",
+      },
+      {
+        jobSeekerType: "NORMAL",
+        jobSeekerId: jobSeeker2.id,
+        jobHiringPostMatchedId: hiringMatch1.id,
+        status: "ACCEPTED",
+        approvedAt: new Date(),
+      },
+      {
+        jobSeekerType: "OAUTH",
+        oauthJobSeekerId: oauthJobSeeker1.id,
+        jobHiringPostMatchedId: hiringMatch1.id,
+        status: "DENIED",
+      },
+      {
+        jobSeekerType: "NORMAL",
+        jobSeekerId: jobSeeker3.id,
+        jobHiringPostMatchedId: hiringMatch2.id,
+        status: "INPROGRESS",
+      },
+      {
+        jobSeekerType: "OAUTH",
+        oauthJobSeekerId: oauthJobSeeker2.id,
+        jobHiringPostMatchedId: hiringMatch2.id,
+        status: "ACCEPTED",
+        approvedAt: new Date(),
+      },
+      {
+        jobSeekerType: "NORMAL",
+        jobSeekerId: jobSeeker4.id,
+        jobHiringPostMatchedId: hiringMatch3.id,
+        status: "INPROGRESS",
+      },
+    ]);
 
     // Seed Job Finding Post Matches
-    await db
-      .insert(jobFindingPostMatchedTable)
-      .values([
-        {
-          jobFindingPostId: findingPost1.id,
-          status: "INPROGRESS",
-          jobHirerType: "EMPLOYER",
-          employerId: employer1.id
-        },
-        {
-          jobFindingPostId: findingPost2.id,
-          status: "ACCEPTED",
-          jobHirerType: "COMPANY",
-          companyId: company1.id,
-          approvedAt: new Date()
-        },
-        {
-          jobFindingPostId: findingPost3.id,
-          status: "DENIED",
-          jobHirerType: "OAUTHEMPLOYER",
-          oauthEmployerId: oauthEmployer1.id
-        },
-        {
-          jobFindingPostId: findingPost4.id,
-          status: "INPROGRESS",
-          jobHirerType: "EMPLOYER",
-          employerId: employer2.id
-        }
-      ]);
+    await db.insert(jobFindingPostMatchedTable).values([
+      {
+        jobFindingPostId: findingPost1.id,
+        status: "INPROGRESS",
+        jobHirerType: "EMPLOYER",
+        employerId: employer1.id,
+      },
+      {
+        jobFindingPostId: findingPost2.id,
+        status: "ACCEPTED",
+        jobHirerType: "COMPANY",
+        companyId: company1.id,
+        approvedAt: new Date(),
+      },
+      {
+        jobFindingPostId: findingPost3.id,
+        status: "DENIED",
+        jobHirerType: "OAUTHEMPLOYER",
+        oauthEmployerId: oauthEmployer1.id,
+      },
+      {
+        jobFindingPostId: findingPost4.id,
+        status: "INPROGRESS",
+        jobHirerType: "EMPLOYER",
+        employerId: employer2.id,
+      },
+    ]);
 
     console.log("Database seeded successfully!");
   } catch (error) {
@@ -1372,4 +1442,4 @@ seed()
   })
   .finally(async () => {
     await pool.end();
-  }); 
+  });

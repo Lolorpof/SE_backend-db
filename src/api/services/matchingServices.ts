@@ -11,11 +11,21 @@ import { Services } from "./services";
 import { ServicesResponse } from "../types/responseTypes";
 import { errorServices } from "./errorServices";
 import { matchingServiceInterfaces } from "../interfaces/matchingServiceInterfaces";
-import { THiringMatchSeeker, TFindingMatchHirer, TMatchStatus } from "../types/matchingTypes";
-import { validateHiringMatchSeeker, validateFindingMatchHirer } from "../schemas/requestBodySchema";
+import {
+  THiringMatchSeeker,
+  TFindingMatchHirer,
+  TMatchStatus,
+} from "../types/matchingTypes";
+import {
+  validateHiringMatchSeeker,
+  validateFindingMatchHirer,
+} from "../schemas/requestBodySchema";
 import { TJobSeekerSession } from "../types/usersTypes";
 
-export class matchingServices extends Services<any, any> implements matchingServiceInterfaces {
+export class matchingServices
+  extends Services<any, any>
+  implements matchingServiceInterfaces
+{
   private constructor() {
     super(jobHiringPostMatchedTable);
   }
@@ -25,7 +35,10 @@ export class matchingServices extends Services<any, any> implements matchingServ
   }
 
   // Job seeker matches with a hiring post
-  async matchWithHiringPost(hiringPostId: string, user: TJobSeekerSession): Promise<ServicesResponse<any>> {
+  async matchWithHiringPost(
+    hiringPostId: string,
+    user: TJobSeekerSession
+  ): Promise<ServicesResponse<any>> {
     try {
       if (!user) {
         throw errorServices.handleAuthError();
@@ -44,17 +57,22 @@ export class matchingServices extends Services<any, any> implements matchingServ
       const isOauth = user.isOauth;
 
       // Check if user has already matched with this post
-      const existingMatch = await drizzlePool.query.jobHiringPostMatchedSeekersTable.findFirst({
-        where: and(
-          isOauth
-            ? eq(jobHiringPostMatchedSeekersTable.oauthJobSeekerId, user.id)
-            : eq(jobHiringPostMatchedSeekersTable.jobSeekerId, user.id),
-          eq(jobHiringPostMatchedSeekersTable.jobHiringPostMatchedId, post.id)
-        ),
-      });
+      const existingMatch =
+        await drizzlePool.query.jobHiringPostMatchedSeekersTable.findFirst({
+          where: and(
+            isOauth
+              ? eq(jobHiringPostMatchedSeekersTable.oauthJobSeekerId, user.id)
+              : eq(jobHiringPostMatchedSeekersTable.jobSeekerId, user.id),
+            eq(jobHiringPostMatchedSeekersTable.jobHiringPostMatchedId, post.id)
+          ),
+        });
 
       if (existingMatch) {
-        return { success: false, msg: "You have already matched with this post", status: 400 };
+        return {
+          success: false,
+          msg: "You have already matched with this post",
+          status: 400,
+        };
       }
 
       // Create match record if it doesn't exist
@@ -63,14 +81,18 @@ export class matchingServices extends Services<any, any> implements matchingServ
       });
 
       if (!match) {
-        const [newMatch] = await drizzlePool.insert(jobHiringPostMatchedTable).values({
-          jobHiringPostId: hiringPostId,
-        }).returning();
+        const [newMatch] = await drizzlePool
+          .insert(jobHiringPostMatchedTable)
+          .values({
+            jobHiringPostId: hiringPostId,
+          })
+          .returning();
         match = newMatch;
       }
 
       // Add seeker to match
-      const [seekerMatch] = await drizzlePool.insert(jobHiringPostMatchedSeekersTable)
+      const [seekerMatch] = await drizzlePool
+        .insert(jobHiringPostMatchedSeekersTable)
         .values({
           jobHiringPostMatchedId: match.id,
           jobSeekerType: isOauth ? "OAUTH" : "NORMAL",
@@ -93,14 +115,17 @@ export class matchingServices extends Services<any, any> implements matchingServ
   }
 
   // Get all matches for a hiring post
-  async getHiringPostMatches(hiringPostId: string): Promise<ServicesResponse<any>> {
+  async getHiringPostMatches(
+    hiringPostId: string
+  ): Promise<ServicesResponse<any>> {
     try {
-      const matches = await drizzlePool.query.jobHiringPostMatchedTable.findMany({
-        where: eq(jobHiringPostMatchedTable.jobHiringPostId, hiringPostId),
-        with: {
-          toMatchSeekers: true
-        }
-      });
+      const matches =
+        await drizzlePool.query.jobHiringPostMatchedTable.findMany({
+          where: eq(jobHiringPostMatchedTable.jobHiringPostId, hiringPostId),
+          with: {
+            toMatchSeekers: true,
+          },
+        });
 
       return {
         success: true,
@@ -115,7 +140,10 @@ export class matchingServices extends Services<any, any> implements matchingServ
   }
 
   // Update match status (by employer)
-  async updateHiringMatchStatus(matchId: string, status: TMatchStatus): Promise<ServicesResponse<any>> {
+  async updateHiringMatchStatus(
+    matchId: string,
+    status: TMatchStatus
+  ): Promise<ServicesResponse<any>> {
     try {
       const updated = await drizzlePool
         .update(jobHiringPostMatchedSeekersTable)
@@ -123,7 +151,9 @@ export class matchingServices extends Services<any, any> implements matchingServ
           status,
           approvedAt: status === "ACCEPTED" ? new Date() : undefined,
         })
-        .where(eq(jobHiringPostMatchedSeekersTable.jobHiringPostMatchedId, matchId))
+        .where(
+          eq(jobHiringPostMatchedSeekersTable.jobHiringPostMatchedId, matchId)
+        )
         .returning();
 
       if (!updated.length) {
@@ -138,12 +168,18 @@ export class matchingServices extends Services<any, any> implements matchingServ
       };
     } catch (error) {
       console.error(error);
-      return { success: false, msg: "Failed to update match status", status: 500 };
+      return {
+        success: false,
+        msg: "Failed to update match status",
+        status: 500,
+      };
     }
   }
 
   // Hiring Post Matching Methods
-  async createHiringPostMatch(hiringPostId: string): Promise<ServicesResponse<any>> {
+  async createHiringPostMatch(
+    hiringPostId: string
+  ): Promise<ServicesResponse<any>> {
     try {
       // Check if hiring post exists
       const post = await drizzlePool.query.jobHiringPostTable.findFirst({
@@ -155,9 +191,12 @@ export class matchingServices extends Services<any, any> implements matchingServ
       }
 
       // Create match record
-      const match = await drizzlePool.insert(jobHiringPostMatchedTable).values({
-        jobHiringPostId: hiringPostId,
-      }).returning();
+      const match = await drizzlePool
+        .insert(jobHiringPostMatchedTable)
+        .values({
+          jobHiringPostId: hiringPostId,
+        })
+        .returning();
 
       return {
         success: true,
@@ -167,32 +206,48 @@ export class matchingServices extends Services<any, any> implements matchingServ
       };
     } catch (error) {
       console.error(error);
-      return { success: false, msg: "Failed to create hiring post match", status: 500 };
+      return {
+        success: false,
+        msg: "Failed to create hiring post match",
+        status: 500,
+      };
     }
   }
 
-  async addSeekerToHiringPost(matchId: string, seekerData: THiringMatchSeeker): Promise<ServicesResponse<any>> {
+  async addSeekerToHiringPost(
+    matchId: string,
+    seekerData: THiringMatchSeeker
+  ): Promise<ServicesResponse<any>> {
     try {
       if (!validateHiringMatchSeeker(seekerData)) {
-        return { success: false, msg: "Must provide either jobSeekerId or oauthJobSeekerId", status: 400 };
+        return {
+          success: false,
+          msg: "Must provide either jobSeekerId or oauthJobSeekerId",
+          status: 400,
+        };
       }
       // Check if match exists
-      const match = await drizzlePool.query.jobHiringPostMatchedTable.findFirst({
-        where: eq(jobHiringPostMatchedTable.id, matchId),
-      });
+      const match = await drizzlePool.query.jobHiringPostMatchedTable.findFirst(
+        {
+          where: eq(jobHiringPostMatchedTable.id, matchId),
+        }
+      );
 
       if (!match) {
         return { success: false, msg: "Match not found", status: 404 };
       }
 
       // Create seeker match record
-      const seekerMatch = await drizzlePool.insert(jobHiringPostMatchedSeekersTable).values({
-        jobHiringPostMatchedId: matchId,
-        jobSeekerType: seekerData.jobSeekerType,
-        jobSeekerId: seekerData.jobSeekerId,
-        oauthJobSeekerId: seekerData.oauthJobSeekerId,
-        status: "INPROGRESS",
-      }).returning();
+      const seekerMatch = await drizzlePool
+        .insert(jobHiringPostMatchedSeekersTable)
+        .values({
+          jobHiringPostMatchedId: matchId,
+          jobSeekerType: seekerData.jobSeekerType,
+          jobSeekerId: seekerData.jobSeekerId,
+          oauthJobSeekerId: seekerData.oauthJobSeekerId,
+          status: "INPROGRESS",
+        })
+        .returning();
 
       return {
         success: true,
@@ -202,11 +257,19 @@ export class matchingServices extends Services<any, any> implements matchingServ
       };
     } catch (error) {
       console.error(error);
-      return { success: false, msg: "Failed to add seeker to hiring post match", status: 500 };
+      return {
+        success: false,
+        msg: "Failed to add seeker to hiring post match",
+        status: 500,
+      };
     }
   }
 
-  async updateSeekerMatchStatus(matchId: string, seekerId: string, status: TMatchStatus): Promise<ServicesResponse<any>> {
+  async updateSeekerMatchStatus(
+    matchId: string,
+    seekerId: string,
+    status: TMatchStatus
+  ): Promise<ServicesResponse<any>> {
     try {
       const updated = await drizzlePool
         .update(jobHiringPostMatchedSeekersTable)
@@ -216,7 +279,10 @@ export class matchingServices extends Services<any, any> implements matchingServ
         })
         .where(
           and(
-            eq(jobHiringPostMatchedSeekersTable.jobHiringPostMatchedId, matchId),
+            eq(
+              jobHiringPostMatchedSeekersTable.jobHiringPostMatchedId,
+              matchId
+            ),
             eq(jobHiringPostMatchedSeekersTable.jobSeekerId, seekerId)
           )
         )
@@ -234,15 +300,23 @@ export class matchingServices extends Services<any, any> implements matchingServ
       };
     } catch (error) {
       console.error(error);
-      return { success: false, msg: "Failed to update match status", status: 500 };
+      return {
+        success: false,
+        msg: "Failed to update match status",
+        status: 500,
+      };
     }
   }
 
   async getHiringMatchSeekers(matchId: string): Promise<ServicesResponse<any>> {
     try {
-      const seekers = await drizzlePool.query.jobHiringPostMatchedSeekersTable.findMany({
-        where: eq(jobHiringPostMatchedSeekersTable.jobHiringPostMatchedId, matchId),
-      });
+      const seekers =
+        await drizzlePool.query.jobHiringPostMatchedSeekersTable.findMany({
+          where: eq(
+            jobHiringPostMatchedSeekersTable.jobHiringPostMatchedId,
+            matchId
+          ),
+        });
 
       return {
         success: true,
@@ -252,15 +326,26 @@ export class matchingServices extends Services<any, any> implements matchingServ
       };
     } catch (error) {
       console.error(error);
-      return { success: false, msg: "Failed to get match seekers", status: 500 };
+      return {
+        success: false,
+        msg: "Failed to get match seekers",
+        status: 500,
+      };
     }
   }
 
   // Finding Post Matching Methods
-  async createFindingPostMatch(findingPostId: string, hirerData: TFindingMatchHirer): Promise<ServicesResponse<any>> {
+  async createFindingPostMatch(
+    findingPostId: string,
+    hirerData: TFindingMatchHirer
+  ): Promise<ServicesResponse<any>> {
     try {
       if (!validateFindingMatchHirer(hirerData)) {
-        return { success: false, msg: "Must provide exactly one hirer ID matching the hirer type", status: 400 };
+        return {
+          success: false,
+          msg: "Must provide exactly one hirer ID matching the hirer type",
+          status: 400,
+        };
       }
       // Check if finding post exists
       const post = await drizzlePool.query.jobFindingPostTable.findFirst({
@@ -272,14 +357,17 @@ export class matchingServices extends Services<any, any> implements matchingServ
       }
 
       // Create match record
-      const match = await drizzlePool.insert(jobFindingPostMatchedTable).values({
-        jobFindingPostId: findingPostId,
-        jobHirerType: hirerData.jobHirerType,
-        employerId: hirerData.employerId,
-        oauthEmployerId: hirerData.oauthEmployerId,
-        companyId: hirerData.companyId,
-        status: "INPROGRESS",
-      }).returning();
+      const match = await drizzlePool
+        .insert(jobFindingPostMatchedTable)
+        .values({
+          jobFindingPostId: findingPostId,
+          jobHirerType: hirerData.jobHirerType,
+          employerId: hirerData.employerId,
+          oauthEmployerId: hirerData.oauthEmployerId,
+          companyId: hirerData.companyId,
+          status: "INPROGRESS",
+        })
+        .returning();
 
       return {
         success: true,
@@ -289,11 +377,18 @@ export class matchingServices extends Services<any, any> implements matchingServ
       };
     } catch (error) {
       console.error(error);
-      return { success: false, msg: "Failed to create finding post match", status: 500 };
+      return {
+        success: false,
+        msg: "Failed to create finding post match",
+        status: 500,
+      };
     }
   }
 
-  async updateFindingPostMatchStatus(matchId: string, status: TMatchStatus): Promise<ServicesResponse<any>> {
+  async updateFindingPostMatchStatus(
+    matchId: string,
+    status: TMatchStatus
+  ): Promise<ServicesResponse<any>> {
     try {
       const updated = await drizzlePool
         .update(jobFindingPostMatchedTable)
@@ -316,15 +411,22 @@ export class matchingServices extends Services<any, any> implements matchingServ
       };
     } catch (error) {
       console.error(error);
-      return { success: false, msg: "Failed to update match status", status: 500 };
+      return {
+        success: false,
+        msg: "Failed to update match status",
+        status: 500,
+      };
     }
   }
 
-  async getFindingPostMatch(findingPostId: string): Promise<ServicesResponse<any>> {
+  async getFindingPostMatch(
+    findingPostId: string
+  ): Promise<ServicesResponse<any>> {
     try {
-      const match = await drizzlePool.query.jobFindingPostMatchedTable.findFirst({
-        where: eq(jobFindingPostMatchedTable.jobFindingPostId, findingPostId),
-      });
+      const match =
+        await drizzlePool.query.jobFindingPostMatchedTable.findFirst({
+          where: eq(jobFindingPostMatchedTable.jobFindingPostId, findingPostId),
+        });
 
       if (!match) {
         return { success: false, msg: "Match not found", status: 404 };
@@ -342,74 +444,77 @@ export class matchingServices extends Services<any, any> implements matchingServ
     }
   }
 
-  async getUserMatchingStatus(userId: string, userType: string): Promise<ServicesResponse<any>> {
+  async getUserMatchingStatus(
+    userId: string,
+    userType: string
+  ): Promise<ServicesResponse<any>> {
     try {
       let matches: { hiringMatches: any[]; findingMatches: any[] };
 
-      // If user is a job seeker (either normal or OAuth)
-      if (userType === "JOBSEEKER" || userType === "OAUTH_JOBSEEKER") {
-        const seekerField = userType === "JOBSEEKER" ? "jobSeekerId" : "oauthJobSeekerId";
-        
+      // If user is a job seeker
+      if (userType === "JOBSEEKER") {
         // Get hiring post matches where user is a seeker
-        const hiringMatches = await drizzlePool.query.jobHiringPostMatchedSeekersTable.findMany({
-          where: eq(jobHiringPostMatchedSeekersTable[seekerField], userId),
-          with: {
-            toPostMatched: {
-              with: {
-                toPost: true
-              }
-            }
-          }
-        });
+        const hiringMatches =
+          await drizzlePool.query.jobHiringPostMatchedSeekersTable.findMany({
+            where: eq(jobHiringPostMatchedSeekersTable.jobSeekerId, userId),
+            with: {
+              toPostMatched: {
+                with: {
+                  toPost: true,
+                },
+              },
+            },
+          });
 
         // Get finding posts where user is the creator
-        const findingMatches = await drizzlePool.query.jobFindingPostTable.findMany({
-          where: userType === "JOBSEEKER" 
-            ? eq(jobFindingPostTable.jobSeekerId, userId)
-            : eq(jobFindingPostTable.oauthJobSeekerId, userId),
-          with: {
-            postMatched: true
-          }
-        });
+        const findingMatches =
+          await drizzlePool.query.jobFindingPostTable.findMany({
+            where: eq(jobFindingPostTable.jobSeekerId, userId),
+            with: {
+              postMatched: true,
+            },
+          });
 
         matches = {
           hiringMatches,
-          findingMatches
+          findingMatches,
         };
       }
       // If user is an employer/company
       else {
         // Get hiring posts created by the user
-        const hiringMatches = await drizzlePool.query.jobHiringPostTable.findMany({
-          where: or(
-            eq(jobHiringPostTable.employerId, userId),
-            eq(jobHiringPostTable.oauthEmployerId, userId),
-            eq(jobHiringPostTable.companyId, userId)
-          ),
-          with: {
-            postMatched: {
-              with: {
-                toMatchSeekers: true
-              }
-            }
-          }
-        });
+        const hiringMatches =
+          await drizzlePool.query.jobHiringPostTable.findMany({
+            where: or(
+              eq(jobHiringPostTable.employerId, userId),
+              eq(jobHiringPostTable.oauthEmployerId, userId),
+              eq(jobHiringPostTable.companyId, userId)
+            ),
+            with: {
+              postMatched: {
+                with: {
+                  toMatchSeekers: true,
+                },
+              },
+            },
+          });
 
         // Get finding post matches where user is the hirer
-        const findingMatches = await drizzlePool.query.jobFindingPostMatchedTable.findMany({
-          where: or(
-            eq(jobFindingPostMatchedTable.employerId, userId),
-            eq(jobFindingPostMatchedTable.oauthEmployerId, userId),
-            eq(jobFindingPostMatchedTable.companyId, userId)
-          ),
-          with: {
-            toPost: true
-          }
-        });
+        const findingMatches =
+          await drizzlePool.query.jobFindingPostMatchedTable.findMany({
+            where: or(
+              eq(jobFindingPostMatchedTable.employerId, userId),
+              eq(jobFindingPostMatchedTable.oauthEmployerId, userId),
+              eq(jobFindingPostMatchedTable.companyId, userId)
+            ),
+            with: {
+              toPost: true,
+            },
+          });
 
         matches = {
           hiringMatches,
-          findingMatches
+          findingMatches,
         };
       }
 
@@ -421,39 +526,49 @@ export class matchingServices extends Services<any, any> implements matchingServ
       };
     } catch (error) {
       console.error(error);
-      return { success: false, msg: "Failed to get user matching status", status: 500 };
+      return {
+        success: false,
+        msg: "Failed to get user matching status",
+        status: 500,
+      };
     }
   }
 
   async getAllMatchingStatus(): Promise<ServicesResponse<any>> {
     try {
       // Get all hiring post matches with related data
-      const hiringMatches = await drizzlePool.query.jobHiringPostMatchedTable.findMany({
-        with: {
-          toPost: true,
-          toMatchSeekers: true
-        }
-      });
+      const hiringMatches =
+        await drizzlePool.query.jobHiringPostMatchedTable.findMany({
+          with: {
+            toPost: true,
+            toMatchSeekers: true,
+          },
+        });
 
       // Get all finding post matches with related data
-      const findingMatches = await drizzlePool.query.jobFindingPostMatchedTable.findMany({
-        with: {
-          toPost: true
-        }
-      });
+      const findingMatches =
+        await drizzlePool.query.jobFindingPostMatchedTable.findMany({
+          with: {
+            toPost: true,
+          },
+        });
 
       return {
         success: true,
         msg: "All matching status retrieved successfully",
         data: {
           hiringMatches,
-          findingMatches
+          findingMatches,
         },
         status: 200,
       };
     } catch (error) {
       console.error(error);
-      return { success: false, msg: "Failed to get all matching status", status: 500 };
+      return {
+        success: false,
+        msg: "Failed to get all matching status",
+        status: 500,
+      };
     }
   }
-} 
+}

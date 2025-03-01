@@ -28,7 +28,11 @@ import {
 } from "../types/postTypes";
 import { ServicesResponse } from "../types/responseTypes";
 import { errorServices } from "./errorServices";
-import { TJobSeekerSession, TEmployerSession, TCompanySession } from "../types/usersTypes";
+import {
+  TJobSeekerSession,
+  TEmployerSession,
+  TCompanySession,
+} from "../types/usersTypes";
 
 export class postServices {
   // singleton design
@@ -1058,9 +1062,9 @@ export class postServices {
         .where(
           and(
             eq(jobFindingPostTable.id, postId),
-            user.type === "NORMAL"
-              ? eq(jobFindingPostTable.jobSeekerId, user.id)
-              : eq(jobFindingPostTable.oauthJobSeekerId, user.id)
+            user.isOauth
+              ? eq(jobFindingPostTable.oauthJobSeekerId, user.id)
+              : eq(jobFindingPostTable.jobSeekerId, user.id)
           )
         )
         .limit(1);
@@ -1179,21 +1183,33 @@ export class postServices {
     user: TJobSeekerSession
   ): Promise<TPostResponse> {
     try {
-      const [deletedPost] = await drizzlePool
-        .delete(jobFindingPostTable)
-        .where(
-          and(
-            eq(jobFindingPostTable.id, postId),
-            user.type === "NORMAL"
-              ? eq(jobFindingPostTable.jobSeekerId, user.id)
-              : eq(jobFindingPostTable.oauthJobSeekerId, user.id)
-          )
-        )
-        .returning();
+      // First check if the post exists and belongs to the user
+      const [existingPost] = await drizzlePool
+        .select()
+        .from(jobFindingPostTable)
+        .where(eq(jobFindingPostTable.id, postId))
+        .limit(1);
 
-      if (!deletedPost) {
+      if (!existingPost) {
         throw errorServices.handleNotFoundError("Job finding post");
       }
+
+      // Check ownership based on user type (using isOauth)
+      const isOwner = user.isOauth
+        ? existingPost.oauthJobSeekerId === user.id
+        : existingPost.jobSeekerId === user.id;
+
+      if (!isOwner) {
+        throw errorServices.handleForbiddenError(
+          "You are not authorized to delete this job post"
+        );
+      }
+
+      // Now delete the post
+      const [deletedPost] = await drizzlePool
+        .delete(jobFindingPostTable)
+        .where(eq(jobFindingPostTable.id, postId))
+        .returning();
 
       return {
         success: true,
