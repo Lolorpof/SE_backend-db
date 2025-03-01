@@ -8,6 +8,7 @@ import {
   userOauthControllerInterfaces,
 } from "../interfaces/userControllerInterfaces";
 import { catchError } from "../utilities/utilFunctions";
+import { TJobSeekerSession } from "../types/usersTypes";
 
 export class jobSeekerControllers implements jobSeekerControllerInterfaces {
   // singleton design
@@ -99,10 +100,11 @@ export class jobSeekerControllers implements jobSeekerControllerInterfaces {
 
   // logout route handler
   async logout(req: Request, res: Response): Promise<void> {
+    const formattedUser = req.user as TJobSeekerSession;
     // check current user type
     const result = await jobSeekerServices
       .instance()
-      .checkCurrent(req.user, "JOBSEEKER", false);
+      .checkCurrent(req.user, "JOBSEEKER", formattedUser.isOauth);
     if (!result.success || !result.data) {
       res.status(result.status).json({
         success: false,

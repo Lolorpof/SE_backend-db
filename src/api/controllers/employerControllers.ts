@@ -7,6 +7,7 @@ import {
 } from "../interfaces/userControllerInterfaces";
 import passport from "../middlewares/passport";
 import { catchError } from "../utilities/utilFunctions";
+import { TEmployerSession } from "../types/usersTypes";
 
 export class employerControllers implements employerControllerInterfaces {
   // singleton design
@@ -101,10 +102,11 @@ export class employerControllers implements employerControllerInterfaces {
 
   // logout route handler
   async logout(req: Request, res: Response): Promise<void> {
+    const formattedUser = req.user as TEmployerSession;
     // check current user type
     const result = await employerServices
       .instance()
-      .checkCurrent(req.user, "EMPLOYER", false);
+      .checkCurrent(req.user, "EMPLOYER", formattedUser.isOauth);
     if (!result.success || !result.data) {
       res.status(result.status).json({
         success: false,
