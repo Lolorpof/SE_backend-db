@@ -123,11 +123,22 @@ export class matchingControllers implements matchingControllerInterfaces {
   }
 
   // Finding Post Matching
-  async createFindingMatch(req: Request, res: Response): Promise<void> {
+  async matchWithFindingPost(req: Request, res: Response): Promise<void> {
     try {
+      const user = req.user as TGenericUserSession;
+
+      // Check if user is an employer/company
+      if (!user || !["EMPLOYER", "OAUTHEMPLOYER", "COMPANY"].includes(user.type)) {
+        res.status(403).json({
+          success: false,
+          msg: "Only employers and companies can match with finding posts",
+        });
+        return;
+      }
+
       const result = await matchingServices
         .instance()
-        .createFindingPostMatch(req.params.postId, req.body);
+        .matchWithFindingPost(req.params.postId, user);
 
       if (!result.success) {
         res
@@ -150,7 +161,7 @@ export class matchingControllers implements matchingControllerInterfaces {
     try {
       const result = await matchingServices
         .instance()
-        .updateFindingPostMatchStatus(req.params.matchId, req.body.status);
+        .updateFindingMatchStatus(req.params.matchId, req.body.status);
 
       if (!result.success) {
         res

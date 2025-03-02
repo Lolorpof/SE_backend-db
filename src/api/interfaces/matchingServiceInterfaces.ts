@@ -1,6 +1,6 @@
 import { ServicesResponse } from "../types/responseTypes";
-import { TFindingMatchHirer, TMatchStatus } from "../types/matchingTypes";
-import { TJobSeekerSession } from "../types/usersTypes";
+import { TMatchStatus } from "../types/matchingTypes";
+import { TJobSeekerSession, TGenericUserSession } from "../types/usersTypes";
 
 export interface matchingServiceInterfaces {
   // Hiring Post Matching
@@ -10,8 +10,8 @@ export interface matchingServiceInterfaces {
   deleteHiringMatch(matchId: string, userId: string, userType: string): Promise<ServicesResponse<any>>;
 
   // Finding Post Matching
-  createFindingPostMatch(findingPostId: string, hirerData: TFindingMatchHirer): Promise<ServicesResponse<any>>;
-  updateFindingPostMatchStatus(matchId: string, status: TMatchStatus): Promise<ServicesResponse<any>>;
+  matchWithFindingPost(findingPostId: string, user: TGenericUserSession): Promise<ServicesResponse<any>>;
+  updateFindingMatchStatus(matchId: string, status: TMatchStatus): Promise<ServicesResponse<any>>;
   getFindingPostMatch(findingPostId: string): Promise<ServicesResponse<any>>;
   deleteFindingMatch(matchId: string, userId: string, userType: string): Promise<ServicesResponse<any>>;
 

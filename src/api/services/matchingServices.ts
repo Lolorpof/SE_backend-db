@@ -20,7 +20,7 @@ import {
   validateHiringMatchSeeker,
   validateFindingMatchHirer,
 } from "../schemas/requestBodySchema";
-import { TJobSeekerSession } from "../types/usersTypes";
+import { TJobSeekerSession, TGenericUserSession } from "../types/usersTypes";
 
 export class matchingServices
   extends Services<any, any>
@@ -176,44 +176,6 @@ export class matchingServices
     }
   }
 
-  // Hiring Post Matching Methods
-  async createHiringPostMatch(
-    hiringPostId: string
-  ): Promise<ServicesResponse<any>> {
-    try {
-      // Check if hiring post exists
-      const post = await drizzlePool.query.jobHiringPostTable.findFirst({
-        where: eq(jobHiringPostTable.id, hiringPostId),
-      });
-
-      if (!post) {
-        return { success: false, msg: "Hiring post not found", status: 404 };
-      }
-
-      // Create match record
-      const match = await drizzlePool
-        .insert(jobHiringPostMatchedTable)
-        .values({
-          jobHiringPostId: hiringPostId,
-        })
-        .returning();
-
-      return {
-        success: true,
-        msg: "Hiring post match created successfully",
-        data: match[0],
-        status: 201,
-      };
-    } catch (error) {
-      console.error(error);
-      return {
-        success: false,
-        msg: "Failed to create hiring post match",
-        status: 500,
-      };
-    }
-  }
-
   async addSeekerToHiringPost(
     matchId: string,
     seekerData: THiringMatchSeeker
@@ -335,18 +297,11 @@ export class matchingServices
   }
 
   // Finding Post Matching Methods
-  async createFindingPostMatch(
+  async matchWithFindingPost(
     findingPostId: string,
-    hirerData: TFindingMatchHirer
+    user: TGenericUserSession
   ): Promise<ServicesResponse<any>> {
     try {
-      if (!validateFindingMatchHirer(hirerData)) {
-        return {
-          success: false,
-          msg: "Must provide exactly one hirer ID matching the hirer type",
-          status: 400,
-        };
-      }
       // Check if finding post exists
       const post = await drizzlePool.query.jobFindingPostTable.findFirst({
         where: eq(jobFindingPostTable.id, findingPostId),
@@ -356,36 +311,57 @@ export class matchingServices
         return { success: false, msg: "Finding post not found", status: 404 };
       }
 
+      // Check if user has already matched with this post
+      const existingMatch = await drizzlePool.query.jobFindingPostMatchedTable.findFirst({
+        where: and(
+          eq(jobFindingPostMatchedTable.jobFindingPostId, findingPostId),
+          or(
+            eq(jobFindingPostMatchedTable.employerId, user.id),
+            eq(jobFindingPostMatchedTable.oauthEmployerId, user.id),
+            eq(jobFindingPostMatchedTable.companyId, user.id)
+          )
+        ),
+      });
+
+      if (existingMatch) {
+        return {
+          success: false,
+          msg: "You have already matched with this post",
+          status: 400,
+        };
+      }
+
       // Create match record
-      const match = await drizzlePool
+      const [match] = await drizzlePool
         .insert(jobFindingPostMatchedTable)
         .values({
           jobFindingPostId: findingPostId,
-          jobHirerType: hirerData.jobHirerType,
-          employerId: hirerData.employerId,
-          oauthEmployerId: hirerData.oauthEmployerId,
-          companyId: hirerData.companyId,
+          jobHirerType: user.type === "EMPLOYER" ? "EMPLOYER" : 
+                       user.type === "OAUTHEMPLOYER" ? "OAUTHEMPLOYER" : "COMPANY",
+          employerId: user.type === "EMPLOYER" ? user.id : null,
+          oauthEmployerId: user.type === "OAUTHEMPLOYER" ? user.id : null,
+          companyId: user.type === "COMPANY" ? user.id : null,
           status: "INPROGRESS",
         })
         .returning();
 
       return {
         success: true,
-        msg: "Finding post match created successfully",
-        data: match[0],
+        msg: "Successfully matched with finding post",
+        data: match,
         status: 201,
       };
     } catch (error) {
       console.error(error);
       return {
         success: false,
-        msg: "Failed to create finding post match",
+        msg: "Failed to match with finding post",
         status: 500,
       };
     }
   }
 
-  async updateFindingPostMatchStatus(
+  async updateFindingMatchStatus(
     matchId: string,
     status: TMatchStatus
   ): Promise<ServicesResponse<any>> {

@@ -48,13 +48,12 @@ matchingRoutes.route('/hiring/match/:matchId')
 
 // Create and retrieve matches for a specific finding post
 // GET: Retrieves the match for a finding post
-// POST: Creates a new match for a finding post (requires hirer data validation)
+// POST: Creates a new match for a finding post
 matchingRoutes.route('/finding/:postId/match')
   .get(checkAuthenticated, matchingControllers.instance().getFindingPostMatch)
   .post(
     checkAuthenticated,
-    validateData(findingMatchHirerSchema),
-    matchingControllers.instance().createFindingMatch
+    matchingControllers.instance().matchWithFindingPost
   );
 
 // Update the status of a finding post match
