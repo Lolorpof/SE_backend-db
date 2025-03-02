@@ -19,22 +19,25 @@ export class matchingControllers implements matchingControllerInterfaces {
   async matchWithHiringPost(req: Request, res: Response): Promise<void> {
     try {
       const user = req.user as TGenericUserSession;
-      
+
       // Check if user is a job seeker
-      if (!user || (user.type !== "JOBSEEKER" && user.type !== "OAUTH_JOBSEEKER")) {
-        res.status(403).json({ 
-          success: false, 
+      if (!user || user.type !== "JOBSEEKER") {
+        res.status(403).json({
+          success: false,
           msg: "Only job seekers can match with hiring posts",
-          status: 403 
         });
         return;
       }
 
       const jobSeeker = user as TJobSeekerSession;
-      const result = await matchingServices.instance().matchWithHiringPost(req.params.postId, jobSeeker);
-      
+      const result = await matchingServices
+        .instance()
+        .matchWithHiringPost(req.params.postId, jobSeeker);
+
       if (!result.success) {
-        res.status(result.status).json({ success: result.success, msg: result.msg });
+        res
+          .status(result.status)
+          .json({ success: result.success, msg: result.msg });
         return;
       }
 
@@ -51,10 +54,14 @@ export class matchingControllers implements matchingControllerInterfaces {
   // Get all matches for a hiring post
   async getHiringPostMatches(req: Request, res: Response): Promise<void> {
     try {
-      const result = await matchingServices.instance().getHiringPostMatches(req.params.postId);
+      const result = await matchingServices
+        .instance()
+        .getHiringPostMatches(req.params.postId);
 
       if (!result.success) {
-        res.status(result.status).json({ success: result.success, msg: result.msg });
+        res
+          .status(result.status)
+          .json({ success: result.success, msg: result.msg });
         return;
       }
 
@@ -76,7 +83,9 @@ export class matchingControllers implements matchingControllerInterfaces {
         .updateHiringMatchStatus(req.params.matchId, req.body.status);
 
       if (!result.success) {
-        res.status(result.status).json({ success: result.success, msg: result.msg });
+        res
+          .status(result.status)
+          .json({ success: result.success, msg: result.msg });
         return;
       }
 
@@ -92,10 +101,14 @@ export class matchingControllers implements matchingControllerInterfaces {
 
   async getHiringMatchSeekers(req: Request, res: Response): Promise<void> {
     try {
-      const result = await matchingServices.instance().getHiringMatchSeekers(req.params.matchId);
+      const result = await matchingServices
+        .instance()
+        .getHiringMatchSeekers(req.params.matchId);
 
       if (!result.success) {
-        res.status(result.status).json({ success: result.success, msg: result.msg });
+        res
+          .status(result.status)
+          .json({ success: result.success, msg: result.msg });
         return;
       }
 
@@ -117,7 +130,9 @@ export class matchingControllers implements matchingControllerInterfaces {
         .createFindingPostMatch(req.params.postId, req.body);
 
       if (!result.success) {
-        res.status(result.status).json({ success: result.success, msg: result.msg });
+        res
+          .status(result.status)
+          .json({ success: result.success, msg: result.msg });
         return;
       }
 
@@ -138,7 +153,9 @@ export class matchingControllers implements matchingControllerInterfaces {
         .updateFindingPostMatchStatus(req.params.matchId, req.body.status);
 
       if (!result.success) {
-        res.status(result.status).json({ success: result.success, msg: result.msg });
+        res
+          .status(result.status)
+          .json({ success: result.success, msg: result.msg });
         return;
       }
 
@@ -154,10 +171,14 @@ export class matchingControllers implements matchingControllerInterfaces {
 
   async getFindingPostMatch(req: Request, res: Response): Promise<void> {
     try {
-      const result = await matchingServices.instance().getFindingPostMatch(req.params.postId);
+      const result = await matchingServices
+        .instance()
+        .getFindingPostMatch(req.params.postId);
 
       if (!result.success) {
-        res.status(result.status).json({ success: result.success, msg: result.msg });
+        res
+          .status(result.status)
+          .json({ success: result.success, msg: result.msg });
         return;
       }
 
@@ -178,8 +199,10 @@ export class matchingControllers implements matchingControllerInterfaces {
   async getUserMatchingStatus(req: Request, res: Response): Promise<void> {
     try {
       const user = req.user as TGenericUserSession;
-      const result = await matchingServices.instance().getUserMatchingStatus(user.id, user.type);
-      
+      const result = await matchingServices
+        .instance()
+        .getUserMatchingStatus(user.id, user.type);
+
       if (!result.success) {
         res.status(result.status).json({ message: result.msg });
         return;
@@ -187,7 +210,7 @@ export class matchingControllers implements matchingControllerInterfaces {
 
       res.status(200).json({
         message: "User matching status retrieved successfully",
-        data: result.data
+        data: result.data,
       });
     } catch (error) {
       handleControllerError(error, res);
@@ -201,7 +224,7 @@ export class matchingControllers implements matchingControllerInterfaces {
   async getAllMatchingStatus(req: Request, res: Response): Promise<void> {
     try {
       const result = await matchingServices.instance().getAllMatchingStatus();
-      
+
       if (!result.success) {
         res.status(result.status).json({ message: result.msg });
         return;
@@ -209,10 +232,10 @@ export class matchingControllers implements matchingControllerInterfaces {
 
       res.status(200).json({
         message: "All matching status retrieved successfully",
-        data: result.data
+        data: result.data,
       });
     } catch (error) {
       handleControllerError(error, res);
     }
   }
-} 
+}
