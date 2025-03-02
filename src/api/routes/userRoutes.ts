@@ -1,7 +1,8 @@
-import express, { NextFunction, Response } from "express";
+import express, { NextFunction, Request, Response } from "express";
 import { jobSeekerControllers } from "../controllers/jobSeekerControllers";
 import { employerControllers } from "../controllers/employerControllers";
 import { Controllers } from "../controllers/controllers";
+import { userControllers } from "../controllers/userControllers";
 import {
   checkAuthenticated,
   checkUnauthenticated,
@@ -17,6 +18,7 @@ import {
   uploadRegisterImageMiddleware,
   uploadResumeImageMiddleware,
 } from "../utilities/multer";
+import { userServices } from "../services/userServices";
 
 const userRouter = express.Router();
 
@@ -2023,5 +2025,119 @@ userRouter
 userRouter
   .route("/company/auth/edit/password")
   .put(checkAuthenticated, companyControllers.instance().editPassword);
+
+/**
+ * @openapi
+ * /api/user/current:
+ *   get:
+ *     summary: Get current authenticated user information
+ *     description: Unified endpoint to get authenticated user data regardless of role (jobseeker, employer, or company)
+ *     tags: [User]
+ *     security:
+ *       - cookieAuth: []
+ *     responses:
+ *       200:
+ *         description: Successfully retrieved user data
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 status:
+ *                   type: number
+ *                   example: 200
+ *                 msg:
+ *                   type: string
+ *                   example: "Successfully retrieved user data"
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     role:
+ *                       type: string
+ *                       enum: [jobseeker, employer, company]
+ *                       example: "jobseeker"
+ *                     type:
+ *                       type: string
+ *                       enum: [normal, oauth]
+ *                       example: "normal"
+ *                     isOauth:
+ *                       type: boolean
+ *                       example: false
+ *                     userData:
+ *                       type: object
+ *                       properties:
+ *                         id:
+ *                           type: string
+ *                           example: "123"
+ *                         username:
+ *                           type: string
+ *                           example: "john_doe"
+ *                         email:
+ *                           type: string
+ *                           example: "john@example.com"
+ *                         firstName:
+ *                           type: string
+ *                           example: "John"
+ *                         lastName:
+ *                           type: string
+ *                           example: "Doe"
+ *                         officialName:
+ *                           type: string
+ *                           example: "John's Company"
+ *                         about:
+ *                           type: string
+ *                           example: "A brief description"
+ *                         address:
+ *                           type: string
+ *                           example: "123 Main St"
+ *                         provinceAddress:
+ *                           type: string
+ *                           example: "Bangkok"
+ *                         contact:
+ *                           type: string
+ *                           example: "+66123456789"
+ *                         profileImageUrl:
+ *                           type: string
+ *                           example: "http://example.com/profile.jpg"
+ *                         approvalStatus:
+ *                           type: string
+ *                           example: "APPROVED"
+ *       401:
+ *         description: User is not authenticated
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 status:
+ *                   type: number
+ *                   example: 401
+ *                 msg:
+ *                   type: string
+ *                   example: "User isn't logged in"
+ *       403:
+ *         description: Session is invalid or user type is invalid
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 status:
+ *                   type: number
+ *                   example: 403
+ *                 msg:
+ *                   type: string
+ *                   example: "Invalid user type"
+ */
+userRouter.get("/current", checkAuthenticated, userControllers.instance().getCurrentUser);
 
 export { userRouter };

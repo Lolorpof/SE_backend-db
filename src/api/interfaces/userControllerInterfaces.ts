@@ -60,3 +60,7 @@ export interface employerControllerInterfaces
 export interface companyControllerInterfaces extends userControllerInterfaces {
   editOfficialName(req: Request, res: Response): Promise<void>;
 }
+
+export interface unifiedUserControllerInterface {
+  getCurrentUser(req: Request, res: Response): Promise<void>;
+}

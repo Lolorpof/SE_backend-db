@@ -195,6 +195,37 @@ type TResumeImage = {
   url: string;
 };
 
+export type UserRole = 'company' | 'employer' | 'jobseeker';
+
+export interface UnifiedUserData {
+  id: string;
+  username?: string;
+  email?: string;
+  firstName?: string;
+  lastName?: string;
+  officialName?: string;
+  about?: string;
+  address?: string;
+  provinceAddress?: string;
+  contact?: string;
+  profileImageUrl?: string;
+  approvalStatus?: string;
+  createdAt?: Date;
+  updatedAt?: Date;
+}
+
+export interface CurrentUserResponse {
+  success: boolean;
+  status: number;
+  msg: string;
+  data?: {
+    role: UserRole;
+    type: string;
+    isOauth: boolean;
+    userData: UnifiedUserData;
+  };
+}
+
 export type {
   TJobSeeker,
   TEmployer,
