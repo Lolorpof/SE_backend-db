@@ -146,4 +146,109 @@ export class NotificationPatterns {
     };
     await NotificationService.createNotification(notification);
   }
+
+  // Matching Related Notifications
+  static async createHiringMatchNotification(
+    jobSeekerId: string,
+    employerId: string | null,
+    oauthEmployerId: string | null,
+    companyId: string | null,
+    jobTitle: string,
+    companyName: string,
+    isOAuthJobSeeker = false
+  ) {
+    // Notify job seeker
+    const seekerNotification: TNotificationCreate = {
+      title: "Job Application Submitted",
+      description: `You have applied for the position: ${jobTitle} at ${companyName}`,
+      userType: isOAuthJobSeeker ? "OAUTHJOBSEEKER" : "JOBSEEKER",
+      ...(isOAuthJobSeeker ? { oauthJobSeekerId: jobSeekerId } : { jobSeekerId }),
+    };
+    await NotificationService.createNotification(seekerNotification);
+
+    // Notify employer/company
+    if (employerId) {
+      const employerNotification: TNotificationCreate = {
+        title: "New Job Application",
+        description: `A new candidate has applied for the position: ${jobTitle}`,
+        userType: "EMPLOYER",
+        employerId,
+      };
+      await NotificationService.createNotification(employerNotification);
+    } else if (oauthEmployerId) {
+      const oauthEmployerNotification: TNotificationCreate = {
+        title: "New Job Application",
+        description: `A new candidate has applied for the position: ${jobTitle}`,
+        userType: "OAUTHEMPLOYER",
+        oauthEmployerId,
+      };
+      await NotificationService.createNotification(oauthEmployerNotification);
+    } else if (companyId) {
+      const companyNotification: TNotificationCreate = {
+        title: "New Job Application",
+        description: `A new candidate has applied for the position: ${jobTitle}`,
+        userType: "COMPANY",
+        companyId,
+      };
+      await NotificationService.createNotification(companyNotification);
+    }
+  }
+
+  static async createFindingMatchNotification(
+    jobSeekerId: string | null,
+    oauthJobSeekerId: string | null,
+    employerId: string,
+    jobTitle: string,
+    isOAuthEmployer = false
+  ) {
+    // Notify employer
+    const employerNotification: TNotificationCreate = {
+      title: "Job Finding Match",
+      description: `You have matched with a job finding post for position: ${jobTitle}`,
+      userType: isOAuthEmployer ? "OAUTHEMPLOYER" : "EMPLOYER",
+      ...(isOAuthEmployer ? { oauthEmployerId: employerId } : { employerId }),
+    };
+    await NotificationService.createNotification(employerNotification);
+
+    // Notify job seeker
+    if (jobSeekerId) {
+      const seekerNotification: TNotificationCreate = {
+        title: "New Match Found",
+        description: `An employer has matched with your job finding post for: ${jobTitle}`,
+        userType: "JOBSEEKER",
+        jobSeekerId,
+      };
+      await NotificationService.createNotification(seekerNotification);
+    } else if (oauthJobSeekerId) {
+      const oauthSeekerNotification: TNotificationCreate = {
+        title: "New Match Found",
+        description: `An employer has matched with your job finding post for: ${jobTitle}`,
+        userType: "OAUTHJOBSEEKER",
+        oauthJobSeekerId,
+      };
+      await NotificationService.createNotification(oauthSeekerNotification);
+    }
+  }
+
+  static async createMatchStatusUpdateNotification(
+    userId: string,
+    userType: TUserType,
+    jobTitle: string,
+    status: string,
+    companyName?: string
+  ) {
+    const notification: TNotificationCreate = {
+      title: "Match Status Update",
+      description: companyName 
+        ? `Your application for ${jobTitle} at ${companyName} has been ${status}`
+        : `The status for ${jobTitle} has been updated to ${status}`,
+      userType,
+      ...(userType === "JOBSEEKER" ? { jobSeekerId: userId } :
+          userType === "OAUTHJOBSEEKER" ? { oauthJobSeekerId: userId } :
+          userType === "EMPLOYER" ? { employerId: userId } :
+          userType === "OAUTHEMPLOYER" ? { oauthEmployerId: userId } :
+          { companyId: userId }),
+    };
+    await NotificationService.createNotification(notification);
+  }
 } 

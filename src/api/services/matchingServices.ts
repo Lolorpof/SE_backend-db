@@ -11,6 +11,7 @@ import { Services } from "./services";
 import { ServicesResponse } from "../types/responseTypes";
 import { errorServices } from "./errorServices";
 import { matchingServiceInterfaces } from "../interfaces/matchingServiceInterfaces";
+import { NotificationPatterns } from "../utilities/notificationPatterns";
 import {
   THiringMatchSeeker,
   TFindingMatchHirer,
@@ -47,6 +48,11 @@ export class matchingServices
       // Check if hiring post exists
       const post = await drizzlePool.query.jobHiringPostTable.findFirst({
         where: eq(jobHiringPostTable.id, hiringPostId),
+        with: {
+          postByEmployer: true,
+          postByOauthEmployer: true,
+          postByCompany: true,
+        },
       });
 
       if (!post) {
@@ -102,6 +108,19 @@ export class matchingServices
         })
         .returning();
 
+      // Send notifications
+      await NotificationPatterns.createHiringMatchNotification(
+        user.id,
+        post.employerId,
+        post.oauthEmployerId,
+        post.companyId,
+        post.title,
+        post.postByCompany?.officialName || 
+        post.postByEmployer?.firstName + " " + post.postByEmployer?.lastName ||
+        post.postByOauthEmployer?.firstName + " " + post.postByOauthEmployer?.lastName,
+        user.isOauth
+      );
+
       return {
         success: true,
         msg: "Successfully matched with hiring post",
@@ -145,20 +164,51 @@ export class matchingServices
     status: TMatchStatus
   ): Promise<ServicesResponse<any>> {
     try {
+      const match = await drizzlePool.query.jobHiringPostMatchedSeekersTable.findFirst({
+        where: eq(jobHiringPostMatchedSeekersTable.jobHiringPostMatchedId, matchId),
+        with: {
+          toPostMatched: {
+            with: {
+              toPost: {
+                with: {
+                  postByCompany: true,
+                  postByEmployer: true,
+                  postByOauthEmployer: true,
+                }
+              }
+            }
+          },
+          toJobSeeker: true,
+          toOauthJobSeeker: true,
+        }
+      });
+
+      if (!match) {
+        return { success: false, msg: "Match not found", status: 404 };
+      }
+
       const updated = await drizzlePool
         .update(jobHiringPostMatchedSeekersTable)
         .set({
           status,
           approvedAt: status === "ACCEPTED" ? new Date() : undefined,
         })
-        .where(
-          eq(jobHiringPostMatchedSeekersTable.jobHiringPostMatchedId, matchId)
-        )
+        .where(eq(jobHiringPostMatchedSeekersTable.jobHiringPostMatchedId, matchId))
         .returning();
 
-      if (!updated.length) {
-        return { success: false, msg: "Match not found", status: 404 };
-      }
+      // Send notification to job seeker
+      const post = match.toPostMatched.toPost;
+      const companyName = post.postByCompany?.officialName || 
+                         post.postByEmployer?.firstName + " " + post.postByEmployer?.lastName ||
+                         post.postByOauthEmployer?.firstName + " " + post.postByOauthEmployer?.lastName;
+
+      await NotificationPatterns.createMatchStatusUpdateNotification(
+        match.jobSeekerId || match.oauthJobSeekerId!,
+        match.jobSeekerType === "NORMAL" ? "JOBSEEKER" : "OAUTHJOBSEEKER",
+        post.title,
+        status.toLowerCase(),
+        companyName
+      );
 
       return {
         success: true,
@@ -168,11 +218,7 @@ export class matchingServices
       };
     } catch (error) {
       console.error(error);
-      return {
-        success: false,
-        msg: "Failed to update match status",
-        status: 500,
-      };
+      return { success: false, msg: "Failed to update match status", status: 500 };
     }
   }
 
@@ -305,6 +351,10 @@ export class matchingServices
       // Check if finding post exists
       const post = await drizzlePool.query.jobFindingPostTable.findFirst({
         where: eq(jobFindingPostTable.id, findingPostId),
+        with: {
+          postByNormal: true,
+          postByOauth: true,
+        }
       });
 
       if (!post) {
@@ -345,6 +395,15 @@ export class matchingServices
         })
         .returning();
 
+      // Send notifications
+      await NotificationPatterns.createFindingMatchNotification(
+        post.jobSeekerId,
+        post.oauthJobSeekerId,
+        user.id,
+        post.title,
+        user.type === "OAUTHEMPLOYER"
+      );
+
       return {
         success: true,
         msg: "Successfully matched with finding post",
@@ -366,6 +425,25 @@ export class matchingServices
     status: TMatchStatus
   ): Promise<ServicesResponse<any>> {
     try {
+      const match = await drizzlePool.query.jobFindingPostMatchedTable.findFirst({
+        where: eq(jobFindingPostMatchedTable.id, matchId),
+        with: {
+          toPost: {
+            with: {
+              postByNormal: true,
+              postByOauth: true,
+            }
+          },
+          toEmployer: true,
+          toOauthEmployer: true,
+          toCompany: true,
+        }
+      });
+
+      if (!match) {
+        return { success: false, msg: "Match not found", status: 404 };
+      }
+
       const updated = await drizzlePool
         .update(jobFindingPostMatchedTable)
         .set({
@@ -375,8 +453,27 @@ export class matchingServices
         .where(eq(jobFindingPostMatchedTable.id, matchId))
         .returning();
 
-      if (!updated.length) {
-        return { success: false, msg: "Match not found", status: 404 };
+      // Send notifications to both parties
+      const post = match.toPost;
+      
+      // Notify job seeker
+      if (post.postByNormal || post.postByOauth) {
+        await NotificationPatterns.createMatchStatusUpdateNotification(
+          post.jobSeekerId || post.oauthJobSeekerId!,
+          post.jobSeekerType === "NORMAL" ? "JOBSEEKER" : "OAUTHJOBSEEKER",
+          post.title,
+          status.toLowerCase()
+        );
+      }
+
+      // Notify employer/company
+      if (match.employerId || match.oauthEmployerId || match.companyId) {
+        await NotificationPatterns.createMatchStatusUpdateNotification(
+          match.employerId || match.oauthEmployerId || match.companyId!,
+          match.jobHirerType,
+          post.title,
+          status.toLowerCase()
+        );
       }
 
       return {
@@ -387,11 +484,7 @@ export class matchingServices
       };
     } catch (error) {
       console.error(error);
-      return {
-        success: false,
-        msg: "Failed to update match status",
-        status: 500,
-      };
+      return { success: false, msg: "Failed to update match status", status: 500 };
     }
   }
 
