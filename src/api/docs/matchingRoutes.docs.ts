@@ -59,119 +59,252 @@ export const matchingRoutesDoc = {
         }
       },
       // Response Bodies
-      HiringMatchResponse: {
+      JobHiringPostMatchedSeeker: {
         type: "object",
         properties: {
-          success: {
-            type: "boolean",
-            example: true
-          },
-          msg: {
+          jobSeekerType: {
             type: "string",
-            example: "Successfully matched with hiring post"
+            enum: ["NORMAL", "OAUTH"],
+            example: "NORMAL"
           },
-          data: {
-            type: "object",
-            properties: {
-              jobSeekerType: {
-                type: "string",
-                example: "NORMAL"
-              },
-              jobSeekerId: {
-                type: "string",
-                format: "uuid"
-              },
-              oauthJobSeekerId: {
-                type: "string",
-                format: "uuid"
-              },
-              jobHiringPostMatchedId: {
-                type: "string",
-                format: "uuid"
-              },
-              status: {
-                type: "string",
-                example: "INPROGRESS"
-              },
-              createdAt: {
-                type: "string",
-                format: "date-time"
-              },
-              approvedAt: {
-                type: "string",
-                format: "date-time"
-              },
-              updatedAt: {
-                type: "string",
-                format: "date-time"
-              }
-            }
+          jobSeekerId: {
+            type: "string",
+            format: "uuid",
+            nullable: true
+          },
+          oauthJobSeekerId: {
+            type: "string",
+            format: "uuid",
+            nullable: true
+          },
+          jobHiringPostMatchedId: {
+            type: "string",
+            format: "uuid"
           },
           status: {
-            type: "integer",
-            example: 201
+            type: "string",
+            enum: ["INPROGRESS", "ACCEPTED", "DENIED"],
+            example: "INPROGRESS"
+          },
+          createdAt: {
+            type: "string",
+            format: "date-time"
+          },
+          approvedAt: {
+            type: "string",
+            format: "date-time",
+            nullable: true
+          },
+          updatedAt: {
+            type: "string",
+            format: "date-time"
           }
         }
       },
-      FindingMatchResponse: {
+      JobHiringPostMatched: {
         type: "object",
         properties: {
-          success: {
-            type: "boolean",
-            example: true
-          },
-          msg: {
+          id: {
             type: "string",
-            example: "Finding post match created successfully"
+            format: "uuid"
           },
-          data: {
-            type: "object",
-            properties: {
-              id: {
-                type: "string",
-                format: "uuid"
-              },
-              jobFindingPostId: {
-                type: "string",
-                format: "uuid"
-              },
-              status: {
-                type: "string",
-                example: "INPROGRESS"
-              },
-              jobHirerType: {
-                type: "string",
-                example: "EMPLOYER"
-              },
-              employerId: {
-                type: "string",
-                format: "uuid"
-              },
-              oauthEmployerId: {
-                type: "string",
-                format: "uuid"
-              },
-              companyId: {
-                type: "string",
-                format: "uuid"
-              },
-              createdAt: {
-                type: "string",
-                format: "date-time"
-              },
-              approvedAt: {
-                type: "string",
-                format: "date-time"
-              },
-              updatedAt: {
-                type: "string",
-                format: "date-time"
-              }
+          jobHiringPostId: {
+            type: "string",
+            format: "uuid"
+          },
+          createdAt: {
+            type: "string",
+            format: "date-time"
+          },
+          updatedAt: {
+            type: "string",
+            format: "date-time"
+          },
+          toMatchSeekers: {
+            type: "array",
+            items: {
+              $ref: "#/components/schemas/JobHiringPostMatchedSeeker"
             }
+          }
+        }
+      },
+      JobHiringPost: {
+        type: "object",
+        properties: {
+          id: {
+            type: "string",
+            format: "uuid"
+          },
+          title: {
+            type: "string"
+          },
+          description: {
+            type: "string"
+          },
+          jobLocation: {
+            type: "string"
+          },
+          salary: {
+            type: "integer"
+          },
+          workDates: {
+            type: "string"
+          },
+          workHoursRange: {
+            type: "string"
           },
           status: {
-            type: "integer",
-            example: 201
+            type: "string",
+            enum: ["MATCHED", "UNMATCHED", "MATCHED_INPROG"]
+          },
+          hiredAmount: {
+            type: "integer"
+          },
+          jobPostType: {
+            type: "string",
+            enum: ["FULLTIME", "PARTTIME", "FREELANCE"]
+          },
+          jobHirerType: {
+            type: "string",
+            enum: ["EMPLOYER", "OAUTHEMPLOYER", "COMPANY"]
+          },
+          employerId: {
+            type: "string",
+            format: "uuid",
+            nullable: true
+          },
+          oauthEmployerId: {
+            type: "string",
+            format: "uuid",
+            nullable: true
+          },
+          companyId: {
+            type: "string",
+            format: "uuid",
+            nullable: true
+          },
+          createdAt: {
+            type: "string",
+            format: "date-time"
+          },
+          updatedAt: {
+            type: "string",
+            format: "date-time"
+          },
+          postMatched: {
+            type: "array",
+            items: {
+              $ref: "#/components/schemas/JobHiringPostMatched"
+            }
+          }
+        }
+      },
+      JobFindingPost: {
+        type: "object",
+        properties: {
+          id: {
+            type: "string",
+            format: "uuid"
+          },
+          title: {
+            type: "string"
+          },
+          description: {
+            type: "string"
+          },
+          jobLocation: {
+            type: "string"
+          },
+          expectedSalary: {
+            type: "integer"
+          },
+          workDates: {
+            type: "string"
+          },
+          workHoursRange: {
+            type: "string"
+          },
+          status: {
+            type: "string",
+            enum: ["MATCHED", "UNMATCHED", "MATCHED_INPROG"]
+          },
+          jobPostType: {
+            type: "string",
+            enum: ["FULLTIME", "PARTTIME", "FREELANCE"]
+          },
+          jobSeekerType: {
+            type: "string",
+            enum: ["NORMAL", "OAUTH"]
+          },
+          jobSeekerId: {
+            type: "string",
+            format: "uuid",
+            nullable: true
+          },
+          oauthJobSeekerId: {
+            type: "string",
+            format: "uuid",
+            nullable: true
+          },
+          createdAt: {
+            type: "string",
+            format: "date-time"
+          },
+          updatedAt: {
+            type: "string",
+            format: "date-time"
+          }
+        }
+      },
+      JobFindingPostMatched: {
+        type: "object",
+        properties: {
+          id: {
+            type: "string",
+            format: "uuid"
+          },
+          jobFindingPostId: {
+            type: "string",
+            format: "uuid"
+          },
+          status: {
+            type: "string",
+            enum: ["INPROGRESS", "ACCEPTED", "DENIED"]
+          },
+          jobHirerType: {
+            type: "string",
+            enum: ["EMPLOYER", "OAUTHEMPLOYER", "COMPANY"]
+          },
+          employerId: {
+            type: "string",
+            format: "uuid",
+            nullable: true
+          },
+          oauthEmployerId: {
+            type: "string",
+            format: "uuid",
+            nullable: true
+          },
+          companyId: {
+            type: "string",
+            format: "uuid",
+            nullable: true
+          },
+          createdAt: {
+            type: "string",
+            format: "date-time"
+          },
+          approvedAt: {
+            type: "string",
+            format: "date-time",
+            nullable: true
+          },
+          updatedAt: {
+            type: "string",
+            format: "date-time"
+          },
+          toPost: {
+            $ref: "#/components/schemas/JobFindingPost"
           }
         }
       },
@@ -192,29 +325,13 @@ export const matchingRoutesDoc = {
               hiringMatches: {
                 type: "array",
                 items: {
-                  type: "object",
-                  properties: {
-                    id: {
-                      type: "string",
-                      format: "uuid"
-                    },
-                    jobHiringPostId: {
-                      type: "string",
-                      format: "uuid"
-                    },
-                    toMatchSeekers: {
-                      type: "array",
-                      items: {
-                        $ref: "#/components/schemas/HiringMatchResponse/properties/data"
-                      }
-                    }
-                  }
+                  $ref: "#/components/schemas/JobHiringPost"
                 }
               },
               findingMatches: {
                 type: "array",
                 items: {
-                  $ref: "#/components/schemas/FindingMatchResponse/properties/data"
+                  $ref: "#/components/schemas/JobFindingPostMatched"
                 }
               }
             }
@@ -222,6 +339,23 @@ export const matchingRoutesDoc = {
           status: {
             type: "integer",
             example: 200
+          }
+        }
+      },
+      Error: {
+        type: "object",
+        properties: {
+          success: {
+            type: "boolean",
+            example: false
+          },
+          msg: {
+            type: "string",
+            example: "Error message"
+          },
+          status: {
+            type: "integer",
+            example: 400
           }
         }
       }
@@ -257,7 +391,17 @@ export const matchingRoutesDoc = {
             }
           },
           400: {
-            description: "Bad request",
+            description: "Bad request or already matched",
+            content: {
+              "application/json": {
+                schema: {
+                  $ref: "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          401: {
+            description: "Unauthorized - User not authenticated",
             content: {
               "application/json": {
                 schema: {
@@ -268,6 +412,26 @@ export const matchingRoutesDoc = {
           },
           403: {
             description: "Forbidden - Only job seekers can match with hiring posts",
+            content: {
+              "application/json": {
+                schema: {
+                  $ref: "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          404: {
+            description: "Hiring post not found",
+            content: {
+              "application/json": {
+                schema: {
+                  $ref: "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          500: {
+            description: "Server error",
             content: {
               "application/json": {
                 schema: {
@@ -315,8 +479,32 @@ export const matchingRoutesDoc = {
                       items: {
                         $ref: "#/components/schemas/HiringMatchResponse/properties/data"
                       }
+                    },
+                    status: {
+                      type: "integer",
+                      example: 200
                     }
                   }
+                }
+              }
+            }
+          },
+          401: {
+            description: "Unauthorized",
+            content: {
+              "application/json": {
+                schema: {
+                  $ref: "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          500: {
+            description: "Server error",
+            content: {
+              "application/json": {
+                schema: {
+                  $ref: "#/components/schemas/Error"
                 }
               }
             }
@@ -362,8 +550,38 @@ export const matchingRoutesDoc = {
               }
             }
           },
+          401: {
+            description: "Unauthorized",
+            content: {
+              "application/json": {
+                schema: {
+                  $ref: "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          403: {
+            description: "Forbidden - Only employers can update match status",
+            content: {
+              "application/json": {
+                schema: {
+                  $ref: "#/components/schemas/Error"
+                }
+              }
+            }
+          },
           404: {
             description: "Match not found",
+            content: {
+              "application/json": {
+                schema: {
+                  $ref: "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          500: {
+            description: "Server error",
             content: {
               "application/json": {
                 schema: {
@@ -378,7 +596,7 @@ export const matchingRoutesDoc = {
     "/api/matching/finding/{postId}/match": {
       post: {
         tags: ["Matching"],
-        summary: "Create a match for a finding post",
+        summary: "Match with a finding post",
         security: [{ sessionAuth: [] }],
         parameters: [
           {
@@ -392,23 +610,53 @@ export const matchingRoutesDoc = {
             description: "ID of the finding post"
           }
         ],
-        requestBody: {
-          required: true,
-          content: {
-            "application/json": {
-              schema: {
-                $ref: "#/components/schemas/FindingMatchHirerRequest"
-              }
-            }
-          }
-        },
         responses: {
           201: {
-            description: "Successfully created finding post match",
+            description: "Successfully matched with finding post",
             content: {
               "application/json": {
                 schema: {
                   $ref: "#/components/schemas/FindingMatchResponse"
+                }
+              }
+            }
+          },
+          400: {
+            description: "Bad request or already matched",
+            content: {
+              "application/json": {
+                schema: {
+                  $ref: "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          401: {
+            description: "Unauthorized",
+            content: {
+              "application/json": {
+                schema: {
+                  $ref: "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          404: {
+            description: "Finding post not found",
+            content: {
+              "application/json": {
+                schema: {
+                  $ref: "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          500: {
+            description: "Server error",
+            content: {
+              "application/json": {
+                schema: {
+                  $ref: "#/components/schemas/Error"
                 }
               }
             }
@@ -438,6 +686,36 @@ export const matchingRoutesDoc = {
               "application/json": {
                 schema: {
                   $ref: "#/components/schemas/FindingMatchResponse"
+                }
+              }
+            }
+          },
+          401: {
+            description: "Unauthorized",
+            content: {
+              "application/json": {
+                schema: {
+                  $ref: "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          404: {
+            description: "Match not found",
+            content: {
+              "application/json": {
+                schema: {
+                  $ref: "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          500: {
+            description: "Server error",
+            content: {
+              "application/json": {
+                schema: {
+                  $ref: "#/components/schemas/Error"
                 }
               }
             }
@@ -482,6 +760,36 @@ export const matchingRoutesDoc = {
                 }
               }
             }
+          },
+          401: {
+            description: "Unauthorized",
+            content: {
+              "application/json": {
+                schema: {
+                  $ref: "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          404: {
+            description: "Match not found",
+            content: {
+              "application/json": {
+                schema: {
+                  $ref: "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          500: {
+            description: "Server error",
+            content: {
+              "application/json": {
+                schema: {
+                  $ref: "#/components/schemas/Error"
+                }
+              }
+            }
           }
         }
       }
@@ -498,6 +806,26 @@ export const matchingRoutesDoc = {
               "application/json": {
                 schema: {
                   $ref: "#/components/schemas/UserMatchingStatusResponse"
+                }
+              }
+            }
+          },
+          401: {
+            description: "Unauthorized",
+            content: {
+              "application/json": {
+                schema: {
+                  $ref: "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          500: {
+            description: "Server error",
+            content: {
+              "application/json": {
+                schema: {
+                  $ref: "#/components/schemas/Error"
                 }
               }
             }
@@ -521,8 +849,28 @@ export const matchingRoutesDoc = {
               }
             }
           },
+          401: {
+            description: "Unauthorized",
+            content: {
+              "application/json": {
+                schema: {
+                  $ref: "#/components/schemas/Error"
+                }
+              }
+            }
+          },
           403: {
             description: "Forbidden - Admin access required",
+            content: {
+              "application/json": {
+                schema: {
+                  $ref: "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          500: {
+            description: "Server error",
             content: {
               "application/json": {
                 schema: {
@@ -569,8 +917,22 @@ export const matchingRoutesDoc = {
                     },
                     data: {
                       $ref: "#/components/schemas/HiringMatchResponse/properties/data"
+                    },
+                    status: {
+                      type: "integer",
+                      example: 200
                     }
                   }
+                }
+              }
+            }
+          },
+          401: {
+            description: "Unauthorized",
+            content: {
+              "application/json": {
+                schema: {
+                  $ref: "#/components/schemas/Error"
                 }
               }
             }
@@ -587,6 +949,16 @@ export const matchingRoutesDoc = {
           },
           404: {
             description: "Match not found or user doesn't have permission",
+            content: {
+              "application/json": {
+                schema: {
+                  $ref: "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          500: {
+            description: "Server error",
             content: {
               "application/json": {
                 schema: {
@@ -633,8 +1005,22 @@ export const matchingRoutesDoc = {
                     },
                     data: {
                       $ref: "#/components/schemas/FindingMatchResponse/properties/data"
+                    },
+                    status: {
+                      type: "integer",
+                      example: 200
                     }
                   }
+                }
+              }
+            }
+          },
+          401: {
+            description: "Unauthorized",
+            content: {
+              "application/json": {
+                schema: {
+                  $ref: "#/components/schemas/Error"
                 }
               }
             }
@@ -651,6 +1037,16 @@ export const matchingRoutesDoc = {
           },
           404: {
             description: "Match not found or user doesn't have permission",
+            content: {
+              "application/json": {
+                schema: {
+                  $ref: "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          500: {
+            description: "Server error",
             content: {
               "application/json": {
                 schema: {
