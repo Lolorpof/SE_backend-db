@@ -571,4 +571,108 @@ export class matchingServices
       };
     }
   }
+
+  // Delete hiring match
+  async deleteHiringMatch(
+    matchId: string,
+    userId: string,
+    userType: string
+  ): Promise<ServicesResponse<any>> {
+    try {
+      // First, verify that the user owns the match
+      const match = await drizzlePool.query.jobHiringPostMatchedSeekersTable.findFirst({
+        where: and(
+          eq(jobHiringPostMatchedSeekersTable.jobHiringPostMatchedId, matchId),
+          userType === "JOBSEEKER" 
+            ? eq(jobHiringPostMatchedSeekersTable.jobSeekerId, userId)
+            : eq(jobHiringPostMatchedSeekersTable.oauthJobSeekerId, userId)
+        ),
+      });
+
+      if (!match) {
+        return { 
+          success: false, 
+          msg: "Match not found or you don't have permission to delete it", 
+          status: 404 
+        };
+      }
+
+      // Delete the match
+      const deleted = await drizzlePool
+        .delete(jobHiringPostMatchedSeekersTable)
+        .where(
+          and(
+            eq(jobHiringPostMatchedSeekersTable.jobHiringPostMatchedId, matchId),
+            userType === "JOBSEEKER"
+              ? eq(jobHiringPostMatchedSeekersTable.jobSeekerId, userId)
+              : eq(jobHiringPostMatchedSeekersTable.oauthJobSeekerId, userId)
+          )
+        )
+        .returning();
+
+      return {
+        success: true,
+        msg: "Match deleted successfully",
+        data: deleted[0],
+        status: 200,
+      };
+    } catch (error) {
+      console.error(error);
+      return { success: false, msg: "Failed to delete match", status: 500 };
+    }
+  }
+
+  // Delete finding match
+  async deleteFindingMatch(
+    matchId: string,
+    userId: string,
+    userType: string
+  ): Promise<ServicesResponse<any>> {
+    try {
+      // First, verify that the user owns the match
+      const match = await drizzlePool.query.jobFindingPostMatchedTable.findFirst({
+        where: and(
+          eq(jobFindingPostMatchedTable.id, matchId),
+          or(
+            eq(jobFindingPostMatchedTable.employerId, userId),
+            eq(jobFindingPostMatchedTable.oauthEmployerId, userId),
+            eq(jobFindingPostMatchedTable.companyId, userId)
+          )
+        ),
+      });
+
+      if (!match) {
+        return { 
+          success: false, 
+          msg: "Match not found or you don't have permission to delete it", 
+          status: 404 
+        };
+      }
+
+      // Delete the match
+      const deleted = await drizzlePool
+        .delete(jobFindingPostMatchedTable)
+        .where(
+          and(
+            eq(jobFindingPostMatchedTable.id, matchId),
+            or(
+              eq(jobFindingPostMatchedTable.employerId, userId),
+              eq(jobFindingPostMatchedTable.oauthEmployerId, userId),
+              eq(jobFindingPostMatchedTable.companyId, userId)
+            )
+          )
+        )
+        .returning();
+
+      return {
+        success: true,
+        msg: "Match deleted successfully",
+        data: deleted[0],
+        status: 200,
+      };
+    } catch (error) {
+      console.error(error);
+      return { success: false, msg: "Failed to delete match", status: 500 };
+    }
+  }
 }

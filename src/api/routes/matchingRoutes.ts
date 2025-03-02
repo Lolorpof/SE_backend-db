@@ -33,6 +33,14 @@ matchingRoutes.route('/hiring/match/:matchId/status')
     matchingControllers.instance().updateHiringMatchStatus
   );
 
+// Delete a hiring match (only by the job seeker who created it)
+matchingRoutes.route('/hiring/match/:matchId')
+  .delete(
+    checkAuthenticated,
+    checkJobSeeker,
+    matchingControllers.instance().deleteHiringMatch
+  );
+
 /**
  * Finding Post Matching Routes
  * These routes handle the matching process for job finding posts
@@ -56,6 +64,13 @@ matchingRoutes.route('/finding/match/:matchId/status')
     checkAuthenticated,
     validateData(matchStatusSchema),
     matchingControllers.instance().updateFindingMatchStatus
+  );
+
+// Delete a finding match (only by the employer/company who created it)
+matchingRoutes.route('/finding/match/:matchId')
+  .delete(
+    checkAuthenticated,
+    matchingControllers.instance().deleteFindingMatch
   );
 
 /**

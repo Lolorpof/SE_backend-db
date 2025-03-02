@@ -533,6 +533,134 @@ export const matchingRoutesDoc = {
           }
         }
       }
+    },
+    "/api/matching/hiring/match/{matchId}": {
+      delete: {
+        tags: ["Matching"],
+        summary: "Delete a hiring match (only by the job seeker who created it)",
+        security: [{ sessionAuth: [] }],
+        parameters: [
+          {
+            in: "path",
+            name: "matchId",
+            required: true,
+            schema: {
+              type: "string",
+              format: "uuid"
+            },
+            description: "ID of the match to delete"
+          }
+        ],
+        responses: {
+          200: {
+            description: "Successfully deleted match",
+            content: {
+              "application/json": {
+                schema: {
+                  type: "object",
+                  properties: {
+                    success: {
+                      type: "boolean",
+                      example: true
+                    },
+                    msg: {
+                      type: "string",
+                      example: "Match deleted successfully"
+                    },
+                    data: {
+                      $ref: "#/components/schemas/HiringMatchResponse/properties/data"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          403: {
+            description: "Forbidden - Only job seekers can delete their own matches",
+            content: {
+              "application/json": {
+                schema: {
+                  $ref: "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          404: {
+            description: "Match not found or user doesn't have permission",
+            content: {
+              "application/json": {
+                schema: {
+                  $ref: "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/matching/finding/match/{matchId}": {
+      delete: {
+        tags: ["Matching"],
+        summary: "Delete a finding match (only by the employer/company who created it)",
+        security: [{ sessionAuth: [] }],
+        parameters: [
+          {
+            in: "path",
+            name: "matchId",
+            required: true,
+            schema: {
+              type: "string",
+              format: "uuid"
+            },
+            description: "ID of the match to delete"
+          }
+        ],
+        responses: {
+          200: {
+            description: "Successfully deleted match",
+            content: {
+              "application/json": {
+                schema: {
+                  type: "object",
+                  properties: {
+                    success: {
+                      type: "boolean",
+                      example: true
+                    },
+                    msg: {
+                      type: "string",
+                      example: "Match deleted successfully"
+                    },
+                    data: {
+                      $ref: "#/components/schemas/FindingMatchResponse/properties/data"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          403: {
+            description: "Forbidden - Only employers/companies can delete their own matches",
+            content: {
+              "application/json": {
+                schema: {
+                  $ref: "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          404: {
+            description: "Match not found or user doesn't have permission",
+            content: {
+              "application/json": {
+                schema: {
+                  $ref: "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   }
 }; 

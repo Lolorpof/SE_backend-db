@@ -238,4 +238,50 @@ export class matchingControllers implements matchingControllerInterfaces {
       handleControllerError(error, res);
     }
   }
+
+  // Delete hiring match
+  async deleteHiringMatch(req: Request, res: Response): Promise<void> {
+    try {
+      const user = req.user as TGenericUserSession;
+      const result = await matchingServices
+        .instance()
+        .deleteHiringMatch(req.params.matchId, user.id, user.type);
+
+      if (!result.success) {
+        res.status(result.status).json({ success: result.success, msg: result.msg });
+        return;
+      }
+
+      res.status(result.status).json({
+        success: result.success,
+        msg: result.msg,
+        data: result.data,
+      });
+    } catch (error) {
+      handleControllerError(error, res);
+    }
+  }
+
+  // Delete finding match
+  async deleteFindingMatch(req: Request, res: Response): Promise<void> {
+    try {
+      const user = req.user as TGenericUserSession;
+      const result = await matchingServices
+        .instance()
+        .deleteFindingMatch(req.params.matchId, user.id, user.type);
+
+      if (!result.success) {
+        res.status(result.status).json({ success: result.success, msg: result.msg });
+        return;
+      }
+
+      res.status(result.status).json({
+        success: result.success,
+        msg: result.msg,
+        data: result.data,
+      });
+    } catch (error) {
+      handleControllerError(error, res);
+    }
+  }
 }
