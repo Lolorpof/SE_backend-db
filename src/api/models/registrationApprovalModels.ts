@@ -6,7 +6,6 @@ import { catchError } from "../utilities/utilFunctions";
 import e from "express";
 import { TApproveReturn, TRegistrationApproval } from "../types/usersTypes";
 
-
 export class registrationApprovalModels {
   static registrationApprovalModel: registrationApprovalModels | undefined;
   static instance() {
@@ -104,6 +103,7 @@ export class registrationApprovalModels {
           userType: r.userType,
           status: r.status,
           adminId: r.adminId,
+          imageUrl: r.imageUrl,
         });
       } else if (r.jobSeekerId) {
         formattedResponse.push({
@@ -112,6 +112,7 @@ export class registrationApprovalModels {
           userType: r.userType,
           status: r.status,
           adminId: r.adminId,
+          imageUrl: r.imageUrl,
         });
       } else if (r.oauthEmployerId) {
         formattedResponse.push({
@@ -120,6 +121,7 @@ export class registrationApprovalModels {
           userType: r.userType,
           status: r.status,
           adminId: r.adminId,
+          imageUrl: r.imageUrl,
         });
       } else if (r.employerId) {
         formattedResponse.push({
@@ -128,6 +130,7 @@ export class registrationApprovalModels {
           userType: r.userType,
           status: r.status,
           adminId: r.adminId,
+          imageUrl: r.imageUrl,
         });
       } else if (r.companyId) {
         formattedResponse.push({
@@ -136,6 +139,7 @@ export class registrationApprovalModels {
           userType: r.userType,
           status: r.status,
           adminId: r.adminId,
+          imageUrl: r.imageUrl,
         });
       }
     }
