@@ -227,7 +227,7 @@ export const companyTable = pgTable("company", {
   officialName: varchar("official_name", { length: 255 }).notNull().unique(),
   password: varchar("password", { length: 255 }).notNull(),
   email: varchar("email", { length: 255 }).notNull().unique(),
-  profile_picture: varchar("profile_picture", { length: 255 })
+  profilePicture: varchar("profile_picture", { length: 255 })
     .notNull()
     .default(undef),
   aboutUs: varchar("about_us", { length: 2050 }),
