@@ -48,7 +48,15 @@ import {
   TEditPasswordResponse,
   TEditUsernameResponse,
 } from "../types/editUserProfile";
-import { TEmployer, TEmployerSession, TMatchNameEmail, TRegisterUser, TUserSession, TRegisterImage, TProfileImage } from "../types/usersTypes";
+import {
+  TEmployer,
+  TEmployerSession,
+  TMatchNameEmail,
+  TRegisterUser,
+  TUserSession,
+  TRegisterImage,
+  TProfileImage,
+} from "../types/usersTypes";
 
 export class employerServices implements employerServiceInterfaces {
   // singleton design
@@ -283,9 +291,23 @@ export class employerServices implements employerServiceInterfaces {
         });
       }
 
+      // get registration approval id of employer
+      const [err, res] = await catchError(
+        employerModels.instance().oauthGetApprovalId(user.id)
+      );
+
+      if (err) {
+        return done(err, false, {
+          message: "Something went wrong",
+        });
+      }
+
       // user isn't approved yet
       if (user.approvalStatus === "UNAPPROVED") {
-        return done(null, false, { message: "User isn't approved yet" });
+        return done(null, false, {
+          message: "User isn't approved yet",
+          approvalId: res.id,
+        });
       }
 
       // format user
