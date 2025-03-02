@@ -24,7 +24,30 @@ import {
 } from "../types/editUserProfile";
 import bcrypt from "bcryptjs";
 import { saltRounds } from "../utilities/env";
-import { TJobSeeker, TEmployer, TCompany, TAdmin, TMatchNameEmail, TRegisterUser, TGenericUserSession, TApproveUser, TApprovingUser, TDuplicateNameEmail1, TDuplicateNameEmail2, TNameDesc, TFormattedSingleUserRegister, TFormattedCompanyRegister, TRegisterImage, TProfileImage, TResumeImage, TJobSeekerSession, TEmployerSession, TCompanySession, TAdminSession } from "../types/usersTypes";
+import {
+  TJobSeeker,
+  TEmployer,
+  TCompany,
+  TAdmin,
+  TMatchNameEmail,
+  TRegisterUser,
+  TGenericUserSession,
+  TApproveUser,
+  TApprovingUser,
+  TDuplicateNameEmail1,
+  TDuplicateNameEmail2,
+  TNameDesc,
+  TFormattedSingleUserRegister,
+  TFormattedCompanyRegister,
+  TRegisterImage,
+  TProfileImage,
+  TResumeImage,
+  TJobSeekerSession,
+  TEmployerSession,
+  TCompanySession,
+  TAdminSession,
+  TGetId,
+} from "../types/usersTypes";
 
 export class employerModels implements employerModelInterfaces {
   // singleton design
@@ -139,6 +162,20 @@ export class employerModels implements employerModelInterfaces {
 
     const user: TEmployer = updateUser[0] as TEmployer;
     return user;
+  }
+
+  // get approval id for oauth
+  async oauthGetApprovalId(userId: string): Promise<TGetId> {
+    const approvalId =
+      await drizzlePool.query.registrationApprovalTable.findFirst({
+        columns: { id: true },
+        where: eq(registrationApprovalTable.oauthEmployerId, userId),
+      });
+    if (!approvalId) {
+      throw Error("No approval id existed");
+    }
+
+    return approvalId;
   }
 
   // register employer

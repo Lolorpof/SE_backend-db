@@ -75,12 +75,12 @@ export class employerControllers implements employerControllerInterfaces {
         if (err) {
           console.log(err);
           return res.redirect(
-            `${process.env.FRONTEND_URL}:${process.env.FRONTEND_PORT}/login?msg=${info.message}`
+            `${process.env.FRONTEND_URL}:${process.env.FRONTEND_PORT}/signin?msg=${info.message}`
           );
         }
         if (!user) {
           return res.redirect(
-            `${process.env.FRONTEND_URL}:${process.env.FRONTEND_PORT}/login?msg=${info.message}`
+            `${process.env.FRONTEND_URL}:${process.env.FRONTEND_PORT}/singUp/employer?msg=Not+approved+yet&approvalId=${info.approvalId}`
           );
         }
 
@@ -88,7 +88,7 @@ export class employerControllers implements employerControllerInterfaces {
           if (err) {
             console.log(err);
             return res.redirect(
-              `${process.env.FRONTEND_URL}:${process.env.FRONTEND_PORT}/login?msg=login`
+              `${process.env.FRONTEND_URL}:${process.env.FRONTEND_PORT}/signin?msg=login`
             );
           }
 
