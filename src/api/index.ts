@@ -39,8 +39,15 @@ app.use(express.json());
 
 app.use([
   cors({
-    origin: `http://localhost:${process.env.FRONTEND_PORT}`,
+    origin: [
+      `http://localhost:${process.env.FRONTEND_PORT}`,  // Frontend dev server
+      'http://localhost',  // Nginx proxy
+      'http://localhost:80',  // Explicit Nginx port
+      'http://localhost:1982'  // MinIO compatibility port
+    ],
     credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
   }),
   helmet(),
   session({
