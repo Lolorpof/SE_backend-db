@@ -15,10 +15,25 @@ import categoryRoutes from "./routes/categoryRoutes";
 import vulnerabilityRoutes from "./routes/vulnerabilityRoutes";
 import notificationRoutes from "./routes/notificationRoutes";
 import matchingRoutes from "./routes/matchingRoutes";
+import { testMinioConnection } from "./utilities/minio";
+
 const port = process.env.BACKEND_PORT; //6977
 const cookieExpireTime = { real: 1000 * 60 * 60 * 4, dev: 1000 * 60 * 5 };
 
 const app = express();
+
+// Test MinIO connection on startup
+testMinioConnection()
+  .then((success) => {
+    if (!success) {
+      console.error('Failed to connect to MinIO. Check your configuration.');
+      process.exit(1);
+    }
+  })
+  .catch((error) => {
+    console.error('Error testing MinIO connection:', error);
+    process.exit(1);
+  });
 
 app.use(express.json());
 
@@ -42,10 +57,22 @@ app.use([
 
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerOption));
 
-
-
 app.get("/", async (req, res) => {
   res.json({ success: true, msg: "hello world" });
+});
+
+// Test MinIO connection endpoint
+app.get("/test-minio", async (req, res) => {
+  try {
+    const success = await testMinioConnection();
+    if (success) {
+      res.json({ success: true, msg: "MinIO connection successful" });
+    } else {
+      res.status(500).json({ success: false, msg: "MinIO connection failed" });
+    }
+  } catch (error) {
+    res.status(500).json({ success: false, msg: "Error testing MinIO connection", error });
+  }
 });
 
 // Routes
