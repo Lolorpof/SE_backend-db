@@ -199,14 +199,14 @@ export type UserRole = 'company' | 'employer' | 'jobseeker';
 
 export interface UnifiedUserData {
   id: string;
+  userType: "JOBSEEKER" | "EMPLOYER" | "COMPANY";
   username?: string;
-  email?: string;
+  email: string;
   firstName?: string;
   lastName?: string;
   officialName?: string;
   about?: string;
   address?: string;
-  provinceAddress?: string;
   contact?: string;
   profileImageUrl?: string;
   approvalStatus?: string;

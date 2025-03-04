@@ -637,6 +637,8 @@ export class matchingServices
       // If user is a job seeker
       if (userSession.data.type === "JOBSEEKER" || userSession.data.type === "OAUTH_JOBSEEKER") {
         // Get hiring post matches where user is a seeker
+        console.log("Jobseeker trying to get all matched");
+        console.log("userSession.data.type", userSession.data.type);
         const hiringMatches =
           await drizzlePool.query.jobHiringPostMatchedSeekersTable.findMany({
             where: userSession.data.type === "OAUTH_JOBSEEKER"
@@ -695,6 +697,7 @@ export class matchingServices
       // If user is an employer/company
       else {
         // Get hiring posts created by the user
+        console.log("Employer trying to get all matched");
         const hiringMatches =
           await drizzlePool.query.jobHiringPostTable.findMany({
             where: or(

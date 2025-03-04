@@ -138,17 +138,19 @@ export class internalUserServices {
           msg: "User not found"
         };
       }
+      console.log("userData", userData);
 
-      // Determine user type based on the data
+      // Determine user type based on the userType field
       let userType: string;
-      if ('username' in userData.data && !('officialName' in userData.data)) {
-        userType = isOauth ? 'OAUTH_EMPLOYER' : 'EMPLOYER';
-      } else if ('officialName' in userData.data) {
-        userType = 'COMPANY';
-      } else {
+      if (userData.data.userType === "JOBSEEKER") {
         userType = isOauth ? 'OAUTH_JOBSEEKER' : 'JOBSEEKER';
+      } else if (userData.data.userType === "EMPLOYER") {
+        userType = isOauth ? 'OAUTH_EMPLOYER' : 'EMPLOYER';
+      } else {
+        userType = 'COMPANY';
       }
-
+      
+      console.log("userType", userType);
       return {
         success: true,
         status: 200,
@@ -172,6 +174,7 @@ export class internalUserServices {
   private mapJobSeekerToUnifiedData(jobSeeker: TJobSeeker): UnifiedUserData {
     return {
       id: jobSeeker.id,
+      userType: "JOBSEEKER",
       username: jobSeeker.username,
       email: jobSeeker.email,
       firstName: jobSeeker.firstName || undefined,
@@ -189,6 +192,7 @@ export class internalUserServices {
   private mapEmployerToUnifiedData(employer: TEmployer): UnifiedUserData {
     return {
       id: employer.id,
+      userType: "EMPLOYER",
       username: employer.username,
       email: employer.email,
       firstName: employer.firstName || undefined,
@@ -206,6 +210,7 @@ export class internalUserServices {
   private mapCompanyToUnifiedData(company: TCompany): UnifiedUserData {
     return {
       id: company.id,
+      userType: "COMPANY",
       email: company.email,
       officialName: company.officialName,
       about: company.aboutMe || undefined,
