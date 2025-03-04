@@ -104,6 +104,27 @@ export const matchingRoutesDoc = {
           updatedAt: {
             type: "string",
             format: "date-time"
+          },
+          userData: {
+            type: "object",
+            nullable: true,
+            properties: {
+              id: { type: "string", format: "uuid" },
+              username: { type: "string" },
+              password: { type: "string" },
+              firstName: { type: "string", nullable: true },
+              lastName: { type: "string", nullable: true },
+              email: { type: "string" },
+              profilePicture: { type: "string", nullable: true },
+              aboutMe: { type: "string", nullable: true },
+              contact: { type: "string", nullable: true },
+              resume: { type: "string", nullable: true },
+              provinceAddress: { type: "string", nullable: true },
+              address: { type: "string", nullable: true },
+              approvalStatus: { type: "string" },
+              createdAt: { type: "string", format: "date-time" },
+              updatedAt: { type: "string", format: "date-time" }
+            }
           }
         }
       },
@@ -197,6 +218,26 @@ export const matchingRoutesDoc = {
             type: "string",
             format: "date-time"
           },
+          userData: {
+            type: "object",
+            nullable: true,
+            properties: {
+              id: { type: "string", format: "uuid" },
+              username: { type: "string", nullable: true },
+              officialName: { type: "string", nullable: true },
+              firstName: { type: "string", nullable: true },
+              lastName: { type: "string", nullable: true },
+              email: { type: "string" },
+              profilePicture: { type: "string", nullable: true },
+              aboutMe: { type: "string", nullable: true },
+              contact: { type: "string", nullable: true },
+              provinceAddress: { type: "string", nullable: true },
+              address: { type: "string", nullable: true },
+              approvalStatus: { type: "string" },
+              createdAt: { type: "string", format: "date-time" },
+              updatedAt: { type: "string", format: "date-time" }
+            }
+          },
           postMatched: {
             type: "array",
             items: {
@@ -259,6 +300,24 @@ export const matchingRoutesDoc = {
           updatedAt: {
             type: "string",
             format: "date-time"
+          },
+          userData: {
+            type: "object",
+            nullable: true,
+            properties: {
+              id: { type: "string", format: "uuid" },
+              username: { type: "string" },
+              email: { type: "string" },
+              firstName: { type: "string", nullable: true },
+              lastName: { type: "string", nullable: true },
+              profilePicture: { type: "string", nullable: true },
+              aboutMe: { type: "string", nullable: true },
+              contact: { type: "string", nullable: true },
+              address: { type: "string", nullable: true },
+              approvalStatus: { type: "string" },
+              createdAt: { type: "string", format: "date-time" },
+              updatedAt: { type: "string", format: "date-time" }
+            }
           }
         }
       },
@@ -308,6 +367,25 @@ export const matchingRoutesDoc = {
           updatedAt: {
             type: "string",
             format: "date-time"
+          },
+          userData: {
+            type: "object",
+            nullable: true,
+            properties: {
+              id: { type: "string", format: "uuid" },
+              username: { type: "string", nullable: true },
+              officialName: { type: "string", nullable: true },
+              email: { type: "string" },
+              firstName: { type: "string", nullable: true },
+              lastName: { type: "string", nullable: true },
+              profilePicture: { type: "string", nullable: true },
+              aboutMe: { type: "string", nullable: true },
+              contact: { type: "string", nullable: true },
+              address: { type: "string", nullable: true },
+              approvalStatus: { type: "string" },
+              createdAt: { type: "string", format: "date-time" },
+              updatedAt: { type: "string", format: "date-time" }
+            }
           },
           toPost: {
             $ref: "#/components/schemas/JobFindingPost"
