@@ -78,24 +78,22 @@ export class matchingControllers implements matchingControllerInterfaces {
   // Update match status (by employer)
   async updateHiringMatchStatus(req: Request, res: Response): Promise<void> {
     try {
+      const { matchId } = req.params;
+      const { seekerId } = req.body;
+      const { status } = req.body;
+
       const result = await matchingServices
         .instance()
-        .updateHiringMatchStatus(req.params.matchId, req.body.status);
+        .updateHiringMatchStatus(matchId, seekerId, status);
 
-      if (!result.success) {
-        res
-          .status(result.status)
-          .json({ success: result.success, msg: result.msg });
-        return;
-      }
-
-      res.status(result.status).json({
-        success: result.success,
-        msg: result.msg,
-        data: result.data,
-      });
+      res.status(result.status).json(result);
     } catch (error) {
-      handleControllerError(error, res);
+      console.error("Error in updateHiringMatchStatus:", error);
+      res.status(500).json({
+        success: false,
+        msg: "Internal server error",
+        status: 500,
+      });
     }
   }
 

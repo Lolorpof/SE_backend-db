@@ -161,11 +161,18 @@ export class matchingServices
   // Update match status (by employer)
   async updateHiringMatchStatus(
     matchId: string,
+    seekerId: string,
     status: TMatchStatus
   ): Promise<ServicesResponse<any>> {
     try {
       const match = await drizzlePool.query.jobHiringPostMatchedSeekersTable.findFirst({
-        where: eq(jobHiringPostMatchedSeekersTable.jobHiringPostMatchedId, matchId),
+        where: and(
+          eq(jobHiringPostMatchedSeekersTable.jobHiringPostMatchedId, matchId),
+          or(
+            eq(jobHiringPostMatchedSeekersTable.jobSeekerId, seekerId),
+            eq(jobHiringPostMatchedSeekersTable.oauthJobSeekerId, seekerId)
+          )
+        ),
         with: {
           toPostMatched: {
             with: {
@@ -193,7 +200,15 @@ export class matchingServices
           status,
           approvedAt: status === "ACCEPTED" ? new Date() : undefined,
         })
-        .where(eq(jobHiringPostMatchedSeekersTable.jobHiringPostMatchedId, matchId))
+        .where(
+          and(
+            eq(jobHiringPostMatchedSeekersTable.jobHiringPostMatchedId, matchId),
+            or(
+              eq(jobHiringPostMatchedSeekersTable.jobSeekerId, seekerId),
+              eq(jobHiringPostMatchedSeekersTable.oauthJobSeekerId, seekerId)
+            )
+          )
+        )
         .returning();
 
       // Send notification to job seeker
@@ -203,7 +218,7 @@ export class matchingServices
                          post.postByOauthEmployer?.firstName + " " + post.postByOauthEmployer?.lastName;
 
       await NotificationPatterns.createMatchStatusUpdateNotification(
-        match.jobSeekerId || match.oauthJobSeekerId!,
+        seekerId,
         match.jobSeekerType === "NORMAL" ? "JOBSEEKER" : "OAUTHJOBSEEKER",
         post.title,
         status.toLowerCase(),

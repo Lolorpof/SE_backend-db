@@ -121,6 +121,7 @@ export type vulnerabilityType = z.infer<typeof vulnerabilitySchema>;
 // Matching schemas
 export const matchStatusSchema = z.object({
   status: z.enum(["INPROGRESS", "ACCEPTED", "DENIED"]),
+  seekerId: z.string().uuid(),
 }).strict();
 
 const baseHiringMatchSeekerSchema = z.object({

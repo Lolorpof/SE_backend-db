@@ -6,7 +6,7 @@ export interface matchingServiceInterfaces {
   // Hiring Post Matching
   matchWithHiringPost(hiringPostId: string, user: TJobSeekerSession): Promise<ServicesResponse<any>>;
   getHiringPostMatches(hiringPostId: string): Promise<ServicesResponse<any>>;
-  updateHiringMatchStatus(matchId: string, status: TMatchStatus): Promise<ServicesResponse<any>>;
+  updateHiringMatchStatus(matchId: string, seekerId: string, status: TMatchStatus): Promise<ServicesResponse<any>>;
   deleteHiringMatch(matchId: string, userId: string, userType: string): Promise<ServicesResponse<any>>;
 
   // Finding Post Matching

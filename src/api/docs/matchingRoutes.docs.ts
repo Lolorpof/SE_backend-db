@@ -49,12 +49,18 @@ export const matchingRoutesDoc = {
       },
       MatchStatusRequest: {
         type: "object",
-        required: ["status"],
+        required: ["status", "seekerId"],
         properties: {
           status: {
             type: "string",
             enum: ["INPROGRESS", "ACCEPTED", "DENIED"],
             example: "ACCEPTED"
+          },
+          seekerId: {
+            type: "string",
+            format: "uuid",
+            example: "123e4567-e89b-12d3-a456-426614174000",
+            description: "ID of the job seeker whose status is being updated"
           }
         }
       },
