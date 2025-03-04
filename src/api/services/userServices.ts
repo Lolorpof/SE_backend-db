@@ -97,13 +97,13 @@ export class userServices {
   private mapJobSeekerToUnifiedData(jobSeeker: any): UnifiedUserData {
     return {
       id: jobSeeker.id,
+      userType: "JOBSEEKER",
       username: jobSeeker.username,
       email: jobSeeker.email,
       firstName: jobSeeker.firstName,
       lastName: jobSeeker.lastName,
       about: jobSeeker.about,
       address: jobSeeker.address,
-      provinceAddress: jobSeeker.provinceAddress,
       contact: jobSeeker.contact,
       profileImageUrl: jobSeeker.profileImageUrl,
       approvalStatus: jobSeeker.approvalStatus,
@@ -115,13 +115,13 @@ export class userServices {
   private mapEmployerToUnifiedData(employer: any): UnifiedUserData {
     return {
       id: employer.id,
+      userType: "EMPLOYER",
       username: employer.username,
       email: employer.email,
       firstName: employer.firstName,
       lastName: employer.lastName,
       about: employer.about,
       address: employer.address,
-      provinceAddress: employer.provinceAddress,
       contact: employer.contact,
       profileImageUrl: employer.profileImageUrl,
       approvalStatus: employer.approvalStatus,
@@ -133,11 +133,11 @@ export class userServices {
   private mapCompanyToUnifiedData(company: any): UnifiedUserData {
     return {
       id: company.id,
+      userType: "COMPANY",
       email: company.email,
       officialName: company.officialName,
       about: company.about,
       address: company.address,
-      provinceAddress: company.provinceAddress,
       contact: company.contact,
       profileImageUrl: company.profileImageUrl,
       approvalStatus: company.approvalStatus,
