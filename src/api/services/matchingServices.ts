@@ -1,4 +1,4 @@
-import { eq, and, or } from "drizzle-orm";
+import { eq, and, or, sql } from "drizzle-orm";
 import { drizzlePool } from "../../db/conn";
 import {
   jobHiringPostMatchedTable,
@@ -6,6 +6,9 @@ import {
   jobFindingPostMatchedTable,
   jobHiringPostTable,
   jobFindingPostTable,
+  jobSeekerTypeEnum,
+  jobHirerTypeEnum,
+  jobMatchedStatusEnum
 } from "../../db/schema";
 import { Services } from "./services";
 import { ServicesResponse } from "../types/responseTypes";
@@ -59,6 +62,7 @@ interface BasePost {
   userData?: TJobSeeker | TEmployer | TCompany;
   [key: string]: any;
 }
+
 
 export class matchingServices
   extends Services<any, any>
@@ -137,16 +141,24 @@ export class matchingServices
       }
 
       // Add seeker to match
-      const [seekerMatch] = await drizzlePool
-        .insert(jobHiringPostMatchedSeekersTable)
-        .values({
-          jobHiringPostMatchedId: match.id,
-          jobSeekerType: user.isOauth ? "OAUTH" : "NORMAL",
-          jobSeekerId: user.isOauth ? null : user.id,
-          oauthJobSeekerId: user.isOauth ? user.id : null,
-          status: "INPROGRESS",
-        })
-        .returning();
+      const result = await drizzlePool.execute(sql`
+        INSERT INTO job_hiring_post_matched_seekers (
+          job_hiring_post_matched_id,
+          job_seeker_type,
+          job_seeker_id,
+          oauth_job_seeker_id,
+          status
+        )
+        VALUES (
+          ${match.id},
+          ${user.isOauth ? "OAUTH" : "NORMAL"},
+          ${user.isOauth ? null : user.id},
+          ${user.isOauth ? user.id : null},
+          'INPROGRESS'
+        )
+        RETURNING *
+      `);
+      const seekerMatch = result.rows[0];
 
       // Send notifications
       await NotificationPatterns.createHiringMatchNotification(
@@ -258,22 +270,17 @@ export class matchingServices
         return { success: false, msg: "Match not found", status: 404 };
       }
 
-      const updated = await drizzlePool
-        .update(jobHiringPostMatchedSeekersTable)
-        .set({
-          status,
-          approvedAt: status === "ACCEPTED" ? new Date() : undefined,
-        })
-        .where(
-          and(
-            eq(jobHiringPostMatchedSeekersTable.jobHiringPostMatchedId, matchId),
-            or(
-              eq(jobHiringPostMatchedSeekersTable.jobSeekerId, seekerId),
-              eq(jobHiringPostMatchedSeekersTable.oauthJobSeekerId, seekerId)
-            )
-          )
-        )
-        .returning();
+      const result = await drizzlePool.execute(sql`
+        UPDATE job_hiring_post_matched_seekers
+        SET 
+          status = ${status},
+          approved_at = ${status === "ACCEPTED" ? new Date() : null}
+        WHERE 
+          job_hiring_post_matched_id = ${matchId}
+          AND (job_seeker_id = ${seekerId} OR oauth_job_seeker_id = ${seekerId})
+        RETURNING *
+      `);
+      const updated = result.rows;
 
       // Send notification to job seeker
       const post = match.toPostMatched.toPost;
@@ -325,21 +332,29 @@ export class matchingServices
       }
 
       // Create seeker match record
-      const seekerMatch = await drizzlePool
-        .insert(jobHiringPostMatchedSeekersTable)
-        .values({
-          jobHiringPostMatchedId: matchId,
-          jobSeekerType: seekerData.jobSeekerType,
-          jobSeekerId: seekerData.jobSeekerId,
-          oauthJobSeekerId: seekerData.oauthJobSeekerId,
-          status: "INPROGRESS",
-        })
-        .returning();
+      const result = await drizzlePool.execute(sql`
+        INSERT INTO job_hiring_post_matched_seekers (
+          job_hiring_post_matched_id,
+          job_seeker_type,
+          job_seeker_id,
+          oauth_job_seeker_id,
+          status
+        )
+        VALUES (
+          ${matchId},
+          ${seekerData.jobSeekerType},
+          ${seekerData.jobSeekerId},
+          ${seekerData.oauthJobSeekerId},
+          'INPROGRESS'
+        )
+        RETURNING *
+      `);
+      const seekerMatch = result.rows[0];
 
       return {
         success: true,
         msg: "Seeker added to hiring post match successfully",
-        data: seekerMatch[0],
+        data: seekerMatch,
         status: 201,
       };
     } catch (error) {
@@ -358,24 +373,19 @@ export class matchingServices
     status: TMatchStatus
   ): Promise<ServicesResponse<any>> {
     try {
-      const updated = await drizzlePool
-        .update(jobHiringPostMatchedSeekersTable)
-        .set({
-          status,
-          approvedAt: status === "ACCEPTED" ? new Date() : undefined,
-        })
-        .where(
-          and(
-            eq(
-              jobHiringPostMatchedSeekersTable.jobHiringPostMatchedId,
-              matchId
-            ),
-            eq(jobHiringPostMatchedSeekersTable.jobSeekerId, seekerId)
-          )
-        )
-        .returning();
+      const result = await drizzlePool.execute(sql`
+        UPDATE job_hiring_post_matched_seekers
+        SET 
+          status = ${status},
+          approved_at = ${status === "ACCEPTED" ? new Date() : null}
+        WHERE 
+          job_hiring_post_matched_id = ${matchId}
+          AND job_seeker_id = ${seekerId}
+        RETURNING *
+      `);
+      const updated = result.rows;
 
-      if (!updated.length) {
+      if (updated.length === 0) {
         return { success: false, msg: "Match not found", status: 404 };
       }
 
@@ -476,18 +486,27 @@ export class matchingServices
       }
 
       // Create match record
-      const [match] = await drizzlePool
-        .insert(jobFindingPostMatchedTable)
-        .values({
-          jobFindingPostId: findingPostId,
-          jobHirerType: user.type === "EMPLOYER" ? "EMPLOYER" : 
-                       user.type === "OAUTHEMPLOYER" ? "OAUTHEMPLOYER" : "COMPANY",
-          employerId: user.type === "EMPLOYER" ? user.id : null,
-          oauthEmployerId: user.type === "OAUTHEMPLOYER" ? user.id : null,
-          companyId: user.type === "COMPANY" ? user.id : null,
-          status: "INPROGRESS",
-        })
-        .returning();
+      const result = await drizzlePool.execute(sql`
+        INSERT INTO job_finding_post_matched (
+          job_finding_post_id,
+          job_hirer_type,
+          employer_id,
+          oauth_employer_id,
+          company_id,
+          status
+        )
+        VALUES (
+          ${findingPostId},
+          ${user.type === "EMPLOYER" ? "EMPLOYER" : 
+            user.type === "OAUTHEMPLOYER" ? "OAUTHEMPLOYER" : "COMPANY"},
+          ${user.type === "EMPLOYER" ? user.id : null},
+          ${user.type === "OAUTHEMPLOYER" ? user.id : null},
+          ${user.type === "COMPANY" ? user.id : null},
+          'INPROGRESS'
+        )
+        RETURNING *
+      `);
+      const match = result.rows[0];
 
       // Send notifications
       await NotificationPatterns.createFindingMatchNotification(
@@ -538,14 +557,15 @@ export class matchingServices
         return { success: false, msg: "Match not found", status: 404 };
       }
 
-      const updated = await drizzlePool
-        .update(jobFindingPostMatchedTable)
-        .set({
-          status,
-          approvedAt: status === "ACCEPTED" ? new Date() : undefined,
-        })
-        .where(eq(jobFindingPostMatchedTable.id, matchId))
-        .returning();
+      const result = await drizzlePool.execute(sql`
+        UPDATE job_finding_post_matched
+        SET 
+          status = ${status},
+          approved_at = ${status === "ACCEPTED" ? new Date() : null}
+        WHERE id = ${matchId}
+        RETURNING *
+      `);
+      const updated = result.rows;
 
       // Send notifications to both parties
       const post = match.toPost;

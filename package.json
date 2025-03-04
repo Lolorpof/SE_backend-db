@@ -6,6 +6,7 @@
   "type": "module",
   "scripts": {
     "build": "tsc && tsc-alias",
+    "watch": "tsc --watch",
     "start": "node",
     "dev": "tsx watch ./src/api/index.ts",
     "db:gen": "drizzle-kit generate",

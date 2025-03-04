@@ -46,7 +46,7 @@ import {
   TEditOfficialNameSchema,
   TEditPasswordSchema,
 } from "../validators/profileValidator";
-import { TCompany, TCompanySession, TMatchNameEmail, TRegisterUser, TUserSession, TRegisterImage, TProfileImage } from "../types/usersTypes";
+import { TCompany, TCompanySession, TMatchNameEmail, TRegisterUser, TUserSession, TRegisterImage, TProfileImage, TFormattedCompanyRegister } from "../types/usersTypes";
 
 export class companyServices implements companyServiceInterfaces {
   // singleton design
@@ -134,9 +134,10 @@ export class companyServices implements companyServiceInterfaces {
     }
 
     // format user
-    const { password, confirmPassword, ...formattedUser } = {
-      hashedPassword,
-      ...validatedUserForm,
+    const formattedUser: TFormattedCompanyRegister = {
+      officialName: validatedUserForm.officialName,
+      email: validatedUserForm.email,
+      hashedPassword
     };
 
     // insert into database

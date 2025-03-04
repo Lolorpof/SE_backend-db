@@ -2,6 +2,7 @@ import { Request, Response } from "express";
 import { adminServices } from "../services/adminsServices";
 import { adminControllerInterfaces } from "../interfaces/userControllerInterfaces";
 import passport from "../middlewares/passport";
+import { TAdminSession } from "../types/usersTypes";
 
 export class adminControllers implements adminControllerInterfaces {
   static adminController: adminControllers | undefined;

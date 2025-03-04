@@ -55,7 +55,7 @@ import {
   TEditPasswordSchema,
   TEditUsernameSchema,
 } from "../validators/profileValidator";
-import { TJobSeeker, TJobSeekerSession, TMatchNameEmail, TRegisterUser, TUserSession, TRegisterImage, TProfileImage, TCheckUser, TResumeImage } from "../types/usersTypes";
+import { TJobSeeker, TJobSeekerSession, TMatchNameEmail, TRegisterUser, TUserSession, TRegisterImage, TProfileImage, TCheckUser, TResumeImage, TFormattedSingleUserRegister } from "../types/usersTypes";
 
 export class jobSeekerServices implements jobSeekerServiceInterfaces {
   // singleton design
@@ -142,11 +142,11 @@ export class jobSeekerServices implements jobSeekerServiceInterfaces {
     }
 
     // format user
-    const { name, password, confirmPassword, ...formattedUser } = {
+    const formattedUser: TFormattedSingleUserRegister = {
       firstName,
       lastName,
-      hashedPassword,
-      ...validatedUserForm,
+      email: validatedUserForm.email,
+      hashedPassword
     };
 
     // insert job seeker into database

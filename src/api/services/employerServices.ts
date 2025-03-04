@@ -56,6 +56,7 @@ import {
   TUserSession,
   TRegisterImage,
   TProfileImage,
+  TFormattedSingleUserRegister
 } from "../types/usersTypes";
 
 export class employerServices implements employerServiceInterfaces {
@@ -143,11 +144,11 @@ export class employerServices implements employerServiceInterfaces {
     }
 
     // format user
-    const { name, password, confirmPassword, ...formattedUser } = {
+    const formattedUser: TFormattedSingleUserRegister = {
       firstName,
       lastName,
-      hashedPassword,
-      ...validatedUserForm,
+      email: validatedUserForm.email,
+      hashedPassword
     };
 
     // insert into database

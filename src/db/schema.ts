@@ -424,17 +424,20 @@ export const jobHiringPostMatchedSeekersTable = pgTable(
   "job_hiring_post_matched_seekers",
   {
     jobSeekerType: jobSeekerTypeEnum("job_seeker_type").notNull(),
-    jobSeekerId: uuid("job_seeker_id").references(() => jobSeekerTable.id, {
-      onDelete: "cascade",
-      onUpdate: "cascade",
-    }),
-    oauthJobSeekerId: uuid("oauth_job_seeker_id").references(
-      () => oauthJobSeekerTable.id,
-      {
+    jobSeekerId: uuid("job_seeker_id")
+      .references(() => jobSeekerTable.id, {
         onDelete: "cascade",
         onUpdate: "cascade",
-      }
-    ),
+      }),
+
+    oauthJobSeekerId: uuid("oauth_job_seeker_id")
+      .references(
+        () => oauthJobSeekerTable.id,
+        {
+          onDelete: "cascade",
+          onUpdate: "cascade",
+        }
+      ),
     jobHiringPostMatchedId: uuid("job_hiring_post_matched_id")
       .references(() => jobHiringPostMatchedTable.id, {
         onDelete: "cascade",
