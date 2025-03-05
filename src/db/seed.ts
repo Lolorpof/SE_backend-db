@@ -411,57 +411,65 @@ async function seed() {
         .insert(companyTable)
         .values([
           {
-            officialName: "Tech Solutions Co., Ltd.",
+            officialName: "บริษัท เทค โซลูชั่นส์ จำกัด",
             password: companyPassword,
-            email: "contact@techsolutions.com",
+            email: "contact@techsolutions.com", 
             contact: "+66987654325",
-            aboutUs: "Leading technology solutions provider",
-            address: "100 Tech Road, Bangkok",
+            aboutUs: "ผู้นำด้านการให้บริการโซลูชั่นเทคโนโลยี",
+            address: "100 ถนนเทคโนโลยี กรุงเทพฯ",
             approvalStatus: "APPROVED",
           },
           {
-            officialName: "Digital Innovations Co., Ltd.",
+            officialName: "บริษัท ดิจิทัล อินโนเวชั่นส์ จำกัด",
             password: companyPassword,
             email: "contact@digitalinnovations.com",
             contact: "+66987654326",
-            aboutUs: "Digital transformation consultancy",
-            address: "200 Digital Lane, Bangkok",
+            aboutUs: "ที่ปรึกษาด้านการเปลี่ยนแปลงทางดิจิทัล",
+            address: "200 ซอยดิจิทัล กรุงเทพฯ",
             approvalStatus: "UNAPPROVED",
           },
           {
-            officialName: "Future Systems Co., Ltd.",
+            officialName: "บริษัท ฟิวเจอร์ ซิสเต็มส์ จำกัด",
             password: companyPassword,
             email: "contact@futuresystems.com",
             contact: "+66987654327",
-            aboutUs: "Next-generation software development",
-            address: "300 Future Road, Bangkok",
+            aboutUs: "การพัฒนาซอฟต์แวร์แห่งอนาคต",
+            address: "300 ถนนอนาคต กรุงเทพฯ",
             approvalStatus: "APPROVED",
           },
           {
-            officialName: "Smart Solutions Co., Ltd.",
+            officialName: "บริษัท สมาร์ท โซลูชั่นส์ จำกัด",
             password: companyPassword,
             email: "contact@smartsolutions.com",
             contact: "+66987654328",
-            aboutUs: "Smart city technology provider",
-            address: "400 Smart Lane, Bangkok",
+            aboutUs: "ผู้ให้บริการเทคโนโลยีเมืองอัจฉริยะ",
+            address: "400 ซอยสมาร์ท กรุงเทพฯ",
             approvalStatus: "APPROVED",
           },
           {
-            officialName: "Cloud Tech Co., Ltd.",
+            officialName: "บริษัท คลาวด์ เทค จำกัด",
             password: companyPassword,
             email: "contact@cloudtech.com",
             contact: "+66987654329",
-            aboutUs: "Cloud computing solutions",
-            address: "500 Cloud Road, Bangkok",
+            aboutUs: "โซลูชั่นการประมวลผลแบบคลาวด์",
+            address: "500 ถนนคลาวด์ กรุงเทพฯ",
             approvalStatus: "UNAPPROVED",
           },
           {
-            officialName: "AI Innovations Co., Ltd.",
+            officialName: "บริษัท เอไอ อินโนเวชั่นส์ จำกัด",
             password: companyPassword,
             email: "contact@aiinnovations.com",
             contact: "+66987654330",
-            aboutUs: "Artificial intelligence research and development",
-            address: "600 AI Lane, Bangkok",
+            aboutUs: "วิจัยและพัฒนาด้านปัญญาประดิษฐ์",
+            address: "600 ซอยเอไอ กรุงเทพฯ",
+            approvalStatus: "APPROVED",
+          },{
+            officialName: "CMUCompany",
+            password: companyPassword,
+            email: "contact@cmucompany.com",
+            contact: "+66987654330",
+            aboutUs: "บริษัทวิจัยและพัฒนาด้านปัญญาประดิษฐ์",
+            address: "600 ซอยเอไอ กรุงเทพฯ",
             approvalStatus: "APPROVED",
           },
         ])
@@ -491,77 +499,76 @@ async function seed() {
       .insert(skillTable)
       .values([
         {
-          name: "JavaScript",
-          description: "Programming language for web development",
+          name: "JavaScript / จาวาสคริปต์",
+          description: "Programming language for web development / ภาษาโปรแกรมมิ่งสำหรับการพัฒนาเว็บ",
         },
         {
-          name: "Python",
-          description: "General-purpose programming language",
+          name: "Python / ไพธอน",
+          description: "General-purpose programming language / ภาษาโปรแกรมมิ่งสำหรับการใช้งานทั่วไป",
         },
         {
-          name: "Project Management",
-          description: "Ability to manage projects and teams",
+          name: "Project Management / การจัดการโครงการ",
+          description: "Ability to manage projects and teams / ความสามารถในการจัดการโครงการและทีม",
         },
         {
-          name: "React",
-          description: "Frontend JavaScript library",
+          name: "React / รีแอคท์",
+          description: "JavaScript library for frontend development / ไลบรารี JavaScript สำหรับพัฒนาส่วนหน้าบ้าน",
         },
         {
-          name: "Node.js",
-          description: "JavaScript runtime for backend development",
+          name: "Node.js / โนดเจเอส",
+          description: "JavaScript runtime for backend development / รันไทม์ JavaScript สำหรับพัฒนาส่วนหลังบ้าน",
         },
         {
-          name: "DevOps",
-          description: "Development and IT operations",
+          name: "DevOps / เดฟออปส์",
+          description: "Development and IT operations / การพัฒนาและการดำเนินงานด้านไอที",
         },
         {
-          name: "UI/UX Design",
-          description: "User interface and experience design",
+          name: "UI/UX Design / การออกแบบ UI/UX",
+          description: "User interface and user experience design / การออกแบบส่วนติดต่อผู้ใช้และประสบการณ์ผู้ใช้",
         },
         {
-          name: "Data Science",
-          description: "Statistical analysis and machine learning",
+          name: "Data Science / วิทยาศาสตร์ข้อมูล",
+          description: "Statistical analysis and machine learning / การวิเคราะห์ทางสถิติและการเรียนรู้ของเครื่อง",
         },
         {
-          name: "Cloud Computing",
-          description: "AWS, Azure, and GCP platforms",
-        },
-        // New non-IT skills
-        {
-          name: "Financial Analysis",
-          description: "Analysis of financial data and market trends",
+          name: "Cloud Computing / การประมวลผลคลาวด์",
+          description: "AWS, Azure, and GCP platforms / แพลตฟอร์ม AWS, Azure และ GCP",
         },
         {
-          name: "Digital Marketing",
-          description: "Online marketing strategies and campaigns",
+          name: "Financial Analysis / การวิเคราะห์ทางการเงิน",
+          description: "Financial data analysis and market trends / การวิเคราะห์ข้อมูลทางการเงินและแนวโน้มตลาด",
         },
         {
-          name: "Mechanical Engineering",
-          description: "Design and maintenance of mechanical systems",
+          name: "Digital Marketing / การตลาดดิจิทัล",
+          description: "Online marketing strategies and campaigns / กลยุทธ์และแคมเปญการตลาดออนไลน์",
         },
         {
-          name: "Clinical Research",
-          description: "Medical research and clinical trials",
+          name: "Mechanical Engineering / วิศวกรรมเครื่องกล",
+          description: "Design and maintenance of mechanical systems / การออกแบบและบำรุงรักษาระบบเครื่องกล",
         },
         {
-          name: "Teaching",
-          description: "Educational instruction and curriculum development",
+          name: "Clinical Research / การวิจัยทางคลินิก",
+          description: "Medical research and clinical trials / การวิจัยทางการแพทย์และการทดลองทางคลินิก",
         },
         {
-          name: "Graphic Design",
-          description: "Visual content creation and branding",
+          name: "Teaching / การสอน",
+          description: "Teaching and curriculum development / การสอนและการพัฒนาหลักสูตร",
         },
         {
-          name: "HR Management",
-          description: "Human resources and talent management",
+          name: "Graphic Design / การออกแบบกราฟิก",
+          description: "Visual content creation and branding / การสร้างเนื้อหาภาพและการสร้างแบรนด์",
         },
         {
-          name: "Sales Strategy",
-          description: "Sales techniques and customer relationship",
+          name: "Human Resources / การบริหารทรัพยากรบุคคล",
+          description: "HR management and talent management / การบริหารทรัพยากรบุคคลและการจัดการคนเก่ง",
         },
         {
-          name: "Supply Chain Management",
-          description: "Logistics and supply chain optimization",
+          name: "Sales Strategy / กลยุทธ์การขาย",
+          description: "Sales techniques and customer relations / เทคนิคการขายและความสัมพันธ์กับลูกค้า",
+        },
+        {
+          name: "Supply Chain Management / การจัดการห่วงโซ่อุปทาน",
+          description: "Logistics and supply chain management / การจัดการโลจิสติกส์และห่วงโซ่อุปทาน",
         },
       ])
       .returning();
@@ -572,28 +579,28 @@ async function seed() {
         .insert(vulnerabilityTypeTable)
         .values([
           {
-            name: "Physical Disability",
-            description: "Physical impairment that affects mobility",
+            name: "Physical Disability / ความบกพร่องทางร่างกาย",
+            description: "Physical impairments affecting mobility / ความบกพร่องทางร่างกายที่ส่งผลต่อการเคลื่อนไหว",
           },
           {
-            name: "Visual Impairment",
-            description: "Partial or complete loss of vision",
+            name: "Visual Impairment / ความบกพร่องทางการมองเห็น",
+            description: "Partial or complete loss of vision / การสูญเสียการมองเห็นบางส่วนหรือทั้งหมด",
           },
           {
-            name: "Hearing Impairment",
-            description: "Partial or complete hearing loss",
+            name: "Hearing Impairment / ความบกพร่องทางการได้ยิน",
+            description: "Partial or complete hearing loss / การสูญเสียการได้ยินบางส่วนหรือทั้งหมด",
           },
           {
-            name: "Speech Impairment",
-            description: "Difficulty with verbal communication",
+            name: "Speech Impairment / ความบกพร่องทางการพูด",
+            description: "Difficulty with verbal communication / มีความยากลำบากในการสื่อสารด้วยวาจา",
           },
           {
-            name: "Cognitive Disability",
-            description: "Affects learning and information processing",
+            name: "Intellectual Disability / ความบกพร่องทางสติปัญญา",
+            description: "Affects learning and information processing / ส่งผลต่อการเรียนรู้และการประมวลผลข้อมูล",
           },
           {
-            name: "Neurodivergent",
-            description: "Different neurological variations",
+            name: "Neurodiversity / ความแตกต่างทางระบบประสาท",
+            description: "Differences in neurological functioning / มีความแตกต่างในการทำงานของระบบประสาท",
           },
         ])
         .returning();
@@ -622,77 +629,76 @@ async function seed() {
       .insert(jobCategoryTable)
       .values([
         {
-          name: "Software Development",
-          description: "Programming and software engineering roles",
+          name: "Software Development / การพัฒนาซอฟต์แวร์",
+          description: "Programming and software engineering positions / ตำแหน่งงานด้านการเขียนโปรแกรมและวิศวกรรมซอฟต์แวร์",
         },
         {
-          name: "Project Management",
-          description: "Project planning and team management roles",
+          name: "Project Management / การจัดการโครงการ",
+          description: "Project planning and team management positions / ตำแหน่งงานด้านการวางแผนโครงการและการจัดการทีม",
         },
         {
-          name: "Data Science",
-          description: "Data analysis and machine learning roles",
+          name: "Data Science / วิทยาศาสตร์ข้อมูล",
+          description: "Data analysis and machine learning positions / ตำแหน่งงานด้านการวิเคราะห์ข้อมูลและการเรียนรู้ของเครื่อง",
         },
         {
-          name: "UI/UX Design",
-          description: "User interface and experience design roles",
+          name: "UI/UX Design / การออกแบบ UI/UX",
+          description: "User interface and experience design positions / ตำแหน่งงานด้านการออกแบบส่วนติดต่อผู้ใช้และประสบการณ์ผู้ใช้",
         },
         {
-          name: "DevOps Engineering",
-          description: "Development operations and infrastructure roles",
+          name: "DevOps Engineering / วิศวกรรม DevOps",
+          description: "System development and infrastructure positions / ตำแหน่งงานด้านการพัฒนาระบบและโครงสร้างพื้นฐาน",
         },
         {
-          name: "Quality Assurance",
-          description: "Software testing and quality control roles",
+          name: "Quality Assurance / การประกันคุณภาพ",
+          description: "Software testing and quality control positions / ตำแหน่งงานด้านการทดสอบซอฟต์แวร์และการควบคุมคุณภาพ",
         },
         {
-          name: "Product Management",
-          description: "Product development and strategy roles",
+          name: "Product Management / การจัดการผลิตภัณฑ์",
+          description: "Product development and strategy positions / ตำแหน่งงานด้านการพัฒนาและกลยุทธ์ผลิตภัณฑ์",
         },
         {
-          name: "Technical Writing",
-          description: "Documentation and technical content roles",
+          name: "Technical Writing / การเขียนเชิงเทคนิค",
+          description: "Technical documentation and content positions / ตำแหน่งงานด้านการจัดทำเอกสารและเนื้อหาทางเทคนิค",
         },
         {
-          name: "Digital Marketing",
-          description: "Online marketing and SEO roles",
-        },
-        // New non-IT categories
-        {
-          name: "Finance and Banking",
-          description: "Financial services and banking roles",
+          name: "Digital Marketing / การตลาดดิจิทัล",
+          description: "Online marketing and SEO positions / ตำแหน่งงานด้านการตลาดออนไลน์และ SEO",
         },
         {
-          name: "Marketing and Communications",
-          description: "Marketing strategy and brand management roles",
+          name: "Finance and Banking / การเงินและการธนาคาร",
+          description: "Financial services and banking positions / ตำแหน่งงานด้านบริการทางการเงินและการธนาคาร",
         },
         {
-          name: "Engineering",
-          description: "Various engineering disciplines and roles",
+          name: "Marketing and Communications / การตลาดและการสื่อสาร",
+          description: "Marketing strategy and brand management positions / ตำแหน่งงานด้านกลยุทธ์การตลาดและการจัดการแบรนด์",
         },
         {
-          name: "Healthcare and Medical",
-          description: "Medical and healthcare professional roles",
+          name: "Engineering / วิศวกรรม",
+          description: "Various engineering discipline positions / ตำแหน่งงานด้านวิศวกรรมสาขาต่างๆ",
         },
         {
-          name: "Education and Training",
-          description: "Teaching and educational roles",
+          name: "Healthcare and Medical / สาธารณสุขและการแพทย์",
+          description: "Medical and healthcare positions / ตำแหน่งงานด้านการแพทย์และสาธารณสุข",
         },
         {
-          name: "Creative Design",
-          description: "Creative and artistic design roles",
+          name: "Education and Training / การศึกษาและการฝึกอบรม",
+          description: "Teaching and education positions / ตำแหน่งงานด้านการสอนและการศึกษา",
         },
         {
-          name: "Human Resources",
-          description: "HR management and recruitment roles",
+          name: "Creative Design / การออกแบบสร้างสรรค์",
+          description: "Design and artistic positions / ตำแหน่งงานด้านการออกแบบและงานศิลปะ",
         },
         {
-          name: "Sales",
-          description: "Sales and business development roles",
+          name: "Human Resources / ทรัพยากรบุคคล",
+          description: "HR management and recruitment positions / ตำแหน่งงานด้านการจัดการทรัพยากรบุคคลและการสรรหา",
         },
         {
-          name: "Logistics and Supply Chain",
-          description: "Supply chain and logistics management roles",
+          name: "Sales / การขาย",
+          description: "Sales and business development positions / ตำแหน่งงานด้านการขายและการพัฒนาธุรกิจ",
+        },
+        {
+          name: "Logistics and Supply Chain / โลจิสติกส์และซัพพลายเชน",
+          description: "Supply chain and logistics management positions / ตำแหน่งงานด้านการจัดการซัพพลายเชนและโลจิสติกส์",
         },
       ])
       .returning();
