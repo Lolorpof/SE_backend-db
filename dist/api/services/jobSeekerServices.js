@@ -1,0 +1,797 @@
+"use strict";
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || (function () {
+    var ownKeys = function(o) {
+        ownKeys = Object.getOwnPropertyNames || function (o) {
+            var ar = [];
+            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
+            return ar;
+        };
+        return ownKeys(o);
+    };
+    return function (mod) {
+        if (mod && mod.__esModule) return mod;
+        var result = {};
+        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
+        __setModuleDefault(result, mod);
+        return result;
+    };
+})();
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.jobSeekerServices = void 0;
+require("dotenv/config");
+const jobSeekerModels_1 = require("../models/jobSeekerModels");
+const usersSchemas = __importStar(require("../validators/usersValidator"));
+const zod_validation_error_1 = require("zod-validation-error");
+require("../types/usersTypes");
+const bcryptjs_1 = __importDefault(require("bcryptjs"));
+require("../interfaces/userServiceInterfaces");
+const utilFunctions_1 = require("../utilities/utilFunctions");
+const minio_1 = require("../utilities/minio/minio");
+const minio_2 = require("../utilities/minio");
+const profileValidator_1 = require("../validators/profileValidator");
+class jobSeekerServices {
+    // singleton design
+    static jobSeekerService;
+    static instance() {
+        if (!this.jobSeekerService) {
+            this.jobSeekerService = new jobSeekerServices();
+        }
+        return this.jobSeekerService;
+    }
+    // register
+    async register(userForm) {
+        // {Business Logic}
+        // user form validation
+        try {
+            usersSchemas.singleUserRegisterSchema.parse(userForm);
+        }
+        catch (error) {
+            const formattedError = (0, zod_validation_error_1.fromError)(error).toString();
+            console.log(formattedError);
+            return { success: false, msg: formattedError, status: 403 };
+        }
+        const validatedUserForm = userForm;
+        // split to first name and last name
+        const [firstName, lastName] = validatedUserForm.name.split(" ");
+        // Duplicated name or email check
+        let duplicatedNameUser;
+        try {
+            duplicatedNameUser = await jobSeekerModels_1.jobSeekerModels
+                .instance()
+                .duplicateNameEmail(firstName, lastName, validatedUserForm.email);
+        }
+        catch (error) {
+            console.log(error);
+            return { success: false, msg: "Something went wrong", status: 403 };
+        }
+        // there's duped user of some kind
+        if (duplicatedNameUser) {
+            // duped name
+            if (firstName === duplicatedNameUser.firstName &&
+                lastName === duplicatedNameUser.lastName &&
+                validatedUserForm.email !== duplicatedNameUser.email) {
+                return {
+                    success: false,
+                    msg: "Name was already used",
+                    status: 400,
+                };
+            }
+            // duped email
+            else if (validatedUserForm.email === duplicatedNameUser.email) {
+                return {
+                    success: false,
+                    msg: "Email was already used",
+                    status: 400,
+                };
+            }
+        }
+        // password  & confirmPassword should be the same
+        if (validatedUserForm.password !== validatedUserForm.confirmPassword) {
+            return {
+                success: false,
+                msg: "Password does not match",
+                status: 400,
+            };
+        }
+        // {Done with Business Logic}
+        // hash password
+        let hashedPassword;
+        try {
+            hashedPassword = await bcryptjs_1.default.hash(validatedUserForm.password, Number(process.env.BCRYPT_SALTROUNDS));
+        }
+        catch (error) {
+            console.log(error);
+            return { success: false, msg: "Something went wrong", status: 403 };
+        }
+        // format user
+        const formattedUser = {
+            firstName,
+            lastName,
+            email: validatedUserForm.email,
+            hashedPassword
+        };
+        // insert job seeker into database
+        let registeredUser;
+        try {
+            registeredUser = await jobSeekerModels_1.jobSeekerModels.instance().register(formattedUser);
+        }
+        catch (error) {
+            console.log(error);
+            return { success: false, msg: "Something went wrong", status: 403 };
+        }
+        return {
+            success: true,
+            msg: "Successfully registered",
+            data: registeredUser,
+            status: 201,
+        };
+    }
+    // login (passport format)
+    async login(username, password, done) {
+        // match name or email, and approved
+        let users;
+        try {
+            users = await jobSeekerModels_1.jobSeekerModels.instance().matchNameEmail(username);
+        }
+        catch (error) {
+            console.log(error);
+            return done(error, false, { message: "Something went wrong" });
+        }
+        if (users.length === 0) {
+            return done(null, false, { message: "User doesn't existed" });
+        }
+        // match password
+        let exactUser;
+        let approvedExisted = false;
+        try {
+            for (const user of users) {
+                if (user.approvalStatus === "APPROVED") {
+                    approvedExisted = true;
+                }
+                const matched = await bcryptjs_1.default.compare(password, user.password);
+                if (matched) {
+                    exactUser = user;
+                    break;
+                }
+            }
+        }
+        catch (error) {
+            console.log(error);
+            return done(error, false, { message: "Something went wrong" });
+        }
+        if (!exactUser) {
+            // wrong password
+            if (approvedExisted) {
+                return done(null, false, { message: "Wrong password" });
+            }
+            // none of the username is approved
+            else {
+                return done(null, false, { message: "User doesn't existed" });
+            }
+        }
+        // not approved yet
+        if (exactUser.approvalStatus === "UNAPPROVED") {
+            return done(null, false, { message: "User isn't approved yet" });
+        }
+        // formatting
+        const formattedUser = {
+            id: exactUser.id,
+            type: "JOBSEEKER",
+        };
+        return done(null, formattedUser, { message: "Successfully logged in" });
+    }
+    // google oauth (passport format)
+    async googleLogin(accessToken, refreshToken, profile, done) {
+        // check if user existed
+        let user;
+        try {
+            user = await jobSeekerModels_1.jobSeekerModels
+                .instance()
+                .getById(profile.id, true, "GOOGLE");
+        }
+        catch (error) {
+            console.log(error);
+            done(error, false, { message: "Something went wrong" });
+        }
+        // first time oauth login
+        let insertUser;
+        if (!user) {
+            try {
+                insertUser = await jobSeekerModels_1.jobSeekerModels
+                    .instance()
+                    .oauthUserInsert(profile, "GOOGLE");
+            }
+            catch (error) {
+                console.log(error);
+                return done(error, false, {
+                    message: "Something went wrong",
+                });
+            }
+            return done(null, false, {
+                message: "Detecting that you have logged in for the first time, please wait until your account is approved",
+                approvalId: insertUser.approvalId,
+            });
+        }
+        // user already existed
+        else {
+            // update user info, if there's any change made
+            try {
+                user = await jobSeekerModels_1.jobSeekerModels
+                    .instance()
+                    .oauthUserUpdate(profile, user, "GOOGLE");
+            }
+            catch (error) {
+                console.log(error);
+                return done(error, false, {
+                    message: "Something went wrong",
+                });
+            }
+            // get registration approval id of oauth job seeker
+            const [err, res] = await (0, utilFunctions_1.catchError)(jobSeekerModels_1.jobSeekerModels.instance().oauthGetApprovalId(user.id));
+            if (err) {
+                return done(err, false, {
+                    message: "Something went wrong",
+                });
+            }
+            // user isn't approved yet
+            if (user.approvalStatus === "UNAPPROVED") {
+                return done(null, false, {
+                    message: "User isn't approved yet",
+                    approvalId: res.id,
+                });
+            }
+            // format user
+            const formattedUser = {
+                id: user.id,
+                type: "JOBSEEKER",
+                provider: "GOOGLE",
+            };
+            // user is approved
+            done(null, formattedUser, { message: "Successfully login" });
+        }
+    }
+    // check current user, for logout
+    async checkCurrent(user, type, isOauth) {
+        if (!user) {
+            return { success: false, status: 403, msg: "Something went wrong" };
+        }
+        let userObj;
+        try {
+            userObj = user;
+        }
+        catch (error) {
+            console.log(error);
+            return { success: false, status: 403, msg: "Something went wrong" };
+        }
+        if (userObj.isOauth !== isOauth || userObj.type !== type) {
+            return { success: false, status: 401, msg: "User isn't logged in" };
+        }
+        return {
+            success: true,
+            status: 200,
+            msg: "Successfully retrieve checked user",
+            data: { id: userObj.id, username: userObj.username },
+        };
+    }
+    // get all
+    async getAll() {
+        let jobSeekers;
+        try {
+            jobSeekers = await jobSeekerModels_1.jobSeekerModels.instance().getAll();
+        }
+        catch (error) {
+            console.log(error);
+            return { success: false, msg: "Something went wrong", status: 403 };
+        }
+        if (jobSeekers.length === 0) {
+            return {
+                success: true,
+                msg: "There's no job seekers",
+                status: 200,
+                data: null,
+            };
+        }
+        return {
+            success: true,
+            msg: "Successfully get all job seekers",
+            data: jobSeekers,
+            status: 200,
+        };
+    }
+    // deserialized user (passport calls)
+    async deserializer(id, provider) {
+        let user;
+        // getting user
+        try {
+            if (!provider) {
+                user = await jobSeekerModels_1.jobSeekerModels.instance().getById(id);
+            }
+            else {
+                user = await jobSeekerModels_1.jobSeekerModels.instance().getById(id, false, provider);
+            }
+        }
+        catch (error) {
+            console.log(error);
+            return { success: false, msg: "Something went wrong", status: 403 };
+        }
+        if (!user) {
+            return { success: false, msg: "Something went wrong", status: 403 };
+        }
+        return {
+            success: true,
+            msg: "Retrieve user successfully",
+            data: user,
+            status: 200,
+        };
+    }
+    // get current
+    async getCurrent(user) {
+        if (!user) {
+            return { success: false, msg: "Something went wrong", status: 403 };
+        }
+        let userObj;
+        try {
+            userObj = user;
+            if (userObj.type !== "JOBSEEKER") {
+                throw Error();
+            }
+        }
+        catch (error) {
+            return { success: false, status: 400, msg: "User isn't logged in" };
+        }
+        return {
+            success: true,
+            msg: "Successfully retrieve current user",
+            data: user,
+            status: 200,
+        };
+    }
+    // upload registration image for approval
+    async uploadRegistrationImage(approvalId, image) {
+        // approval existed check
+        const approvalExist = await jobSeekerModels_1.jobSeekerModels
+            .instance()
+            .approvalExisted(approvalId);
+        if (!approvalExist) {
+            return {
+                success: false,
+                status: 400,
+                msg: "Approval doesn't existed",
+            };
+        }
+        // upload iamge to minio and get image url
+        const imageName = `${approvalId}_register`;
+        await (0, minio_1.createBucketIfNotExisted)(minio_2.registrationApprovalImageBucket);
+        await minio_1.minioClient.putObject(minio_2.registrationApprovalImageBucket, imageName, image.buffer, image.size, { "Content-Type": image.mimetype });
+        const imageUrl = `http://localhost:1982/register/${imageName}`;
+        // insert into approval table
+        const [error, result] = await (0, utilFunctions_1.catchError)(jobSeekerModels_1.jobSeekerModels.instance().uploadRegistrationImage(approvalId, imageUrl));
+        if (error) {
+            console.error(error);
+            return {
+                success: false,
+                status: 400,
+                msg: "Something went wrong",
+            };
+        }
+        return {
+            success: true,
+            status: 201,
+            msg: "Successfully upload and insert registraion approval image",
+            data: result,
+        };
+    }
+    // upload profile image, no oauth
+    async uploadProfilePicture(image, user) {
+        const formattedUser = user;
+        if (formattedUser.type !== "JOBSEEKER" || formattedUser.isOauth) {
+            return { status: 400, success: false, msg: "User isn't logged in" };
+        }
+        // insert into minio
+        const imageName = `${formattedUser.id}_job-seeker_profile`;
+        await (0, minio_1.createBucketIfNotExisted)(minio_2.userProfileImageBucket);
+        await minio_1.minioClient.putObject(minio_2.userProfileImageBucket, imageName, image.buffer, image.size, { "Content-Type": image.mimetype });
+        // get image url (temp presigned)
+        const imageUrl = `http://localhost:1982/profile/${imageName}`;
+        // call model
+        const [error, result] = await (0, utilFunctions_1.catchError)(jobSeekerModels_1.jobSeekerModels.instance().uploadProfilePicture(imageUrl, formattedUser));
+        if (error) {
+            return { status: 403, success: false, msg: "Something went wrong" };
+        }
+        return {
+            status: 201,
+            success: true,
+            msg: "Successfully uploaded profile image",
+            data: result,
+        };
+    }
+    // upload resume image
+    async uploadResume(image, user) {
+        const formattedUser = user;
+        if (formattedUser.type !== "JOBSEEKER") {
+            return { status: 400, success: false, msg: "User isn't logged in" };
+        }
+        // insert into minio
+        const imageName = `${formattedUser.id}_job-seeker_resume`;
+        await (0, minio_1.createBucketIfNotExisted)(minio_2.jobSeekerResumeImageBucket);
+        await minio_1.minioClient.putObject(minio_2.jobSeekerResumeImageBucket, imageName, image.buffer, image.size, { "Content-Type": image.mimetype });
+        const imageUrl = `http://localhost:1982/resume/${imageName}`;
+        // call model
+        const [error, result] = await (0, utilFunctions_1.catchError)(jobSeekerModels_1.jobSeekerModels.instance().uploadResume(imageUrl, formattedUser));
+        if (error) {
+            return { status: 403, success: false, msg: "Something went wrong" };
+        }
+        return {
+            status: 201,
+            success: true,
+            msg: "Successfully uploaded resume",
+            data: result,
+        };
+    }
+    // edit username, no oauth
+    async editUsername(body, user) {
+        let parsedBody;
+        try {
+            parsedBody = profileValidator_1.editUsernameSchema.parse(body);
+        }
+        catch (error) {
+            console.error(error);
+            return { status: 400, success: false, msg: "Wrong credentials format" };
+        }
+        const formattedUser = user;
+        // wrong user type
+        if (formattedUser.type !== "JOBSEEKER" || formattedUser.isOauth) {
+            return { status: 401, success: false, msg: "User isn't logged in" };
+        }
+        const [error, result] = await (0, utilFunctions_1.catchError)(jobSeekerModels_1.jobSeekerModels
+            .instance()
+            .editUsername(parsedBody.username, parsedBody.password, formattedUser));
+        if (error) {
+            console.error(error);
+            return { status: 403, success: false, msg: "Something went wrong" };
+        }
+        // wrong password
+        if (!result) {
+            return {
+                status: 400,
+                success: false,
+                msg: "Wrong password",
+            };
+        }
+        // special case
+        if (result.case) {
+            if (result.case === "empty username") {
+                return {
+                    status: 400,
+                    success: false,
+                    msg: "User field is empty",
+                };
+            }
+            else if (result.case === "exact dupe") {
+                return {
+                    status: 400,
+                    success: false,
+                    msg: "Username can't be used",
+                };
+            }
+            delete result.case;
+        }
+        const { case: _, ...formattedResult } = result;
+        return {
+            status: 200,
+            success: true,
+            msg: "Successfully editted username",
+            data: formattedResult,
+        };
+    }
+    // edit email, no oauth
+    async editEmail(body, user) {
+        // validate body
+        let parsedBody;
+        try {
+            parsedBody = profileValidator_1.editEmailSchema.parse(body);
+        }
+        catch (error) {
+            console.error(error);
+            return {
+                status: 400,
+                success: false,
+                msg: "Wrong credentials format",
+            };
+        }
+        const formattedUser = user;
+        // wrong user type
+        if (formattedUser.type !== "JOBSEEKER" || formattedUser.isOauth) {
+            return { status: 401, success: false, msg: "User isn't logged in" };
+        }
+        // check dupe email
+        const [error, result] = await (0, utilFunctions_1.catchError)(jobSeekerModels_1.jobSeekerModels.instance().editEmail(parsedBody.email, formattedUser));
+        if (error) {
+            console.error(error);
+            return {
+                status: 403,
+                success: false,
+                msg: "Something went wrong",
+            };
+        }
+        // dupe email
+        if (!result) {
+            return { status: 400, success: false, msg: "Email is already used" };
+        }
+        return {
+            status: 200,
+            success: true,
+            msg: "Successfully updated email",
+            data: result,
+        };
+    }
+    // edit fullname, no oauth
+    async editFullName(body, user) {
+        let parsedBody;
+        try {
+            parsedBody = profileValidator_1.editFullNameSchema.parse(body);
+        }
+        catch (error) {
+            console.error(error);
+            return { status: 400, success: false, msg: "Wrong credential format" };
+        }
+        const formattedUser = user;
+        // wrong user type
+        if (formattedUser.type !== "JOBSEEKER" || formattedUser.isOauth) {
+            return { status: 401, success: false, msg: "User isn't logged in" };
+        }
+        // call models
+        const [error, result] = await (0, utilFunctions_1.catchError)(jobSeekerModels_1.jobSeekerModels
+            .instance()
+            .editFullName(parsedBody.firstName, parsedBody.lastName, formattedUser));
+        if (error) {
+            console.error(error);
+            return { status: 403, msg: "Something went wrong", success: false };
+        }
+        if (!result) {
+            return { status: 400, msg: "Name is already used", success: false };
+        }
+        return {
+            status: 200,
+            msg: "Successfully updated full name",
+            success: true,
+            data: result,
+        };
+    }
+    // edit about
+    async editAbout(body, user) {
+        let parsedBody;
+        try {
+            parsedBody = profileValidator_1.editAboutSchema.parse(body);
+        }
+        catch (error) {
+            console.error(error);
+            return { status: 400, success: false, msg: "Wrong credential format" };
+        }
+        const formattedUser = user;
+        if (formattedUser.type !== "JOBSEEKER") {
+            return { status: 401, success: false, msg: "User isn't logged in" };
+        }
+        const [error, result] = await (0, utilFunctions_1.catchError)(jobSeekerModels_1.jobSeekerModels.instance().editAbout(parsedBody.about, formattedUser));
+        if (error) {
+            console.error(error);
+            return { status: 403, success: false, msg: "Something went wrong" };
+        }
+        // about is empty string
+        if (!result) {
+            return { status: 400, success: false, msg: "Field is empty" };
+        }
+        return {
+            status: 200,
+            success: true,
+            msg: "Successfully updated about user",
+            data: result,
+        };
+    }
+    // edit address
+    async editAddress(body, user) {
+        let parsedBody;
+        try {
+            parsedBody = profileValidator_1.editAddressSchema.parse(body);
+        }
+        catch (error) {
+            console.error(error);
+            return { status: 400, success: false, msg: "Wrong credential format" };
+        }
+        const formattedUser = user;
+        if (formattedUser.type !== "JOBSEEKER") {
+            return { status: 401, success: false, msg: "User isn't logged in" };
+        }
+        const [error, result] = await (0, utilFunctions_1.catchError)(jobSeekerModels_1.jobSeekerModels
+            .instance()
+            .editAddress(parsedBody.address, parsedBody.provinceAddress, formattedUser));
+        if (error) {
+            console.error(error);
+            return { status: 403, success: false, msg: "Something went wrong" };
+        }
+        // address is empty string
+        if (!result) {
+            return { status: 400, success: false, msg: "Field is empty" };
+        }
+        return {
+            status: 200,
+            success: true,
+            msg: "Successfully updated address",
+            data: result,
+        };
+    }
+    // edit contact
+    async editContact(body, user) {
+        let parsedBody;
+        try {
+            parsedBody = profileValidator_1.editContactSchema.parse(body);
+        }
+        catch (error) {
+            console.error(error);
+            return { status: 400, success: false, msg: "Wrong credential format" };
+        }
+        const formattedUser = user;
+        if (formattedUser.type !== "JOBSEEKER") {
+            return { status: 401, success: false, msg: "User isn't logged in" };
+        }
+        const [error, result] = await (0, utilFunctions_1.catchError)(jobSeekerModels_1.jobSeekerModels.instance().editContact(parsedBody.contact, formattedUser));
+        if (error) {
+            console.error(error);
+            return { status: 403, success: false, msg: "Something went wrong" };
+        }
+        if (!result) {
+            return { status: 400, success: false, msg: "Contact field is empty" };
+        }
+        return {
+            status: 200,
+            success: true,
+            msg: "Successfully updated contact",
+            data: result,
+        };
+    }
+    // edit password, no oauth
+    async editPassword(body, user) {
+        let parsedBody;
+        try {
+            parsedBody = profileValidator_1.editPasswordSchema.parse(body);
+        }
+        catch (error) {
+            console.error(error);
+            return { status: 400, success: false, msg: "Wrong credential format" };
+        }
+        const formattedUser = user;
+        if (formattedUser.type !== "JOBSEEKER" || formattedUser.isOauth) {
+            return { status: 401, success: false, msg: "User isn't logged in" };
+        }
+        const [error, result] = await (0, utilFunctions_1.catchError)(jobSeekerModels_1.jobSeekerModels
+            .instance()
+            .editPassword(parsedBody.password, parsedBody.oldPassword, formattedUser));
+        if (error) {
+            console.error(error);
+            return { status: 403, success: false, msg: "Something went wrong" };
+        }
+        if (!result) {
+            return { status: 400, success: false, msg: "Password field is empty" };
+        }
+        if (result.case) {
+            if (result.case === "no user") {
+                return { status: 403, success: false, msg: "Something went wrong" };
+            }
+            else if (result.case === "wrong password") {
+                return { status: 401, success: false, msg: "Wrong old password" };
+            }
+            else if (result.case === "exactDupe") {
+                return { status: 400, success: false, msg: "Password can't be use" };
+            }
+            delete result.case;
+        }
+        const { case: _, ...formattedResult } = result;
+        return {
+            status: 200,
+            success: true,
+            msg: "Successfully updated password",
+            data: { userId: formattedResult.userId },
+        };
+    }
+    // edit job seeker skills
+    async editSkill(body, user) {
+        let parsedBody;
+        try {
+            parsedBody = profileValidator_1.editJobSeekerSkillSchema.parse(body);
+        }
+        catch (error) {
+            console.error(error);
+            return { status: 400, success: false, msg: "Wrong credential format" };
+        }
+        const formattedUser = user;
+        if (formattedUser.type !== "JOBSEEKER") {
+            return { status: 401, success: false, msg: "User isn't logged in" };
+        }
+        const [error, result] = await (0, utilFunctions_1.catchError)(jobSeekerModels_1.jobSeekerModels.instance().editSkill(parsedBody.skillsId, formattedUser));
+        if (error) {
+            console.error(error);
+            return { status: 403, success: false, msg: "Something went wrong" };
+        }
+        if (result.case) {
+            if (result.case === "not exist") {
+                return {
+                    status: 200,
+                    success: true,
+                    msg: "Some skill doesn't existed, so that skill won't be add",
+                    data: { skillsId: result.skillsId, userId: formattedUser.id },
+                };
+            }
+            delete result.case;
+        }
+        const { case: _, ...formattedResult } = result;
+        return {
+            status: 200,
+            success: true,
+            msg: "Successfully editted skills",
+            data: formattedResult,
+        };
+    }
+    // edit job seeker vulnerabilities
+    async editVulnerability(body, user) {
+        let parsedBody;
+        try {
+            parsedBody = profileValidator_1.editJobSeekerVulnerabilitySchema.parse(body);
+        }
+        catch (error) {
+            console.error(error);
+            return { status: 400, success: false, msg: "Wrong credential format" };
+        }
+        const formattedUser = user;
+        if (formattedUser.type !== "JOBSEEKER") {
+            return { status: 401, success: false, msg: "User isn't logged in" };
+        }
+        const [error, result] = await (0, utilFunctions_1.catchError)(jobSeekerModels_1.jobSeekerModels
+            .instance()
+            .editVulnerability(parsedBody.vulnerabilitiesId, formattedUser));
+        if (error) {
+            console.error(error);
+            return { status: 403, success: false, msg: "Something went wrong" };
+        }
+        if (result.case) {
+            if (result.case === "not exist") {
+                return {
+                    status: 200,
+                    success: true,
+                    msg: "Some vulnerability doesn't existed, so that vulnerability won't be add",
+                    data: {
+                        vulnerabilitiesId: result.vulnerabilitiesId,
+                        userId: formattedUser.id,
+                    },
+                };
+            }
+            delete result.case;
+        }
+        const { case: _, ...formattedResult } = result;
+        return {
+            status: 200,
+            success: true,
+            msg: "Successfully editted skills",
+            data: formattedResult,
+        };
+    }
+}
+exports.jobSeekerServices = jobSeekerServices;

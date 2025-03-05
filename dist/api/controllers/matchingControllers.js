@@ -1,0 +1,268 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.matchingControllers = void 0;
+const matchingServices_1 = require("../services/matchingServices");
+const controllerUtils_1 = require("../utilities/controllerUtils");
+class matchingControllers {
+    static matchingController;
+    static instance() {
+        if (!this.matchingController) {
+            this.matchingController = new matchingControllers();
+        }
+        return this.matchingController;
+    }
+    // Job seeker matches with a hiring post
+    async matchWithHiringPost(req, res) {
+        try {
+            const user = req.user;
+            // Check if user is a job seeker
+            if (!user || user.type !== "JOBSEEKER") {
+                res.status(403).json({
+                    success: false,
+                    msg: "Only job seekers can match with hiring posts",
+                });
+                return;
+            }
+            const jobSeeker = user;
+            const result = await matchingServices_1.matchingServices
+                .instance()
+                .matchWithHiringPost(req.params.postId, jobSeeker);
+            if (!result.success) {
+                res
+                    .status(result.status)
+                    .json({ success: result.success, msg: result.msg });
+                return;
+            }
+            res.status(result.status).json({
+                success: result.success,
+                msg: result.msg,
+                data: result.data,
+            });
+        }
+        catch (error) {
+            (0, controllerUtils_1.handleControllerError)(error, res);
+        }
+    }
+    // Get all matches for a hiring post
+    async getHiringPostMatches(req, res) {
+        try {
+            const result = await matchingServices_1.matchingServices
+                .instance()
+                .getHiringPostMatches(req.params.postId);
+            if (!result.success) {
+                res
+                    .status(result.status)
+                    .json({ success: result.success, msg: result.msg });
+                return;
+            }
+            res.status(result.status).json({
+                success: result.success,
+                msg: result.msg,
+                data: result.data,
+            });
+        }
+        catch (error) {
+            (0, controllerUtils_1.handleControllerError)(error, res);
+        }
+    }
+    // Update match status (by employer)
+    async updateHiringMatchStatus(req, res) {
+        try {
+            const { matchId } = req.params;
+            const { seekerId } = req.body;
+            const { status } = req.body;
+            const result = await matchingServices_1.matchingServices
+                .instance()
+                .updateHiringMatchStatus(matchId, seekerId, status);
+            res.status(result.status).json(result);
+        }
+        catch (error) {
+            console.error("Error in updateHiringMatchStatus:", error);
+            res.status(500).json({
+                success: false,
+                msg: "Internal server error",
+                status: 500,
+            });
+        }
+    }
+    async getHiringMatchSeekers(req, res) {
+        try {
+            const result = await matchingServices_1.matchingServices
+                .instance()
+                .getHiringMatchSeekers(req.params.matchId);
+            if (!result.success) {
+                res
+                    .status(result.status)
+                    .json({ success: result.success, msg: result.msg });
+                return;
+            }
+            res.status(result.status).json({
+                success: result.success,
+                msg: result.msg,
+                data: result.data,
+            });
+        }
+        catch (error) {
+            (0, controllerUtils_1.handleControllerError)(error, res);
+        }
+    }
+    // Finding Post Matching
+    async matchWithFindingPost(req, res) {
+        try {
+            const user = req.user;
+            // Check if user is an employer/company
+            if (!user || !["EMPLOYER", "OAUTHEMPLOYER", "COMPANY"].includes(user.type)) {
+                res.status(403).json({
+                    success: false,
+                    msg: "Only employers and companies can match with finding posts",
+                });
+                return;
+            }
+            const result = await matchingServices_1.matchingServices
+                .instance()
+                .matchWithFindingPost(req.params.postId, user);
+            if (!result.success) {
+                res
+                    .status(result.status)
+                    .json({ success: result.success, msg: result.msg });
+                return;
+            }
+            res.status(result.status).json({
+                success: result.success,
+                msg: result.msg,
+                data: result.data,
+            });
+        }
+        catch (error) {
+            (0, controllerUtils_1.handleControllerError)(error, res);
+        }
+    }
+    async updateFindingMatchStatus(req, res) {
+        try {
+            const result = await matchingServices_1.matchingServices
+                .instance()
+                .updateFindingMatchStatus(req.params.matchId, req.body.status);
+            if (!result.success) {
+                res
+                    .status(result.status)
+                    .json({ success: result.success, msg: result.msg });
+                return;
+            }
+            res.status(result.status).json({
+                success: result.success,
+                msg: result.msg,
+                data: result.data,
+            });
+        }
+        catch (error) {
+            (0, controllerUtils_1.handleControllerError)(error, res);
+        }
+    }
+    async getFindingPostMatch(req, res) {
+        try {
+            const result = await matchingServices_1.matchingServices
+                .instance()
+                .getFindingPostMatch(req.params.postId);
+            if (!result.success) {
+                res
+                    .status(result.status)
+                    .json({ success: result.success, msg: result.msg });
+                return;
+            }
+            res.status(result.status).json({
+                success: result.success,
+                msg: result.msg,
+                data: result.data,
+            });
+        }
+        catch (error) {
+            (0, controllerUtils_1.handleControllerError)(error, res);
+        }
+    }
+    /**
+     * Get all matching/tracking status for the authenticated user
+     * Includes both hiring and finding post matches
+     */
+    async getUserMatchingStatus(req, res) {
+        try {
+            const user = req.user;
+            const result = await matchingServices_1.matchingServices
+                .instance()
+                .getUserMatchingStatus(user.id, user.type);
+            if (!result.success) {
+                res.status(result.status).json({ message: result.msg });
+                return;
+            }
+            res.status(200).json({
+                message: "User matching status retrieved successfully",
+                data: result.data,
+            });
+        }
+        catch (error) {
+            (0, controllerUtils_1.handleControllerError)(error, res);
+        }
+    }
+    /**
+     * Get all matching/tracking status in the system (admin only)
+     * Includes all hiring and finding post matches
+     */
+    async getAllMatchingStatus(req, res) {
+        try {
+            const result = await matchingServices_1.matchingServices.instance().getAllMatchingStatus();
+            if (!result.success) {
+                res.status(result.status).json({ message: result.msg });
+                return;
+            }
+            res.status(200).json({
+                message: "All matching status retrieved successfully",
+                data: result.data,
+            });
+        }
+        catch (error) {
+            (0, controllerUtils_1.handleControllerError)(error, res);
+        }
+    }
+    // Delete hiring match
+    async deleteHiringMatch(req, res) {
+        try {
+            const user = req.user;
+            const result = await matchingServices_1.matchingServices
+                .instance()
+                .deleteHiringMatch(req.params.matchId, user.id, user.type);
+            if (!result.success) {
+                res.status(result.status).json({ success: result.success, msg: result.msg });
+                return;
+            }
+            res.status(result.status).json({
+                success: result.success,
+                msg: result.msg,
+                data: result.data,
+            });
+        }
+        catch (error) {
+            (0, controllerUtils_1.handleControllerError)(error, res);
+        }
+    }
+    // Delete finding match
+    async deleteFindingMatch(req, res) {
+        try {
+            const user = req.user;
+            const result = await matchingServices_1.matchingServices
+                .instance()
+                .deleteFindingMatch(req.params.matchId, user.id, user.type);
+            if (!result.success) {
+                res.status(result.status).json({ success: result.success, msg: result.msg });
+                return;
+            }
+            res.status(result.status).json({
+                success: result.success,
+                msg: result.msg,
+                data: result.data,
+            });
+        }
+        catch (error) {
+            (0, controllerUtils_1.handleControllerError)(error, res);
+        }
+    }
+}
+exports.matchingControllers = matchingControllers;

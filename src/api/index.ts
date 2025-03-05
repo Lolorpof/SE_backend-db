@@ -44,6 +44,9 @@ app.use([
       "http://localhost", // Nginx proxy
       "http://localhost:80", // Explicit Nginx port
       "http://localhost:1982", // MinIO compatibility port
+      "http://172.188.240.153", // Production IP
+      "http://172.188.240.153:80", // Production IP with port
+      "http://172.188.240.153:1982" // Production IP with MinIO port
     ],
     credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
