@@ -2,9 +2,9 @@ import * as Minio from "minio";
 import { minioAccessKey, minioSecretKey, minioApiPort } from "../env";
 
 export const minioClient = new Minio.Client({
-  endPoint: "t10-minio",
+  endPoint: "minio",
   useSSL: false,
-  port: 9000,  // MinIO's internal port in Docker - this must stay as 9000
+  port: 9000, // MinIO's internal port in Docker - this must stay as 9000
   accessKey: minioAccessKey,
   secretKey: minioSecretKey,
 });
@@ -19,10 +19,13 @@ export const testMinioConnection = async () => {
   try {
     // List buckets as a connection test
     const buckets = await minioClient.listBuckets();
-    console.log('MinIO Connection Successful. Available buckets:', buckets.map(b => b.name));
+    console.log(
+      "MinIO Connection Successful. Available buckets:",
+      buckets.map((b) => b.name)
+    );
     return true;
   } catch (error) {
-    console.error('MinIO Connection Failed:', error);
+    console.error("MinIO Connection Failed:", error);
     return false;
   }
 };
