@@ -12,8 +12,8 @@ export class NotificationPatterns {
     isOAuthEmployer = false
   ) {
     const notification: TNotificationCreate = {
-      title: "New Job Application",
-      description: `A new application has been submitted for ${jobTitle} at ${companyName}`,
+      title: "ใบสมัครงานใหม่",
+      description: `มีการส่งใบสมัครงานใหม่สำหรับตำแหน่ง ${jobTitle} ที่ ${companyName}`,
       userType: isOAuthEmployer ? "OAUTHEMPLOYER" : "EMPLOYER",
       ...(isOAuthEmployer ? { oauthEmployerId: employerId } : { employerId }),
     };
@@ -21,8 +21,8 @@ export class NotificationPatterns {
 
     // Create notification for job seeker
     const seekerNotification: TNotificationCreate = {
-      title: "Application Submitted",
-      description: `Your application for ${jobTitle} at ${companyName} has been submitted successfully`,
+      title: "ส่งใบสมัครงานแล้ว",
+      description: `คุณได้ส่งใบสมัครงานสำหรับตำแหน่ง ${jobTitle} ที่ ${companyName} เรียบร้อยแล้ว`,
       userType: isOAuthJobSeeker ? "OAUTHJOBSEEKER" : "JOBSEEKER",
       ...(isOAuthJobSeeker ? { oauthJobSeekerId: jobSeekerId } : { jobSeekerId }),
     };
@@ -38,8 +38,8 @@ export class NotificationPatterns {
     isOAuthJobSeeker = false
   ) {
     const notification: TNotificationCreate = {
-      title: "Application Status Update",
-      description: `Your application for ${jobTitle} at ${companyName} has been ${status}`,
+      title: "อัปเดตสถานะใบสมัครงาน",
+      description: `สถานะใบสมัครงานของคุณสำหรับตำแหน่ง ${jobTitle} ที่ ${companyName} ได้รับการ${status}`,
       userType: isOAuthJobSeeker ? "OAUTHJOBSEEKER" : "JOBSEEKER",
       ...(isOAuthJobSeeker ? { oauthJobSeekerId: jobSeekerId } : { jobSeekerId }),
     };
@@ -57,16 +57,16 @@ export class NotificationPatterns {
     isOAuthEmployer = false
   ) {
     const notification: TNotificationCreate = {
-      title: "Interview Scheduled",
-      description: `An interview has been scheduled for ${jobTitle} position at ${companyName} on ${interviewDate.toLocaleDateString()}`,
+      title: "นัดหมายสัมภาษณ์",
+      description: `มีการนัดหมายสัมภาษณ์สำหรับตำแหน่ง ${jobTitle} ที่ ${companyName} ในวันที่ ${interviewDate.toLocaleDateString()}`,
       userType: isOAuthJobSeeker ? "OAUTHJOBSEEKER" : "JOBSEEKER",
       ...(isOAuthJobSeeker ? { oauthJobSeekerId: jobSeekerId } : { jobSeekerId }),
     };
     await NotificationService.createNotification(notification);
 
     const employerNotification: TNotificationCreate = {
-      title: "Interview Confirmation",
-      description: `Interview scheduled with candidate for ${jobTitle} position on ${interviewDate.toLocaleDateString()}`,
+      title: "ยืนยันการสัมภาษณ์",
+      description: `นัดหมายสัมภาษณ์กับผู้สมัครสำหรับตำแหน่ง ${jobTitle} ในวันที่ ${interviewDate.toLocaleDateString()}`,
       userType: isOAuthEmployer ? "OAUTHEMPLOYER" : "EMPLOYER",
       ...(isOAuthEmployer ? { oauthEmployerId: employerId } : { employerId }),
     };
@@ -81,8 +81,8 @@ export class NotificationPatterns {
     isOAuthEmployer = false
   ) {
     const notification: TNotificationCreate = {
-      title: "Company Profile Update",
-      description: `Your company profile ${updateType} has been updated successfully`,
+      title: "อัปเดตโปรไฟล์บริษัท",
+      description: `โปรไฟล์บริษัทของคุณ ${updateType} ได้รับการอัปเดตเรียบร้อยแล้ว`,
       userType: isOAuthEmployer ? "OAUTHEMPLOYER" : "EMPLOYER",
       ...(isOAuthEmployer ? { oauthEmployerId: employerId } : { employerId }),
       companyId,
@@ -98,9 +98,16 @@ export class NotificationPatterns {
     action: "created" | "updated" | "expired" | "deleted",
     isOAuthEmployer = false
   ) {
+    const actionMap = {
+      created: "สร้าง",
+      updated: "อัปเดต",
+      expired: "หมดอายุ",
+      deleted: "ลบ"
+    };
+
     const notification: TNotificationCreate = {
-      title: "Job Posting Update",
-      description: `Your job posting for ${jobTitle} has been ${action}`,
+      title: "อัปเดตประกาศรับสมัครงาน",
+      description: `ประกาศรับสมัครงานตำแหน่ง ${jobTitle} ได้รับการ${actionMap[action]}`,
       userType: isOAuthEmployer ? "OAUTHEMPLOYER" : "EMPLOYER",
       ...(isOAuthEmployer ? { oauthEmployerId: employerId } : { employerId }),
       companyId,
@@ -115,8 +122,8 @@ export class NotificationPatterns {
     updateType: string
   ) {
     const notification: TNotificationCreate = {
-      title: "Profile Update",
-      description: `Your ${updateType} has been updated successfully`,
+      title: "อัปเดตโปรไฟล์",
+      description: `${updateType} ของคุณได้รับการอัปเดตเรียบร้อยแล้ว`,
       userType,
       ...(userType === "JOBSEEKER" ? { jobSeekerId: userId } :
           userType === "OAUTHJOBSEEKER" ? { oauthJobSeekerId: userId } :
@@ -159,8 +166,8 @@ export class NotificationPatterns {
   ) {
     // Notify job seeker
     const seekerNotification: TNotificationCreate = {
-      title: "Job Application Submitted",
-      description: `You have applied for the position: ${jobTitle} at ${companyName}`,
+      title: "ส่งใบสมัครงานแล้ว",
+      description: `คุณได้สมัครงานตำแหน่ง ${jobTitle} ที่ ${companyName}`,
       userType: isOAuthJobSeeker ? "OAUTHJOBSEEKER" : "JOBSEEKER",
       ...(isOAuthJobSeeker ? { oauthJobSeekerId: jobSeekerId } : { jobSeekerId }),
     };
@@ -169,24 +176,24 @@ export class NotificationPatterns {
     // Notify employer/company
     if (employerId) {
       const employerNotification: TNotificationCreate = {
-        title: "New Job Application",
-        description: `A new candidate has applied for the position: ${jobTitle}`,
+        title: "ใบสมัครงานใหม่",
+        description: `มีผู้สมัครใหม่สำหรับตำแหน่ง ${jobTitle}`,
         userType: "EMPLOYER",
         employerId,
       };
       await NotificationService.createNotification(employerNotification);
     } else if (oauthEmployerId) {
       const oauthEmployerNotification: TNotificationCreate = {
-        title: "New Job Application",
-        description: `A new candidate has applied for the position: ${jobTitle}`,
+        title: "ใบสมัครงานใหม่",
+        description: `มีผู้สมัครใหม่สำหรับตำแหน่ง ${jobTitle}`,
         userType: "OAUTHEMPLOYER",
         oauthEmployerId,
       };
       await NotificationService.createNotification(oauthEmployerNotification);
     } else if (companyId) {
       const companyNotification: TNotificationCreate = {
-        title: "New Job Application",
-        description: `A new candidate has applied for the position: ${jobTitle}`,
+        title: "ใบสมัครงานใหม่",
+        description: `มีผู้สมัครใหม่สำหรับตำแหน่ง ${jobTitle}`,
         userType: "COMPANY",
         companyId,
       };
@@ -203,8 +210,8 @@ export class NotificationPatterns {
   ) {
     // Notify employer
     const employerNotification: TNotificationCreate = {
-      title: "Job Finding Match",
-      description: `You have matched with a job finding post for position: ${jobTitle}`,
+      title: "พบการจับคู่หางาน",
+      description: `คุณได้จับคู่กับประกาศหางานตำแหน่ง ${jobTitle}`,
       userType: isOAuthEmployer ? "OAUTHEMPLOYER" : "EMPLOYER",
       ...(isOAuthEmployer ? { oauthEmployerId: employerId } : { employerId }),
     };
@@ -213,16 +220,16 @@ export class NotificationPatterns {
     // Notify job seeker
     if (jobSeekerId) {
       const seekerNotification: TNotificationCreate = {
-        title: "New Match Found",
-        description: `An employer has matched with your job finding post for: ${jobTitle}`,
+        title: "พบการจับคู่ใหม่",
+        description: `มีนายจ้างจับคู่กับประกาศหางานของคุณสำหรับตำแหน่ง ${jobTitle}`,
         userType: "JOBSEEKER",
         jobSeekerId,
       };
       await NotificationService.createNotification(seekerNotification);
     } else if (oauthJobSeekerId) {
       const oauthSeekerNotification: TNotificationCreate = {
-        title: "New Match Found",
-        description: `An employer has matched with your job finding post for: ${jobTitle}`,
+        title: "พบการจับคู่ใหม่",
+        description: `มีนายจ้างจับคู่กับประกาศหางานของคุณสำหรับตำแหน่ง ${jobTitle}`,
         userType: "OAUTHJOBSEEKER",
         oauthJobSeekerId,
       };
@@ -238,10 +245,10 @@ export class NotificationPatterns {
     companyName?: string
   ) {
     const notification: TNotificationCreate = {
-      title: "Match Status Update",
+      title: "อัปเดตสถานะการจับคู่",
       description: companyName 
-        ? `Your application for ${jobTitle} at ${companyName} has been ${status}`
-        : `The status for ${jobTitle} has been updated to ${status}`,
+        ? `ใบสมัครงานของคุณสำหรับตำแหน่ง ${jobTitle} ที่ ${companyName} ได้รับการ${status}`
+        : `สถานะสำหรับตำแหน่ง ${jobTitle} ได้รับการอัปเดตเป็น ${status}`,
       userType,
       ...(userType === "JOBSEEKER" ? { jobSeekerId: userId } :
           userType === "OAUTHJOBSEEKER" ? { oauthJobSeekerId: userId } :

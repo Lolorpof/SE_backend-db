@@ -1494,118 +1494,106 @@ async function seed() {
 
     // Seed Notifications
     await db.insert(notificationTable).values([
+      // Job Application Notifications
       {
         status: "UNREAD",
-        title: "Application Approved",
-        description: "Your registration has been approved",
-        userType: "JOBSEEKER",
-        jobSeekerId: jobSeeker1.id,
+        title: "ใบสมัครงานใหม่",
+        description: "มีการส่งใบสมัครงานใหม่สำหรับตำแหน่ง นักพัฒนาโปรแกรมอาวุโส ที่ บริษัท เทคโนโลยี จำกัด",
+        userType: "EMPLOYER",
+        employerId: employer1.id,
       },
       {
         status: "UNREAD",
-        title: "New Job Match",
-        description: "A new job matching your skills has been posted",
+        title: "ส่งใบสมัครงานแล้ว",
+        description: "คุณได้ส่งใบสมัครงานสำหรับตำแหน่ง นักพัฒนาโปรแกรมอาวุโส ที่ บริษัท เทคโนโลยี จำกัด เรียบร้อยแล้ว",
         userType: "JOBSEEKER",
         jobSeekerId: jobSeeker1.id,
       },
+      // Application Status Update Notifications
       {
         status: "UNREAD",
-        title: "Application Approved",
-        description: "Your registration has been approved",
+        title: "อัปเดตสถานะใบสมัครงาน",
+        description: "สถานะใบสมัครงานของคุณสำหรับตำแหน่ง ผู้จัดการฝ่ายการตลาด ที่ บริษัท การตลาด จำกัด ได้รับการอนุมัติ",
         userType: "JOBSEEKER",
         jobSeekerId: jobSeeker3.id,
       },
+      // Interview Notifications
       {
         status: "UNREAD",
-        title: "Application Approved",
-        description: "Your registration has been approved",
+        title: "นัดหมายสัมภาษณ์",
+        description: "มีการนัดหมายสัมภาษณ์สำหรับตำแหน่ง นักออกแบบกราฟิกอาวุโส ที่ บริษัท ออกแบบ จำกัด ในวันที่ 2024-03-20",
         userType: "JOBSEEKER",
         jobSeekerId: jobSeeker4.id,
       },
       {
         status: "UNREAD",
-        title: "Application Approved",
-        description: "Your registration has been approved",
+        title: "ยืนยันการสัมภาษณ์",
+        description: "นัดหมายสัมภาษณ์กับผู้สมัครสำหรับตำแหน่ง นักออกแบบกราฟิกอาวุโส ในวันที่ 2024-03-20",
+        userType: "EMPLOYER",
+        employerId: employer2.id,
+      },
+      // Company Profile Update Notifications
+      {
+        status: "UNREAD",
+        title: "อัปเดตโปรไฟล์บริษัท",
+        description: "โปรไฟล์บริษัทของคุณ ข้อมูลบริษัท ได้รับการอัปเดตเรียบร้อยแล้ว",
+        userType: "COMPANY",
+        companyId: company1.id,
+      },
+      // Job Posting Notifications
+      {
+        status: "UNREAD",
+        title: "อัปเดตประกาศรับสมัครงาน",
+        description: "ประกาศรับสมัครงานตำแหน่ง ผู้จัดการซัพพลายเชน ได้รับการสร้าง",
+        userType: "COMPANY",
+        companyId: company2.id,
+      },
+      // Profile Update Notifications
+      {
+        status: "UNREAD",
+        title: "อัปเดตโปรไฟล์",
+        description: "ข้อมูลส่วนตัว ของคุณได้รับการอัปเดตเรียบร้อยแล้ว",
         userType: "JOBSEEKER",
         jobSeekerId: jobSeeker6.id,
       },
-      {
-        status: "READ",
-        title: "Application Approved",
-        description: "Your registration has been approved",
-        userType: "EMPLOYER",
-        employerId: employer1.id,
-      },
-      {
-        status: "READ",
-        title: "New Application",
-        description: "You have received a new job application",
-        userType: "EMPLOYER",
-        employerId: employer1.id,
-      },
+      // Matching Notifications
       {
         status: "UNREAD",
-        title: "Profile View",
-        description: "Someone viewed your company profile",
-        userType: "EMPLOYER",
-        employerId: employer1.id,
-      },
-      {
-        status: "UNREAD",
-        title: "Application Approved",
-        description: "Your registration has been approved",
-        userType: "EMPLOYER",
-        employerId: employer1.id,
-      },
-      {
-        status: "UNREAD",
-        title: "New Message",
-        description: "You have a new message from a candidate",
-        userType: "EMPLOYER",
-        employerId: employer1.id,
-      },
-      {
-        status: "UNREAD",
-        title: "Interview Reminder",
-        description: "Upcoming interview tomorrow",
-        userType: "EMPLOYER",
-        employerId: employer1.id,
-      },
-      {
-        status: "UNREAD",
-        title: "Application Update",
-        description: "A candidate has updated their application",
+        title: "พบการจับคู่หางาน",
+        description: "คุณได้จับคู่กับประกาศหางานตำแหน่ง นักวิจัยทางการแพทย์",
         userType: "EMPLOYER",
         employerId: employer3.id,
       },
       {
         status: "UNREAD",
-        title: "Application Approved",
-        description: "Your registration has been approved",
-        userType: "EMPLOYER",
-        employerId: employer4.id,
+        title: "พบการจับคู่ใหม่",
+        description: "มีนายจ้างจับคู่กับประกาศหางานของคุณสำหรับตำแหน่ง นักวิจัยทางการแพทย์",
+        userType: "JOBSEEKER",
+        jobSeekerId: jobSeeker1.id,
       },
+      // Match Status Update Notifications
       {
         status: "UNREAD",
-        title: "Application Approved",
-        description: "Your registration has been approved",
-        userType: "COMPANY",
-        companyId: company1.id,
-      },
-      {
-        status: "READ",
-        title: "Application Approved",
-        description: "Your registration has been approved",
+        title: "อัปเดตสถานะการจับคู่",
+        description: "สถานะสำหรับตำแหน่ง ผู้อำนวยการฝ่ายขาย ได้รับการอัปเดตเป็น กำลังพิจารณา",
         userType: "COMPANY",
         companyId: company3.id,
       },
+      // System Notifications
       {
-        status: "UNREAD",
-        title: "Application Approved",
-        description: "Your registration has been approved",
-        userType: "COMPANY",
-        companyId: company4.id,
+        status: "READ",
+        title: "การลงทะเบียนสำเร็จ",
+        description: "การลงทะเบียนของคุณได้รับการอนุมัติเรียบร้อยแล้ว",
+        userType: "EMPLOYER",
+        employerId: employer1.id,
       },
+      {
+        status: "READ",
+        title: "การลงทะเบียนสำเร็จ",
+        description: "การลงทะเบียนของคุณได้รับการอนุมัติเรียบร้อยแล้ว",
+        userType: "COMPANY",
+        companyId: company3.id,
+      }
     ]);
 
     // Add OAuth Job Seeker Skills
