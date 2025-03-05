@@ -49,7 +49,7 @@ EOF
 
     echo "Seeding database..."
     pnpm run db:seed
-
+    pnpm run minio:bucket
     # Create flag file to indicate initialization is done
     touch "$INIT_FLAG_FILE"
     echo "Initialization complete."

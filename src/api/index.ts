@@ -55,7 +55,7 @@ app.use([
     saveUninitialized: false,
     resave: false,
     store: sessionStore,
-    cookie: { maxAge: cookieExpireTime.dev, httpOnly: true },
+    cookie: { maxAge: cookieExpireTime.real, httpOnly: true },
   }),
   passport.initialize(),
   passport.session(),

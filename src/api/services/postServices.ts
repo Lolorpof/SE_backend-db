@@ -64,7 +64,7 @@ export class postServices {
         page = 1,
       } = queryParams;
 
-      const ITEMS_PER_PAGE = 10;
+      const ITEMS_PER_PAGE = 20;
       const offset = (Number(page) - 1) * ITEMS_PER_PAGE;
 
       // Check if any filters are applied
@@ -763,7 +763,7 @@ export class postServices {
         page = 1,
       } = queryParams;
 
-      const ITEMS_PER_PAGE = 10;
+      const ITEMS_PER_PAGE = 20;
       const offset = (Number(page) - 1) * ITEMS_PER_PAGE;
 
       // Check if any filters are applied
