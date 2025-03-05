@@ -14,6 +14,8 @@ import {
   skillTable,
   jobCategoryTable,
   jobPostTypeEnum,
+  employerTable,
+  oauthEmployerTable,
 } from "../../db/schema";
 import {
   jobPostType,
@@ -584,43 +586,17 @@ export class postServices {
 
   async getJobPost(id: string): Promise<TPostResponse> {
     try {
-      const jobPost = await drizzlePool
-        .select({
-          id: jobHiringPostTable.id,
-          title: jobHiringPostTable.title,
-          description: jobHiringPostTable.description,
-          jobLocation: jobHiringPostTable.jobLocation,
-          salary: jobHiringPostTable.salary,
-          workDates: jobHiringPostTable.workDates,
-          workHoursRange: jobHiringPostTable.workHoursRange,
-          hiredAmount: jobHiringPostTable.hiredAmount,
-          status: jobHiringPostTable.status,
-          jobHirerType: jobHiringPostTable.jobHirerType,
-          jobPostType: jobHiringPostTable.jobPostType,
-          employerId: jobHiringPostTable.employerId,
-          oauthEmployerId: jobHiringPostTable.oauthEmployerId,
-          companyId: jobHiringPostTable.companyId,
-          createdAt: jobHiringPostTable.createdAt,
-          updatedAt: jobHiringPostTable.updatedAt,
-        })
-        .from(jobHiringPostTable)
-        .where(eq(jobHiringPostTable.id, id));
+      const jobPost = await drizzlePool.query.jobHiringPostTable.findFirst({
+        where: eq(jobHiringPostTable.id, id),
+        with: {
+          postByEmployer: true,
+          postByOauthEmployer: true,
+          postByCompany: true,
+        },
+      });
 
-      if (!jobPost || jobPost.length === 0) {
+      if (!jobPost) {
         throw errorServices.handleNotFoundError("Job post");
-      }
-
-      // Fetch company name if companyId exists
-      let companyName: string | null = null;
-      if (jobPost[0].companyId) {
-        const company = await drizzlePool
-          .select({ officialName: companyTable.officialName })
-          .from(companyTable)
-          .where(eq(companyTable.id, jobPost[0].companyId));
-
-        if (company && company.length > 0) {
-          companyName = company[0].officialName;
-        }
       }
 
       // Fetch skills and categories
@@ -630,8 +606,7 @@ export class postServices {
       ]);
 
       const postWithRelations = {
-        ...jobPost[0],
-        companyName,
+        ...jobPost,
         skills,
         jobCategories: categories,
       };
@@ -1136,26 +1111,13 @@ export class postServices {
 
   public async getJobFindingPost(postId: string): Promise<TPostResponse> {
     try {
-      const [post] = await drizzlePool
-        .select({
-          id: jobFindingPostTable.id,
-          title: jobFindingPostTable.title,
-          description: jobFindingPostTable.description,
-          jobLocation: jobFindingPostTable.jobLocation,
-          expectedSalary: jobFindingPostTable.expectedSalary,
-          workDates: jobFindingPostTable.workDates,
-          workHoursRange: jobFindingPostTable.workHoursRange,
-          status: jobFindingPostTable.status,
-          jobPostType: jobFindingPostTable.jobPostType,
-          jobSeekerType: jobFindingPostTable.jobSeekerType,
-          jobSeekerId: jobFindingPostTable.jobSeekerId,
-          oauthJobSeekerId: jobFindingPostTable.oauthJobSeekerId,
-          createdAt: jobFindingPostTable.createdAt,
-          updatedAt: jobFindingPostTable.updatedAt,
-        })
-        .from(jobFindingPostTable)
-        .where(eq(jobFindingPostTable.id, postId))
-        .limit(1);
+      const post = await drizzlePool.query.jobFindingPostTable.findFirst({
+        where: eq(jobFindingPostTable.id, postId),
+        with: {
+          postByNormal: true,
+          postByOauth: true,
+        },
+      });
 
       if (!post) {
         throw errorServices.handleNotFoundError("Job finding post");
