@@ -8,7 +8,7 @@ import {
   jobFindingPostTable,
   jobSeekerTypeEnum,
   jobHirerTypeEnum,
-  jobMatchedStatusEnum
+  jobMatchedStatusEnum,
 } from "../../db/schema";
 import { Services } from "./services";
 import { ServicesResponse } from "../types/responseTypes";
@@ -24,7 +24,13 @@ import {
   validateHiringMatchSeeker,
   validateFindingMatchHirer,
 } from "../schemas/requestBodySchema";
-import { TJobSeekerSession, TGenericUserSession, TJobSeeker, TEmployer, TCompany } from "../types/usersTypes";
+import {
+  TJobSeekerSession,
+  TGenericUserSession,
+  TJobSeeker,
+  TEmployer,
+  TCompany,
+} from "../types/usersTypes";
 import { internalUserServices } from "./internalUserServices";
 
 // Define a type for objects that can have user data
@@ -63,7 +69,6 @@ interface BasePost {
   [key: string]: any;
 }
 
-
 export class matchingServices
   extends Services<any, any>
   implements matchingServiceInterfaces
@@ -87,7 +92,9 @@ export class matchingServices
       }
 
       // Get user data using internal service
-      const userData = await internalUserServices.instance().getUserData(user.id, user.isOauth);
+      const userData = await internalUserServices
+        .instance()
+        .getUserData(user.id, user.isOauth);
       if (!userData.success || !userData.data) {
         return { success: false, msg: "User not found", status: 404 };
       }
@@ -167,9 +174,13 @@ export class matchingServices
         post.oauthEmployerId,
         post.companyId,
         post.title,
-        post.postByCompany?.officialName || 
-        post.postByEmployer?.firstName + " " + post.postByEmployer?.lastName ||
-        post.postByOauthEmployer?.firstName + " " + post.postByOauthEmployer?.lastName,
+        post.postByCompany?.officialName ||
+          post.postByEmployer?.firstName +
+            " " +
+            post.postByEmployer?.lastName ||
+          post.postByOauthEmployer?.firstName +
+            " " +
+            post.postByOauthEmployer?.lastName,
         user.isOauth
       );
 
@@ -207,17 +218,19 @@ export class matchingServices
               const isOauth = seeker.jobSeekerType === "OAUTH";
               if (!userId) return seeker;
 
-              const userData = await internalUserServices.instance().queryUserById(userId, isOauth);
+              const userData = await internalUserServices
+                .instance()
+                .queryUserById(userId, isOauth);
               return {
                 ...seeker,
-                userData
+                userData,
               };
             })
           );
 
           return {
             ...match,
-            toMatchSeekers: seekersWithData
+            toMatchSeekers: seekersWithData,
           };
         })
       );
@@ -241,30 +254,34 @@ export class matchingServices
     status: TMatchStatus
   ): Promise<ServicesResponse<any>> {
     try {
-      const match = await drizzlePool.query.jobHiringPostMatchedSeekersTable.findFirst({
-        where: and(
-          eq(jobHiringPostMatchedSeekersTable.jobHiringPostMatchedId, matchId),
-          or(
-            eq(jobHiringPostMatchedSeekersTable.jobSeekerId, seekerId),
-            eq(jobHiringPostMatchedSeekersTable.oauthJobSeekerId, seekerId)
-          )
-        ),
-        with: {
-          toPostMatched: {
-            with: {
-              toPost: {
-                with: {
-                  postByCompany: true,
-                  postByEmployer: true,
-                  postByOauthEmployer: true,
-                }
-              }
-            }
+      const match =
+        await drizzlePool.query.jobHiringPostMatchedSeekersTable.findFirst({
+          where: and(
+            eq(
+              jobHiringPostMatchedSeekersTable.jobHiringPostMatchedId,
+              matchId
+            ),
+            or(
+              eq(jobHiringPostMatchedSeekersTable.jobSeekerId, seekerId),
+              eq(jobHiringPostMatchedSeekersTable.oauthJobSeekerId, seekerId)
+            )
+          ),
+          with: {
+            toPostMatched: {
+              with: {
+                toPost: {
+                  with: {
+                    postByCompany: true,
+                    postByEmployer: true,
+                    postByOauthEmployer: true,
+                  },
+                },
+              },
+            },
+            toJobSeeker: true,
+            toOauthJobSeeker: true,
           },
-          toJobSeeker: true,
-          toOauthJobSeeker: true,
-        }
-      });
+        });
 
       if (!match) {
         return { success: false, msg: "Match not found", status: 404 };
@@ -284,9 +301,12 @@ export class matchingServices
 
       // Send notification to job seeker
       const post = match.toPostMatched.toPost;
-      const companyName = post.postByCompany?.officialName || 
-                         post.postByEmployer?.firstName + " " + post.postByEmployer?.lastName ||
-                         post.postByOauthEmployer?.firstName + " " + post.postByOauthEmployer?.lastName;
+      const companyName =
+        post.postByCompany?.officialName ||
+        post.postByEmployer?.firstName + " " + post.postByEmployer?.lastName ||
+        post.postByOauthEmployer?.firstName +
+          " " +
+          post.postByOauthEmployer?.lastName;
 
       await NotificationPatterns.createMatchStatusUpdateNotification(
         seekerId,
@@ -304,7 +324,11 @@ export class matchingServices
       };
     } catch (error) {
       console.error(error);
-      return { success: false, msg: "Failed to update match status", status: 500 };
+      return {
+        success: false,
+        msg: "Failed to update match status",
+        status: 500,
+      };
     }
   }
 
@@ -422,10 +446,12 @@ export class matchingServices
           const isOauth = seeker.jobSeekerType === "OAUTH";
           if (!userId) return seeker;
 
-          const userData = await internalUserServices.instance().queryUserById(userId, isOauth);
+          const userData = await internalUserServices
+            .instance()
+            .queryUserById(userId, isOauth);
           return {
             ...seeker,
-            userData
+            userData,
           };
         })
       );
@@ -458,7 +484,7 @@ export class matchingServices
         with: {
           postByNormal: true,
           postByOauth: true,
-        }
+        },
       });
 
       if (!post) {
@@ -466,16 +492,17 @@ export class matchingServices
       }
 
       // Check if user has already matched with this post
-      const existingMatch = await drizzlePool.query.jobFindingPostMatchedTable.findFirst({
-        where: and(
-          eq(jobFindingPostMatchedTable.jobFindingPostId, findingPostId),
-          or(
-            eq(jobFindingPostMatchedTable.employerId, user.id),
-            eq(jobFindingPostMatchedTable.oauthEmployerId, user.id),
-            eq(jobFindingPostMatchedTable.companyId, user.id)
-          )
-        ),
-      });
+      const existingMatch =
+        await drizzlePool.query.jobFindingPostMatchedTable.findFirst({
+          where: and(
+            eq(jobFindingPostMatchedTable.jobFindingPostId, findingPostId),
+            or(
+              eq(jobFindingPostMatchedTable.employerId, user.id),
+              eq(jobFindingPostMatchedTable.oauthEmployerId, user.id),
+              eq(jobFindingPostMatchedTable.companyId, user.id)
+            )
+          ),
+        });
 
       if (existingMatch) {
         return {
@@ -497,8 +524,13 @@ export class matchingServices
         )
         VALUES (
           ${findingPostId},
-          ${user.type === "EMPLOYER" ? "EMPLOYER" : 
-            user.type === "OAUTHEMPLOYER" ? "OAUTHEMPLOYER" : "COMPANY"},
+          ${
+            user.type === "EMPLOYER"
+              ? "EMPLOYER"
+              : user.type === "OAUTHEMPLOYER"
+              ? "OAUTHEMPLOYER"
+              : "COMPANY"
+          },
           ${user.type === "EMPLOYER" ? user.id : null},
           ${user.type === "OAUTHEMPLOYER" ? user.id : null},
           ${user.type === "COMPANY" ? user.id : null},
@@ -538,20 +570,21 @@ export class matchingServices
     status: TMatchStatus
   ): Promise<ServicesResponse<any>> {
     try {
-      const match = await drizzlePool.query.jobFindingPostMatchedTable.findFirst({
-        where: eq(jobFindingPostMatchedTable.id, matchId),
-        with: {
-          toPost: {
-            with: {
-              postByNormal: true,
-              postByOauth: true,
-            }
+      const match =
+        await drizzlePool.query.jobFindingPostMatchedTable.findFirst({
+          where: eq(jobFindingPostMatchedTable.id, matchId),
+          with: {
+            toPost: {
+              with: {
+                postByNormal: true,
+                postByOauth: true,
+              },
+            },
+            toEmployer: true,
+            toOauthEmployer: true,
+            toCompany: true,
           },
-          toEmployer: true,
-          toOauthEmployer: true,
-          toCompany: true,
-        }
-      });
+        });
 
       if (!match) {
         return { success: false, msg: "Match not found", status: 404 };
@@ -569,7 +602,7 @@ export class matchingServices
 
       // Send notifications to both parties
       const post = match.toPost;
-      
+
       // Notify job seeker
       if (post.postByNormal || post.postByOauth) {
         await NotificationPatterns.createMatchStatusUpdateNotification(
@@ -598,7 +631,11 @@ export class matchingServices
       };
     } catch (error) {
       console.error(error);
-      return { success: false, msg: "Failed to update match status", status: 500 };
+      return {
+        success: false,
+        msg: "Failed to update match status",
+        status: 500,
+      };
     }
   }
 
@@ -616,10 +653,13 @@ export class matchingServices
       }
 
       // Fetch user data for the employer/company
-      const userId = match.employerId || match.oauthEmployerId || match.companyId;
+      const userId =
+        match.employerId || match.oauthEmployerId || match.companyId;
       const isOauth = match.jobHirerType === "OAUTHEMPLOYER";
       if (userId) {
-        const userData = await internalUserServices.instance().queryUserById(userId, isOauth);
+        const userData = await internalUserServices
+          .instance()
+          .queryUserById(userId, isOauth);
         (match as WithUserData<typeof match>).userData = userData;
       }
 
@@ -641,13 +681,17 @@ export class matchingServices
   ): Promise<ServicesResponse<any>> {
     try {
       // Get user data using internal service
-      const userData = await internalUserServices.instance().queryUserById(userId, userType.includes("OAUTH"));
+      const userData = await internalUserServices
+        .instance()
+        .queryUserById(userId, userType.includes("OAUTH"));
       if (!userData) {
         return { success: false, msg: "User not found", status: 404 };
       }
 
       // Get user session to determine exact type
-      const userSession = await internalUserServices.instance().getUserSession(userId);
+      const userSession = await internalUserServices
+        .instance()
+        .getUserSession(userId);
       if (!userSession.success || !userSession.data) {
         return { success: false, msg: "User session not found", status: 404 };
       }
@@ -655,19 +699,29 @@ export class matchingServices
       let matches: { hiringMatches: any[]; findingMatches: any[] };
 
       // If user is a job seeker
-      if (userSession.data.type === "JOBSEEKER" || userSession.data.type === "OAUTH_JOBSEEKER") {
+      if (
+        userSession.data.type === "JOBSEEKER" ||
+        userSession.data.type === "OAUTH_JOBSEEKER"
+      ) {
         // Get hiring post matches where user is a seeker
         console.log("Jobseeker trying to get all matched");
         console.log("userSession.data.type", userSession.data.type);
         const hiringMatches =
           await drizzlePool.query.jobHiringPostMatchedSeekersTable.findMany({
-            where: userSession.data.type === "OAUTH_JOBSEEKER"
-              ? eq(jobHiringPostMatchedSeekersTable.oauthJobSeekerId, userId)
-              : eq(jobHiringPostMatchedSeekersTable.jobSeekerId, userId),
+            where:
+              userSession.data.type === "OAUTH_JOBSEEKER"
+                ? eq(jobHiringPostMatchedSeekersTable.oauthJobSeekerId, userId)
+                : eq(jobHiringPostMatchedSeekersTable.jobSeekerId, userId),
             with: {
               toPostMatched: {
                 with: {
-                  toPost: true,
+                  toPost: {
+                    with: {
+                      postByCompany: true,
+                      postByOauthEmployer: true,
+                      postByEmployer: true,
+                    },
+                  },
                 },
               },
             },
@@ -676,9 +730,10 @@ export class matchingServices
         // Get finding posts where user is the creator
         const findingMatches =
           await drizzlePool.query.jobFindingPostTable.findMany({
-            where: userSession.data.type === "OAUTH_JOBSEEKER"
-              ? eq(jobFindingPostTable.oauthJobSeekerId, userId)
-              : eq(jobFindingPostTable.jobSeekerId, userId),
+            where:
+              userSession.data.type === "OAUTH_JOBSEEKER"
+                ? eq(jobFindingPostTable.oauthJobSeekerId, userId)
+                : eq(jobFindingPostTable.jobSeekerId, userId),
             with: {
               postMatched: {
                 with: {
@@ -687,6 +742,8 @@ export class matchingServices
                   toCompany: true,
                 },
               },
+              postByNormal: true,
+              postByOauth: true,
             },
           });
 
@@ -694,16 +751,24 @@ export class matchingServices
         const findingMatchesWithData = await Promise.all(
           findingMatches.map(async (match) => {
             if (match.postMatched) {
-              await Promise.all(match.postMatched.map(async (matched) => {
-                const hirerId = matched.employerId || matched.oauthEmployerId || matched.companyId;
-                const isOauth = matched.jobHirerType === "OAUTHEMPLOYER";
-                if (hirerId) {
-                  const hirerData = await internalUserServices.instance().queryUserById(hirerId, isOauth);
-                  if (hirerData) {
-                    (matched as WithUserData<typeof matched>).userData = hirerData;
+              await Promise.all(
+                match.postMatched.map(async (matched) => {
+                  const hirerId =
+                    matched.employerId ||
+                    matched.oauthEmployerId ||
+                    matched.companyId;
+                  const isOauth = matched.jobHirerType === "OAUTHEMPLOYER";
+                  if (hirerId) {
+                    const hirerData = await internalUserServices
+                      .instance()
+                      .queryUserById(hirerId, isOauth);
+                    if (hirerData) {
+                      (matched as WithUserData<typeof matched>).userData =
+                        hirerData;
+                    }
                   }
-                }
-              }));
+                })
+              );
             }
             return match;
           })
@@ -738,20 +803,28 @@ export class matchingServices
         const hiringMatchesWithData = await Promise.all(
           hiringMatches.map(async (match) => {
             if (match.postMatched) {
-              await Promise.all(match.postMatched.map(async (matched) => {
-                if (matched.toMatchSeekers) {
-                  await Promise.all(matched.toMatchSeekers.map(async (seeker) => {
-                    const seekerId = seeker.jobSeekerId || seeker.oauthJobSeekerId;
-                    const isOauth = seeker.jobSeekerType === "OAUTH";
-                    if (seekerId) {
-                      const seekerData = await internalUserServices.instance().queryUserById(seekerId, isOauth);
-                      if (seekerData) {
-                        (seeker as BaseMatchedSeeker).userData = seekerData as TJobSeeker;
-                      }
-                    }
-                  }));
-                }
-              }));
+              await Promise.all(
+                match.postMatched.map(async (matched) => {
+                  if (matched.toMatchSeekers) {
+                    await Promise.all(
+                      matched.toMatchSeekers.map(async (seeker) => {
+                        const seekerId =
+                          seeker.jobSeekerId || seeker.oauthJobSeekerId;
+                        const isOauth = seeker.jobSeekerType === "OAUTH";
+                        if (seekerId) {
+                          const seekerData = await internalUserServices
+                            .instance()
+                            .queryUserById(seekerId, isOauth);
+                          if (seekerData) {
+                            (seeker as BaseMatchedSeeker).userData =
+                              seekerData as TJobSeeker;
+                          }
+                        }
+                      })
+                    );
+                  }
+                })
+              );
             }
             return match;
           })
@@ -779,10 +852,13 @@ export class matchingServices
         const findingMatchesWithData = await Promise.all(
           findingMatches.map(async (match) => {
             if (match.toPost) {
-              const seekerId = match.toPost.jobSeekerId || match.toPost.oauthJobSeekerId;
+              const seekerId =
+                match.toPost.jobSeekerId || match.toPost.oauthJobSeekerId;
               const isOauth = match.toPost.jobSeekerType === "OAUTH";
               if (seekerId) {
-                const seekerData = await internalUserServices.instance().queryUserById(seekerId, isOauth);
+                const seekerData = await internalUserServices
+                  .instance()
+                  .queryUserById(seekerId, isOauth);
                 if (seekerData) {
                   (match.toPost as BasePost).userData = seekerData;
                 }
@@ -860,20 +936,24 @@ export class matchingServices
   ): Promise<ServicesResponse<any>> {
     try {
       // First, verify that the user owns the match
-      const match = await drizzlePool.query.jobHiringPostMatchedSeekersTable.findFirst({
-        where: and(
-          eq(jobHiringPostMatchedSeekersTable.jobHiringPostMatchedId, matchId),
-          userType === "JOBSEEKER" 
-            ? eq(jobHiringPostMatchedSeekersTable.jobSeekerId, userId)
-            : eq(jobHiringPostMatchedSeekersTable.oauthJobSeekerId, userId)
-        ),
-      });
+      const match =
+        await drizzlePool.query.jobHiringPostMatchedSeekersTable.findFirst({
+          where: and(
+            eq(
+              jobHiringPostMatchedSeekersTable.jobHiringPostMatchedId,
+              matchId
+            ),
+            userType === "JOBSEEKER"
+              ? eq(jobHiringPostMatchedSeekersTable.jobSeekerId, userId)
+              : eq(jobHiringPostMatchedSeekersTable.oauthJobSeekerId, userId)
+          ),
+        });
 
       if (!match) {
-        return { 
-          success: false, 
-          msg: "Match not found or you don't have permission to delete it", 
-          status: 404 
+        return {
+          success: false,
+          msg: "Match not found or you don't have permission to delete it",
+          status: 404,
         };
       }
 
@@ -882,7 +962,10 @@ export class matchingServices
         .delete(jobHiringPostMatchedSeekersTable)
         .where(
           and(
-            eq(jobHiringPostMatchedSeekersTable.jobHiringPostMatchedId, matchId),
+            eq(
+              jobHiringPostMatchedSeekersTable.jobHiringPostMatchedId,
+              matchId
+            ),
             userType === "JOBSEEKER"
               ? eq(jobHiringPostMatchedSeekersTable.jobSeekerId, userId)
               : eq(jobHiringPostMatchedSeekersTable.oauthJobSeekerId, userId)
@@ -910,22 +993,23 @@ export class matchingServices
   ): Promise<ServicesResponse<any>> {
     try {
       // First, verify that the user owns the match
-      const match = await drizzlePool.query.jobFindingPostMatchedTable.findFirst({
-        where: and(
-          eq(jobFindingPostMatchedTable.id, matchId),
-          or(
-            eq(jobFindingPostMatchedTable.employerId, userId),
-            eq(jobFindingPostMatchedTable.oauthEmployerId, userId),
-            eq(jobFindingPostMatchedTable.companyId, userId)
-          )
-        ),
-      });
+      const match =
+        await drizzlePool.query.jobFindingPostMatchedTable.findFirst({
+          where: and(
+            eq(jobFindingPostMatchedTable.id, matchId),
+            or(
+              eq(jobFindingPostMatchedTable.employerId, userId),
+              eq(jobFindingPostMatchedTable.oauthEmployerId, userId),
+              eq(jobFindingPostMatchedTable.companyId, userId)
+            )
+          ),
+        });
 
       if (!match) {
-        return { 
-          success: false, 
-          msg: "Match not found or you don't have permission to delete it", 
-          status: 404 
+        return {
+          success: false,
+          msg: "Match not found or you don't have permission to delete it",
+          status: 404,
         };
       }
 
