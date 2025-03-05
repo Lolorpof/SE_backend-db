@@ -26,12 +26,12 @@ const app = express();
 testMinioConnection()
   .then((success) => {
     if (!success) {
-      console.error('Failed to connect to MinIO. Check your configuration.');
+      console.error("Failed to connect to MinIO. Check your configuration.");
       process.exit(1);
     }
   })
   .catch((error) => {
-    console.error('Error testing MinIO connection:', error);
+    console.error("Error testing MinIO connection:", error);
     process.exit(1);
   });
 
@@ -40,14 +40,19 @@ app.use(express.json());
 app.use([
   cors({
     origin: [
-      `http://localhost:${process.env.FRONTEND_PORT}`,  // Frontend dev server
-      'http://localhost',  // Nginx proxy
-      'http://localhost:80',  // Explicit Nginx port
-      'http://localhost:1982'  // MinIO compatibility port
+      `http://localhost:${process.env.FRONTEND_PORT}`, // Frontend dev server
+      "http://localhost", // Nginx proxy
+      "http://localhost:80", // Explicit Nginx port
+      "http://localhost:1982", // MinIO compatibility port
     ],
     credentials: true,
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
+    methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
+    allowedHeaders: [
+      "Content-Type",
+      "Authorization",
+      "X-Requested-With",
+      "permission_key",
+    ],
   }),
   helmet(),
   session({
@@ -78,7 +83,9 @@ app.get("/test-minio", async (req, res) => {
       res.status(500).json({ success: false, msg: "MinIO connection failed" });
     }
   } catch (error) {
-    res.status(500).json({ success: false, msg: "Error testing MinIO connection", error });
+    res
+      .status(500)
+      .json({ success: false, msg: "Error testing MinIO connection", error });
   }
 });
 

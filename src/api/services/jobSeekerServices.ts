@@ -23,7 +23,7 @@ import {
   registrationApprovalImageBucket,
   userProfileImageBucket,
 } from "../utilities/minio";
-import { minioUrlExpire } from "../utilities/env";
+import { minioApiPort, minioUrlExpire } from "../utilities/env";
 import {
   TEditAboutResponse,
   TEditAddressResponse,
@@ -55,7 +55,18 @@ import {
   TEditPasswordSchema,
   TEditUsernameSchema,
 } from "../validators/profileValidator";
-import { TJobSeeker, TJobSeekerSession, TMatchNameEmail, TRegisterUser, TUserSession, TRegisterImage, TProfileImage, TCheckUser, TResumeImage, TFormattedSingleUserRegister } from "../types/usersTypes";
+import {
+  TJobSeeker,
+  TJobSeekerSession,
+  TMatchNameEmail,
+  TRegisterUser,
+  TUserSession,
+  TRegisterImage,
+  TProfileImage,
+  TCheckUser,
+  TResumeImage,
+  TFormattedSingleUserRegister,
+} from "../types/usersTypes";
 
 export class jobSeekerServices implements jobSeekerServiceInterfaces {
   // singleton design
@@ -146,7 +157,7 @@ export class jobSeekerServices implements jobSeekerServiceInterfaces {
       firstName,
       lastName,
       email: validatedUserForm.email,
-      hashedPassword
+      hashedPassword,
     };
 
     // insert job seeker into database
@@ -456,7 +467,7 @@ export class jobSeekerServices implements jobSeekerServiceInterfaces {
       { "Content-Type": image.mimetype }
     );
 
-    const imageUrl = `http://localhost:1982/register/${imageName}`;
+    const imageUrl = `http://localhost:${minioApiPort}/register/${imageName}`;
 
     // insert into approval table
     const [error, result] = await catchError(
@@ -467,7 +478,7 @@ export class jobSeekerServices implements jobSeekerServiceInterfaces {
       console.error(error);
       return {
         success: false,
-        status: 400,
+        status: 403,
         msg: "Something went wrong",
       };
     }
@@ -502,13 +513,14 @@ export class jobSeekerServices implements jobSeekerServiceInterfaces {
     );
 
     // get image url (temp presigned)
-    const imageUrl = `http://localhost:1982/profile/${imageName}`;
+    const imageUrl = `http://localhost:${minioApiPort}/profile/${imageName}`;
 
     // call model
     const [error, result] = await catchError(
       jobSeekerModels.instance().uploadProfilePicture(imageUrl, formattedUser)
     );
     if (error) {
+      console.error(error);
       return { status: 403, success: false, msg: "Something went wrong" };
     }
 
@@ -541,13 +553,14 @@ export class jobSeekerServices implements jobSeekerServiceInterfaces {
       { "Content-Type": image.mimetype }
     );
 
-    const imageUrl = `http://localhost:1982/resume/${imageName}`;
+    const imageUrl = `http://localhost:${minioApiPort}/resume/${imageName}`;
 
     // call model
     const [error, result] = await catchError(
       jobSeekerModels.instance().uploadResume(imageUrl, formattedUser)
     );
     if (error) {
+      console.error(error);
       return { status: 403, success: false, msg: "Something went wrong" };
     }
 
