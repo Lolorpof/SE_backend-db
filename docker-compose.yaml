@@ -50,6 +50,7 @@ services:
     command: server /data --console-address ":9090"
     volumes:
       - minio_data:/data
+      - ./scripts/minio-init.sh:/usr/bin/minio-init.sh
     networks:
       - t10-network
     healthcheck:
@@ -57,6 +58,12 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+    entrypoint: >
+      /bin/sh -c "
+      chmod +x /usr/bin/minio-init.sh &&
+      /usr/bin/minio-init.sh &
+      /usr/bin/docker-entrypoint.sh server /data --console-address ':9090'
+      "
   nginx:
     image: nginx:latest
     container_name: t10-nginx
