@@ -21,7 +21,7 @@ import {
   registrationApprovalImageBucket,
   userProfileImageBucket,
 } from "../utilities/minio";
-import { minioUrlExpire } from "../utilities/env";
+import { minioApiPort, minioUrlExpire } from "../utilities/env";
 import { catchError } from "../utilities/utilFunctions";
 import {
   editAboutSchema,
@@ -473,7 +473,7 @@ export class employerServices implements employerServiceInterfaces {
     );
 
     // get image url (temp presigned)
-    const imageUrl = `http://localhost:1982/profile/${imageName}`;
+    const imageUrl = `http://localhost:${minioApiPort}/profile/${imageName}`;
 
     // call model
     const [error, result] = await catchError(
